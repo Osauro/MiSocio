@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Compra extends Model
 {
@@ -23,6 +25,18 @@ class Compra extends Model
         'online' => 'decimal:2',
         'credito' => 'decimal:2',
     ];
+
+    /**
+     * El método "booted" del modelo.
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            if (Auth::check() && currentTenantId()) {
+                $builder->where('tenant_id', currentTenantId());
+            }
+        });
+    }
 
     /**
      * Obtener el tenant al que pertenece la compra.

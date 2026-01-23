@@ -15,16 +15,21 @@
                 <img src="{{ asset('assets/images/logo.png') }}" alt="logo"
                     style="height: 35px; width: auto; object-fit: contain;" />
             </a>
-            <!-- Selector de tenant (solo desktop) -->
-            <div class="d-none d-md-block ms-3">
-                @livewire('tenant-switcher')
-            </div>
         </div>
         <div class="nav-right">
             <ul class="header-right">
-                <!-- Selector de tenant (solo móvil) -->
-                <li class="d-md-none">
-                    @livewire('tenant-switcher')
+                <!-- Botón selector de tenant -->
+                <li>
+                    @php
+                        $currentTenant = currentTenant();
+                        $tenantColor = $currentTenant?->theme_color ?? '#7366ff';
+                    @endphp
+                    <button class="btn btn-tenant-selector"
+                            onclick="Livewire.dispatch('openTenantSelector')"
+                            title="{{ $currentTenant?->name ?? 'Cambiar tienda' }}"
+                            style="background: {{ $tenantColor }};">
+                        <i class="fa-solid fa-store"></i>
+                    </button>
                 </li>
                 <li class="profile-nav">
                     <div class="user-img" id="toggleProfileSidebar" style="cursor: pointer;">
@@ -48,3 +53,28 @@
         });
     });
 </script>
+
+<style>
+    .btn-tenant-selector {
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-tenant-selector:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .btn-tenant-selector i {
+        color: white;
+        font-size: 18px;
+    }
+</style>

@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Traits\SweetAlertTrait;
+use Illuminate\Support\Facades\Auth;
 
 class TenantSwitcher extends Component
 {
@@ -19,22 +20,26 @@ class TenantSwitcher extends Component
 
     public function loadTenants()
     {
-        $user = auth()->user();
-        $this->tenants = $user->tenants()->wherePivot('is_active', true)->get();
-        $this->currentTenantId = currentTenantId();
+        $user = Auth::user();
+        if ($user) {
+            $this->tenants = $user->tenants()->wherePivot('is_active', true)->get();
+            $this->currentTenantId = currentTenantId();
+        } else {
+            $this->tenants = collect([]);
+            $this->currentTenantId = null;
+        }
     }
 
     public function switchTenant($tenantId)
     {
-        if (auth()->user()->switchTenant($tenantId)) {
+        $user = Auth::user();
+        if ($user && $user->switchTenant($tenantId)) {
             $this->currentTenantId = $tenantId;
-            $this->showSuccessAlert('Tienda cambiada exitosamente');
-
-            // Recargar la página para refrescar todos los datos
-            return redirect()->to(request()->header('Referer', route('dashboard')));
-        } else {
-            $this->showErrorAlert('No se pudo cambiar de tienda');
+            // El JavaScript se encargará de recargar la página
+            return true;
         }
+
+        return false;
     }
 
     public function render()

@@ -32,6 +32,11 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::livewire('tenant/clientes', Clientes::class)->name('tenant.clientes');
     Route::livewire('tenant/usuarios', Usuarios::class)->name('tenant.usuarios');
     Route::livewire('tenant/test-cliente', TestCliente::class)->name('tenant.test-cliente');
+
+    // Ruta de debug temporal
+    Route::get('tenant/debug-user', function () {
+        return view('debug-user');
+    })->name('tenant.debug');
 });
 
 // Rutas para landlord (solo autenticación requerida)

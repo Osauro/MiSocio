@@ -37,7 +37,18 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick-theme.css') }}" />
     <!-- App css -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" />
-    <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-5.css') }}?v={{ time() }}" media="screen" />
+    @php
+        $currentTenant = currentTenant();
+        $themeNumber = $currentTenant?->theme_number ?? 5;
+        $themeColor = $currentTenant?->theme_color ?? '#884a39';
+    @endphp
+    <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-' . $themeNumber . '.css') }}?v={{ time() }}" media="screen" />
+    <style>
+        :root {
+            --theme-default: {{ $themeColor }};
+            --primary-color: {{ $themeColor }};
+        }
+    </style>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
 </head>
@@ -76,6 +87,9 @@
 
         <!-- Sidebar de perfil de usuario -->
         @livewire('perfil-usuario')
+
+        <!-- Selector de tenant (overlay) -->
+        @livewire('tenant-selector')
     </div>
     <!-- jquery-->
     <script src="{{ asset('assets/js/vendors/jquery/jquery.min.js') }}"></script>

@@ -1,25 +1,31 @@
 <div>
     @if($tenants && $tenants->count() > 1)
-    <div class="dropdown">
-        <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="tenantDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="iconly-Location icli"></i>
-            <span>{{ currentTenant()?->name ?? 'Seleccionar tienda' }}</span>
-        </button>
-        <ul class="dropdown-menu" aria-labelledby="tenantDropdown">
-            @foreach($tenants as $tenant)
-            <li>
-                <a class="dropdown-item {{ $tenant->id == $currentTenantId ? 'active' : '' }}"
-                   href="#"
-                   wire:click.prevent="switchTenant({{ $tenant->id }})">
-                    <i class="iconly-{{ $tenant->id == $currentTenantId ? 'Tick-Square' : 'Location' }} icli me-2"></i>
-                    {{ $tenant->name }}
-                    @if($tenant->id == $currentTenantId)
-                    <span class="badge bg-success ms-2">Actual</span>
-                    @endif
-                </a>
-            </li>
-            @endforeach
-        </ul>
-    </div>
+        <!-- Selector de Tenants - Vista Desktop -->
+        <div class="d-none d-md-block">
+            <button type="button"
+                    class="btn btn-primary"
+                    onclick="Livewire.dispatch('openTenantSelector')"
+                    style="font-size: 14px;">
+                <i class="fa-solid fa-store me-2"></i>
+                {{ currentTenant()?->name ?? 'Seleccionar Tienda' }}
+            </button>
+        </div>
+
+        <!-- Selector de Tenants - Vista Móvil (Icono) -->
+        <div class="dropdown d-md-none">
+            <div class="user-img" onclick="Livewire.dispatch('openTenantSelector')" style="cursor: pointer;">
+                <i class="fa-solid fa-store" style="color: {{ currentTenant()?->theme_color ?? '#667eea' }}; font-size: 24px;"></i>
+            </div>
+        </div>
+    @elseif($tenants && $tenants->count() == 1)
+        <!-- Solo 1 tenant - Desktop -->
+        <span class="badge bg-info d-none d-md-inline-block" style="padding: 8px 15px; font-size: 13px;">
+            <i class="fa-solid fa-store me-1"></i>
+            {{ $tenants->first()->name }}
+        </span>
+        <!-- Solo 1 tenant - Móvil -->
+        <div class="user-img d-md-none" style="cursor: default;">
+            <i class="fa-solid fa-store" style="color: {{ $tenants->first()->theme_color }}; font-size: 24px;"></i>
+        </div>
     @endif
 </div>

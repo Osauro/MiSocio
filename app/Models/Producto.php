@@ -38,8 +38,8 @@ class Producto extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('tenant', function (Builder $builder) {
-            if (Auth::check() && Auth::user()->tenant_id) {
-                $builder->where('tenant_id', Auth::user()->tenant_id);
+            if (Auth::check() && currentTenantId()) {
+                $builder->where('tenant_id', currentTenantId());
             }
         });
     }

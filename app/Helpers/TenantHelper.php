@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Auth;
 
 class TenantHelper
 {
@@ -11,7 +12,7 @@ class TenantHelper
      */
     public static function current(): ?Tenant
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (!$user) {
             return null;
@@ -34,7 +35,7 @@ class TenantHelper
      */
     public static function switch(int $tenantId): bool
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (!$user) {
             return false;
