@@ -4,33 +4,41 @@
     <div class="tenant-selector-overlay" wire:click="close">
         <div class="overlay-content" wire:click.stop>
             <div class="overlay-header">
-                <h3><i class="fa-solid fa-store me-2"></i>Selecciona tu Tienda</h3>
+                <h3><i class="fa-solid fa-store me-2"></i>Cambiar de Tienda</h3>
                 <button type="button" class="btn-close-overlay" wire:click="close">
-                    <i class="fa-solid fa-times"></i>
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <div class="tenants-grid">
+            <div class="tenants-grid" data-count="{{ count($tenants) }}">
                 @foreach($tenants as $tenant)
-                <div class="tenant-card {{ $tenant->id == $currentTenantId ? 'active' : '' }}"
-                     x-data="{ tenantId: {{ $tenant->id }} }"
-                     x-on:click="$wire.selectTenant(tenantId).then(() => window.location.reload())"
-                     style="border-color: {{ $tenant->theme_color }};">
-                    <div class="tenant-card-header" style="background: linear-gradient(135deg, {{ $tenant->theme_color }} 0%, {{ $tenant->theme_color }}dd 100%);">
-                        <i class="fa-solid fa-store"></i>
-                    </div>
-                    <div class="tenant-card-body">
-                        <h4>{{ $tenant->name }}</h4>
+                <button type="button"
+                        class="tenant-btn {{ $tenant->id == $currentTenantId ? 'active' : '' }}"
+                        wire:click="selectTenant({{ $tenant->id }})"
+                        wire:loading.attr="disabled"
+                        style="--tenant-color: {{ getThemeColor($tenant->theme_number) }};">
+
+                    <div class="tenant-btn-header" style="background: {{ getThemeColor($tenant->theme_number) }};">
+                        <i class="fa-solid fa-store-alt"></i>
                         @if($tenant->id == $currentTenantId)
-                        <span class="badge-active">
-                            <i class="fa-solid fa-check me-1"></i>Activa
+                        <span class="active-indicator">
+                            <i class="fa-solid fa-circle-check"></i>
                         </span>
                         @endif
+
+                        <div class="loading-spinner" wire:loading wire:target="selectTenant({{ $tenant->id }})">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                        </div>
                     </div>
-                    <div class="tenant-card-footer">
-                        <small class="text-muted">{{ $tenant->pivot->role }}</small>
+
+                    <div class="tenant-btn-body">
+                        <h4>{{ $tenant->name }}</h4>
+                        <span class="tenant-role-badge">
+                            <i class="fa-solid fa-user-tag"></i>
+                            {{ ucfirst($tenant->pivot->role) }}
+                        </span>
                     </div>
-                </div>
+                </button>
                 @endforeach
             </div>
         </div>
@@ -118,76 +126,144 @@
 
         .tenants-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
             padding: 10px 0;
         }
 
-        .tenant-card {
+        .tenants-grid[data-count="1"],
+        .tenants-grid[data-count="2"] {
+            justify-content: center;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 300px));
+        }
+
+        .tenant-btn {
             background: white;
             border: 2px solid #e0e0e0;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            padding: 0;
+            width: 100%;
         }
 
-        .tenant-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        .tenant-btn:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            border-color: var(--tenant-color);
         }
 
-        .tenant-card.active {
+        .tenant-btn.active {
+            border-color: var(--tenant-color);
             border-width: 3px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .tenant-card-header {
-            padding: 30px;
+        .tenant-btn-header {
+            padding: 40px 20px;
             text-align: center;
             color: white;
+            position: relative;
+            background: linear-gradient(135deg, var(--tenant-color) 0%, var(--tenant-color) 100%);
         }
 
-        .tenant-card-header i {
-            font-size: 48px;
-            opacity: 0.9;
+        .tenant-btn-header i {
+            font-size: 56px;
+            opacity: 0.95;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
         }
 
-        .tenant-card-body {
-            padding: 20px;
-            text-align: center;
+        .active-indicator {
+            position: absolute;
+            top: 12px;
+            right: 12px;
             background: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
 
-        .tenant-card-body h4 {
-            margin: 0 0 10px 0;
-            color: #333;
+        .active-indicator i {
             font-size: 18px;
-            font-weight: 600;
+            color: #4CAF50;
+            filter: none;
         }
 
-        .badge-active {
-            display: inline-block;
-            background: #4CAF50;
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .loading-spinner i {
+            font-size: 28px;
             color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
+            filter: none;
         }
 
-        .tenant-card-footer {
-            padding: 12px 20px;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-            text-align: center;
+        .tenant-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
         }
 
-        .tenant-card-footer small {
+        .tenant-btn-body {
+            padding: 24px 20px;
+            background: white;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tenant-btn-body h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .tenant-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            color: #5a6c7d;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: capitalize;
+            align-self: flex-start;
+        }
+
+        .tenant-role-badge i {
             font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        }
+
+        @media (max-width: 1200px) {
+            .tenants-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
         }
 
         @media (max-width: 768px) {
@@ -197,11 +273,38 @@
             }
 
             .tenants-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+
+            .tenants-grid[data-count="1"],
+            .tenants-grid[data-count="2"] {
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .overlay-header h3 {
                 font-size: 20px;
+            }
+
+            .tenant-btn-header {
+                padding: 30px 15px;
+            }
+
+            .tenant-btn-header i {
+                font-size: 42px;
+            }
+
+            .tenant-btn-body {
+                padding: 18px 15px;
+            }
+
+            .tenant-btn-body h4 {
+                font-size: 16px;
+            }
+
+            .tenant-role-badge {
+                font-size: 11px;
+                padding: 6px 10px;
             }
         }
     </style>

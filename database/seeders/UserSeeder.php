@@ -14,24 +14,21 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Usuario principal - Asociado a AMBOS tenants
+        // Usuario principal - Asociado a TODOS los tenants (10)
         $diego = User::create([
             'name' => 'Diego Alejandro Quinta Rios',
             'celular' => '73010688',
             'password' => Hash::make('5421'),
         ]);
 
-        // Asociar Diego a Licorería El Paceño como tenant
-        $diego->tenants()->attach(1, [
-            'role' => 'tenant',
-            'is_active' => true,
-        ]);
-
-        // Asociar Diego a Distribuidora Illimani como landlord
-        $diego->tenants()->attach(2, [
-            'role' => 'landlord',
-            'is_active' => true,
-        ]);
+        // Asociar Diego a los 10 tenants
+        for ($i = 1; $i <= 10; $i++) {
+            $role = $i === 1 ? 'landlord' : 'tenant'; // Primer tenant como landlord, resto como tenant
+            $diego->tenants()->attach($i, [
+                'role' => $role,
+                'is_active' => true,
+            ]);
+        }
 
         // Usuario adicional - Solo en El Paceño
         $maria = User::create([

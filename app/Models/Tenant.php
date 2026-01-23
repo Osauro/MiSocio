@@ -10,7 +10,6 @@ class Tenant extends Model
 {
     protected $fillable = [
         'name',
-        'theme_color',
         'theme_number',
         'domain',
         'subscription_type',

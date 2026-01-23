@@ -22,7 +22,7 @@
                 <li>
                     @php
                         $currentTenant = currentTenant();
-                        $tenantColor = $currentTenant?->theme_color ?? '#7366ff';
+                        $tenantColor = getThemeColor();
                     @endphp
                     <button class="btn btn-tenant-selector"
                             onclick="Livewire.dispatch('openTenantSelector')"
@@ -60,7 +60,7 @@
         border-radius: 50%;
         width: 40px;
         height: 40px;
-        display: flex;
+        display: flex !important;
         align-items: center;
         justify-content: center;
         cursor: pointer;
@@ -76,5 +76,18 @@
     .btn-tenant-selector i {
         color: white;
         font-size: 18px;
+    }
+
+    /* Asegurar que el botón sea visible en móvil */
+    @media (max-width: 767px) {
+        .header-right > li {
+            display: inline-block !important;
+        }
+
+        .btn-tenant-selector {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
     }
 </style>

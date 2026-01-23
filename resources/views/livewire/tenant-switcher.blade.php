@@ -14,7 +14,7 @@
         <!-- Selector de Tenants - Vista Móvil (Icono) -->
         <div class="dropdown d-md-none">
             <div class="user-img" onclick="Livewire.dispatch('openTenantSelector')" style="cursor: pointer;">
-                <i class="fa-solid fa-store" style="color: {{ currentTenant()?->theme_color ?? '#667eea' }}; font-size: 24px;"></i>
+                <i class="fa-solid fa-store" style="color: {{ getThemeColor() }}; font-size: 24px;"></i>
             </div>
         </div>
     @elseif($tenants && $tenants->count() == 1)
@@ -25,7 +25,7 @@
         </span>
         <!-- Solo 1 tenant - Móvil -->
         <div class="user-img d-md-none" style="cursor: default;">
-            <i class="fa-solid fa-store" style="color: {{ $tenants->first()->theme_color }}; font-size: 24px;"></i>
+            <i class="fa-solid fa-store" style="color: {{ getThemeColor($tenants->first()->theme_number) }}; font-size: 24px;"></i>
         </div>
     @endif
 </div>

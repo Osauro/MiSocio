@@ -16,7 +16,7 @@
                         </div>
                     </div>
 
-                    <div class="card-body transaction-history pt-0 mt-3">
+                    <div class="card-body transaction-history pt-0 mt-3 pb-4">
                         <div class="row g-2">
                             @forelse($productos as $producto)
                                 <div class="col-lg-4 col-md-6 col-sm-12">

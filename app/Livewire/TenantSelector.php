@@ -40,10 +40,10 @@ class TenantSelector extends Component
     public function selectTenant($tenantId)
     {
         if (Auth::user()->switchTenant($tenantId)) {
+            session()->flash('tenant_changed', true);
             $this->showOverlay = false;
-            return true;
+            $this->js('window.location.reload()');
         }
-        return false;
     }
 
     public function render()

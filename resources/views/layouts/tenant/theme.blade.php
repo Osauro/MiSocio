@@ -40,7 +40,7 @@
     @php
         $currentTenant = currentTenant();
         $themeNumber = $currentTenant?->theme_number ?? 5;
-        $themeColor = $currentTenant?->theme_color ?? '#884a39';
+        $themeColor = getThemeColor();
     @endphp
     <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-' . $themeNumber . '.css') }}?v={{ time() }}" media="screen" />
     <style>

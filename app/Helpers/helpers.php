@@ -41,3 +41,26 @@ if (!function_exists('hasTenant')) {
         return TenantHelper::hasCurrent();
     }
 }
+
+if (!function_exists('getThemeColor')) {
+    /**
+     * Obtener el color del tema basado en el theme_number.
+     */
+    function getThemeColor(?int $themeNumber = null): string
+    {
+        $colors = [
+            1 => '#308e87', // Color 1 - Default verde
+            2 => '#57375d', // Color 2 - Púrpura
+            3 => '#0766ad', // Color 3 - Azul
+            4 => '#025464', // Color 4 - Verde azulado
+            5 => '#884a39', // Color 5 - Marrón
+            6 => '#0c356a', // Color 6 - Azul oscuro
+        ];
+
+        if ($themeNumber === null) {
+            $themeNumber = currentTenant()?->theme_number ?? 1;
+        }
+
+        return $colors[$themeNumber] ?? $colors[1];
+    }
+}
