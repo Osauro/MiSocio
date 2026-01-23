@@ -64,3 +64,103 @@ if (!function_exists('getThemeColor')) {
         return $colors[$themeNumber] ?? $colors[1];
     }
 }
+
+// ============================================
+// HELPERS PARA GESTIÓN DE ROLES
+// ============================================
+
+if (!function_exists('currentUserRole')) {
+    /**
+     * Obtener el rol del usuario actual en el tenant activo.
+     *
+     * @return string|null 'landlord', 'tenant', 'user' o null
+     */
+    function currentUserRole(): ?string
+    {
+        return auth()->user()?->roleInCurrentTenant();
+    }
+}
+
+if (!function_exists('isLandlord')) {
+    /**
+     * Verificar si el usuario actual es Super Admin (Landlord del sistema).
+     * Este es un rol global, no específico de un tenant.
+     *
+     * @return bool
+     */
+    function isLandlord(): bool
+    {
+        return auth()->user()?->isSuperAdmin() ?? false;
+    }
+}
+
+if (!function_exists('isSuperAdmin')) {
+    /**
+     * Alias de isLandlord() - Verificar si el usuario es Super Admin del sistema.
+     *
+     * @return bool
+     */
+    function isSuperAdmin(): bool
+    {
+        return isLandlord();
+    }
+}
+
+if (!function_exists('isTenantAdmin')) {
+    /**
+     * Verificar si el usuario actual es Tenant (administrador) en el tenant activo.
+     *
+     * @return bool
+     */
+    function isTenantAdmin(): bool
+    {
+        return currentUserRole() === 'tenant';
+    }
+}
+
+if (!function_exists('isUser')) {
+    /**
+     * Verificar si el usuario actual es User (operador) en el tenant activo.
+     *
+     * @return bool
+     */
+    function isUser(): bool
+    {
+        return currentUserRole() === 'user';
+    }
+}
+
+if (!function_exists('canManageTenant')) {
+    /**
+     * Verificar si el usuario puede administrar el tenant actual.
+     * Tienen acceso completo a: productos, categorías, usuarios, clientes, configuraciones.
+     *
+     * Super Admins pueden administrar cualquier tenant.
+     * Usuarios con rol 'tenant' pueden administrar su tenant asignado.
+     *
+     * @return bool
+     */
+    function canManageTenant(): bool
+    {
+        return auth()->user()?->canManageCurrentTenant() ?? false;
+    }
+}
+
+if (!function_exists('hasRole')) {
+    /**
+     * Verificar si el usuario tiene un rol específico o está en una lista de roles.
+     *
+     * @param string|array $roles Rol único o array de roles permitidos
+     * @return bool
+     */
+    function hasRole(string|array $roles): bool
+    {
+        $currentRole = currentUserRole();
+
+        if (is_array($roles)) {
+            return in_array($currentRole, $roles);
+        }
+
+        return $currentRole === $roles;
+    }
+}

@@ -51,7 +51,7 @@
                 @if(!$editando)
                     <h6 class="mt-3 mb-1 fw-bold">{{ Auth::user()->name }}</h6>
                     <div class="d-flex align-items-center justify-content-center gap-2">
-                        <small class="text-muted">{{ ucfirst(Auth::user()->role ?? 'usuario') }}</small>
+                        <small class="text-muted">{{ ucfirst(Auth::user()->roleInCurrentTenant() ?? 'usuario') }}</small>
                         <button type="button" class="btn btn-link p-0 text-primary" wire:click="toggleEditar" title="Editar perfil">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>

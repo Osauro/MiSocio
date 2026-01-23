@@ -18,6 +18,17 @@
         </div>
         <div class="nav-right">
             <ul class="header-right">
+                <!-- Botón de modo Landlord (solo para Super Admins) -->
+                @if(Auth::user()->isSuperAdmin())
+                    <li>
+                        <a href="{{ route('landlord.home') }}" 
+                           class="btn btn-mode-switch"
+                           title="Ir a modo Landlord (Gestión del Sistema)">
+                            <i class="fa-solid fa-crown"></i>
+                        </a>
+                    </li>
+                @endif
+
                 <!-- Botón selector de tenant -->
                 <li>
                     @php
@@ -55,6 +66,37 @@
 </script>
 
 <style>
+    .btn-mode-switch {
+        border: 2px solid #dc3545;
+        background: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        padding: 0;
+    }
+
+    .btn-mode-switch:hover {
+        background: #dc3545;
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+    }
+
+    .btn-mode-switch i {
+        color: #dc3545;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .btn-mode-switch:hover i {
+        color: white;
+    }
+
     .btn-tenant-selector {
         border: none;
         border-radius: 50%;
@@ -78,13 +120,14 @@
         font-size: 18px;
     }
 
-    /* Asegurar que el botón sea visible en móvil */
+    /* Asegurar que los botones sean visibles en móvil */
     @media (max-width: 767px) {
         .header-right > li {
             display: inline-block !important;
         }
 
-        .btn-tenant-selector {
+        .btn-tenant-selector,
+        .btn-mode-switch {
             display: flex !important;
             visibility: visible !important;
             opacity: 1 !important;

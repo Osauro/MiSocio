@@ -42,6 +42,11 @@ class EnsureUserHasTenant
             }
         }
 
+        // Redirigir usuarios (operadores) directamente a ventas si intentan acceder al dashboard
+        if ($request->routeIs('tenant.home') && isUser()) {
+            return redirect()->route('tenant.ventas');
+        }
+
         return $next($request);
     }
 }

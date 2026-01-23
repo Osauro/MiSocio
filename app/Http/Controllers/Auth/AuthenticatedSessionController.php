@@ -28,6 +28,36 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $user = Auth::user();
+
+        // Si es Super Admin, redirigir a la vista de landlord
+        if ($user->isSuperAdmin()) {
+            return redirect()->route('landlord.home');
+        }
+
+        // Para usuarios normales, verificar que tengan tenants asignados
+        if ($user->tenants()->wherePivot('is_active', true)->count() > 0) {
+            // Establecer el primer tenant activo si no hay uno en sesión
+            if (!$user->currentTenant()) {
+                $firstTenant = $user->tenants()->wherePivot('is_active', true)->first();
+                if ($firstTenant) {
+                    session(['current_tenant_id' => $firstTenant->id]);
+                }
+            }
+
+            // Redirigir según el rol del usuario en el tenant actual
+            $role = currentUserRole();
+
+            if ($role === 'user') {
+                // Operadores van directo a ventas
+                return redirect()->route('tenant.ventas');
+            } elseif ($role === 'tenant') {
+                // Administradores del tenant van al dashboard
+                return redirect()->route('tenant.home');
+            }
+        }
+
+        // Fallback por defecto
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

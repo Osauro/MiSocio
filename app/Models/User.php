@@ -23,6 +23,7 @@ class User extends Authenticatable
         'celular',
         'imagen',
         'password',
+        'is_super_admin',
     ];
 
     /**
@@ -44,6 +45,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'is_super_admin' => 'boolean',
         ];
     }
 
@@ -118,5 +120,25 @@ class User extends Authenticatable
             return asset('storage/' . $this->imagen);
         }
         return asset('assets/images/profile.png');
+    }
+
+    /**
+     * Verificar si el usuario es Super Admin (Landlord del sistema).
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->is_super_admin === true;
+    }
+
+    /**
+     * Verificar si el usuario es admin (tenant) o super admin en el tenant actual.
+     */
+    public function canManageCurrentTenant(): bool
+    {
+        if ($this->isSuperAdmin()) {
+            return true; // Super admin puede administrar cualquier tenant
+        }
+
+        return $this->roleInCurrentTenant() === 'tenant';
     }
 }

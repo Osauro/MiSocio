@@ -36,7 +36,7 @@ class Usuarios extends Component
             'name' => 'required|string|max:255',
             'celular' => 'required|string|digits:8',
             'password' => $this->editMode ? 'nullable|string|digits:4|confirmed' : 'required|string|digits:4|confirmed',
-            'role' => 'required|in:landlord,tenant',
+            'role' => 'required|in:tenant,user',
             'imagen' => 'nullable|image|max:2048',
         ];
     }
@@ -196,7 +196,7 @@ class Usuarios extends Component
         $this->celular = '';
         $this->password = '';
         $this->password_confirmation = '';
-        $this->role = 'tenant';
+        $this->role = 'user';
         $this->imagen = null;
         $this->usuario_actual_imagen = null;
         $this->resetErrorBag();

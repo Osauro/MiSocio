@@ -14,18 +14,18 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Usuario principal - Asociado a TODOS los tenants (10)
+        // Usuario principal - Super Admin del sistema
         $diego = User::create([
             'name' => 'Diego Alejandro Quinta Rios',
             'celular' => '73010688',
             'password' => Hash::make('5421'),
+            'is_super_admin' => true, // Super Admin del sistema
         ]);
 
-        // Asociar Diego a los 10 tenants
+        // Asociar Diego a los 10 tenants como admin (tenant)
         for ($i = 1; $i <= 10; $i++) {
-            $role = $i === 1 ? 'landlord' : 'tenant'; // Primer tenant como landlord, resto como tenant
             $diego->tenants()->attach($i, [
-                'role' => $role,
+                'role' => 'tenant', // Admin en todos sus tenants
                 'is_active' => true,
             ]);
         }

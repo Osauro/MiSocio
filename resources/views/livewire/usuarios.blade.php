@@ -67,12 +67,16 @@
                                                         $role = $usuario->tenants->first()?->pivot?->role ?? 'user';
                                                     @endphp
                                                     @if ($role === 'landlord')
+                                                        <span class="badge bg-danger">
+                                                            <i class="fa-solid fa-crown me-1"></i>Landlord
+                                                        </span>
+                                                    @elseif ($role === 'tenant')
                                                         <span class="badge bg-primary">
-                                                            <i class="fa-solid fa-crown me-1"></i>Propietario
+                                                            <i class="fa-solid fa-user-tie me-1"></i>Admin
                                                         </span>
                                                     @else
                                                         <span class="badge bg-secondary">
-                                                            <i class="fa-solid fa-user me-1"></i>Inquilino
+                                                            <i class="fa-solid fa-user me-1"></i>Usuario
                                                         </span>
                                                     @endif
                                                 </div>
@@ -178,12 +182,16 @@
                                     <label for="role" class="form-label">Rol <span class="text-danger">*</span></label>
                                     <select class="form-select @error('role') is-invalid @enderror" wire:model="role" id="role">
                                         <option value="">Seleccione un rol</option>
-                                        <option value="landlord">Propietario</option>
-                                        <option value="tenant">Inquilino</option>
+                                        <option value="user">Usuario (Operador)</option>
+                                        <option value="tenant">Admin (Administrador)</option>
                                     </select>
                                     @error('role')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                    <small class="form-text text-muted">
+                                        <strong>Usuario:</strong> Solo puede gestionar ventas y préstamos.<br>
+                                        <strong>Admin:</strong> Control total del tenant (productos, usuarios, ventas, etc.).
+                                    </small>
                                 </div>
 
                                 <div class="row">

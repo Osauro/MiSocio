@@ -83,6 +83,12 @@
             </div>
 
         </div>
+
+        <!-- Componente de perfil de usuario -->
+        @livewire('perfil-usuario')
+        
+        <!-- Componente selector de tenant -->
+        @livewire('tenant-selector')
     </div>
     <!-- jquery-->
     <script src="{{ asset('assets/js/vendors/jquery/jquery.min.js') }}"></script>

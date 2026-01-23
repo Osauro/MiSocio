@@ -8,6 +8,7 @@ use App\Livewire\HomeTenant;
 use App\Livewire\Productos;
 use App\Livewire\TestCliente;
 use App\Livewire\Usuarios;
+use App\Livewire\Ventas;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -26,22 +27,32 @@ Route::middleware('auth')->group(function () {
 
 // Rutas que requieren autenticación Y tenant activo
 Route::middleware(['auth', 'tenant'])->group(function () {
-    Route::livewire('tenant/home', HomeTenant::class)->name('tenant.home');
-    Route::livewire('tenant/productos', Productos::class)->name('tenant.productos');
-    Route::livewire('tenant/categorias', Categorias::class)->name('tenant.categorias');
-    Route::livewire('tenant/clientes', Clientes::class)->name('tenant.clientes');
-    Route::livewire('tenant/usuarios', Usuarios::class)->name('tenant.usuarios');
-    Route::livewire('tenant/test-cliente', TestCliente::class)->name('tenant.test-cliente');
+    // Ventas - Todos los usuarios pueden acceder
+    Route::livewire('tenant/ventas', Ventas::class)->name('tenant.ventas');
 
-    // Ruta de debug temporal
+    // Ruta de debug temporal - Solo para desarrollo
     Route::get('tenant/debug-user', function () {
         return view('debug-user');
     })->name('tenant.debug');
 });
 
-// Rutas para landlord (solo autenticación requerida)
-Route::middleware('auth')->group(function () {
+// Rutas de administración del tenant - Solo Landlord y Tenant Admin
+Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
+    // Dashboard - Solo administradores
+    Route::livewire('tenant/home', HomeTenant::class)->name('tenant.home');
+
+    // Gestión de recursos
+    Route::livewire('tenant/productos', Productos::class)->name('tenant.productos');
+    Route::livewire('tenant/categorias', Categorias::class)->name('tenant.categorias');
+    Route::livewire('tenant/clientes', Clientes::class)->name('tenant.clientes');
+    Route::livewire('tenant/usuarios', Usuarios::class)->name('tenant.usuarios');
+    Route::livewire('tenant/test-cliente', TestCliente::class)->name('tenant.test-cliente');
+});
+
+// Rutas para landlord - Solo Landlords
+Route::middleware(['auth', 'landlord'])->group(function () {
     Route::livewire('landlord/home', HomeLandlord::class)->name('landlord.home');
+    // Aquí irán futuras rutas de gestión de tenants, suscripciones, pagos
 });
 
 require __DIR__.'/auth.php';
