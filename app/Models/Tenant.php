@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tenant extends Model
 {
@@ -24,9 +25,11 @@ class Tenant extends Model
     /**
      * Obtener los usuarios del tenant.
      */
-    public function users(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class)
+            ->withPivot('role', 'is_active')
+            ->withTimestamps();
     }
 
     /**

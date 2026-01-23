@@ -62,7 +62,12 @@ class Usuarios extends Component
     public function getUsuarios()
     {
         return User::query()
-            ->where('tenant_id', Auth::user()->tenant_id)
+            ->whereHas('tenants', function ($query) {
+                $query->where('tenants.id', currentTenantId());
+            })
+            ->with(['tenants' => function ($query) {
+                $query->where('tenants.id', currentTenantId());
+            }])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -83,12 +88,14 @@ class Usuarios extends Component
     public function edit($id)
     {
         $this->resetForm();
-        $usuario = User::findOrFail($id);
+        $usuario = User::with(['tenants' => function ($query) {
+            $query->where('tenants.id', currentTenantId());
+        }])->findOrFail($id);
 
         $this->usuarioId = $usuario->id;
         $this->name = $usuario->name;
         $this->celular = $usuario->celular;
-        $this->role = $usuario->role;
+        $this->role = $usuario->tenants->first()?->pivot?->role ?? 'user';
         $this->usuario_actual_imagen = $usuario->imagen;
 
         $this->editMode = true;
@@ -111,7 +118,6 @@ class Usuarios extends Component
                 $data = [
                     'name' => $this->name,
                     'celular' => $this->celular,
-                    'role' => $this->role,
                 ];
 
                 if ($this->password) {
@@ -129,15 +135,24 @@ class Usuarios extends Component
 
                 $usuario->update($data);
 
+                // Actualizar el rol en la tabla pivot
+                $usuario->tenants()->updateExistingPivot(currentTenantId(), [
+                    'role' => $this->role,
+                ]);
+
                 $this->toast('success', 'Usuario actualizado exitosamente.');
             } else {
-                User::create([
-                    'tenant_id' => Auth::user()->tenant_id,
+                $user = User::create([
                     'name' => $this->name,
                     'celular' => $this->celular,
                     'password' => Hash::make($this->password),
-                    'role' => $this->role,
                     'imagen' => $imagenPath,
+                ]);
+
+                // Asociar el usuario con el tenant actual
+                $user->tenants()->attach(currentTenantId(), [
+                    'role' => $this->role,
+                    'is_active' => true,
                 ]);
 
                 $this->toast('success', 'Usuario creado exitosamente.');

@@ -15,9 +15,17 @@
                 <img src="{{ asset('assets/images/logo.png') }}" alt="logo"
                     style="height: 35px; width: auto; object-fit: contain;" />
             </a>
+            <!-- Selector de tenant (solo desktop) -->
+            <div class="d-none d-md-block ms-3">
+                @livewire('tenant-switcher')
+            </div>
         </div>
         <div class="nav-right">
             <ul class="header-right">
+                <!-- Selector de tenant (solo móvil) -->
+                <li class="d-md-none">
+                    @livewire('tenant-switcher')
+                </li>
                 <li class="profile-nav">
                     <div class="user-img" id="toggleProfileSidebar" style="cursor: pointer;">
                         <img id="headerAvatar"

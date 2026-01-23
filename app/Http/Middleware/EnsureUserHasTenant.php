@@ -21,11 +21,25 @@ class EnsureUserHasTenant
             return redirect()->route('login');
         }
 
-        // Verificar que el usuario tenga un tenant_id asignado
-        if (!Auth::user()->tenant_id) {
-            // Si no tiene tenant, cerrar sesión y redirigir al login con mensaje
+        $user = Auth::user();
+
+        // Verificar que el usuario tenga al menos un tenant asignado
+        if ($user->tenants()->wherePivot('is_active', true)->count() === 0) {
+            // Si no tiene tenants, cerrar sesión y redirigir al login con mensaje
             Auth::logout();
             return redirect()->route('login')->with('error', 'Tu cuenta no está asociada a ninguna tienda. Contacta al administrador.');
+        }
+
+        // Asegurar que haya un tenant actual en la sesión
+        if (!$user->currentTenant()) {
+            // Si no hay tenant actual, intentar establecer el primero disponible
+            $firstTenant = $user->tenants()->wherePivot('is_active', true)->first();
+            if ($firstTenant) {
+                session(['current_tenant_id' => $firstTenant->id]);
+            } else {
+                Auth::logout();
+                return redirect()->route('login')->with('error', 'No se pudo establecer una tienda activa.');
+            }
         }
 
         return $next($request);

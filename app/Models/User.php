@@ -4,7 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -19,12 +19,10 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'tenant_id',
         'name',
         'celular',
         'imagen',
         'password',
-        'role',
     ];
 
     /**
@@ -50,11 +48,65 @@ class User extends Authenticatable
     }
 
     /**
-     * Obtener el tenant al que pertenece el usuario.
+     * Obtener los tenants a los que pertenece el usuario.
      */
-    public function tenant(): BelongsTo
+    public function tenants(): BelongsToMany
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->belongsToMany(Tenant::class)
+            ->withPivot('role', 'is_active')
+            ->withTimestamps();
+    }
+
+    /**
+     * Obtener el tenant actual de la sesión.
+     */
+    public function currentTenant(): ?Tenant
+    {
+        $tenantId = session('current_tenant_id');
+
+        if (!$tenantId) {
+            // Usar el primer tenant activo como predeterminado
+            $firstTenant = $this->tenants()->wherePivot('is_active', true)->first();
+            if ($firstTenant) {
+                session(['current_tenant_id' => $firstTenant->id]);
+                return $firstTenant;
+            }
+            return null;
+        }
+
+        return $this->tenants()->where('tenants.id', $tenantId)->first();
+    }
+
+    /**
+     * Obtener el rol del usuario en el tenant actual.
+     */
+    public function roleInCurrentTenant(): ?string
+    {
+        $tenant = $this->currentTenant();
+        return $tenant ? $tenant->pivot->role : null;
+    }
+
+    /**
+     * Verificar si el usuario tiene un rol específico en el tenant actual.
+     */
+    public function hasRoleInCurrentTenant(string $role): bool
+    {
+        return $this->roleInCurrentTenant() === $role;
+    }
+
+    /**
+     * Cambiar el tenant actual en la sesión.
+     */
+    public function switchTenant(int $tenantId): bool
+    {
+        $tenant = $this->tenants()->where('tenants.id', $tenantId)->wherePivot('is_active', true)->first();
+
+        if ($tenant) {
+            session(['current_tenant_id' => $tenantId]);
+            return true;
+        }
+
+        return false;
     }
 
     /**

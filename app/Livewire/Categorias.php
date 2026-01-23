@@ -122,7 +122,7 @@ class Categorias extends Component
             } else {
                 // Crear nueva categoría
                 Categoria::create([
-                    'tenant_id' => Auth::user()->tenant_id,
+                    'tenant_id' => currentTenantId(),
                     'nombre' => $this->nombre,
                     'imagen' => $imagenPath,
                 ]);

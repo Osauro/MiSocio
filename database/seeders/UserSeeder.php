@@ -14,12 +14,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'tenant_id' => 1, // Asociado a Licorera El Paceño
+        $user = User::create([
             'name' => 'Diego Alejandro Quinta Rios',
             'celular' => '73010688',
             'password' => Hash::make('5421'),
+        ]);
+
+        // Asociar el usuario con el tenant
+        $user->tenants()->attach(1, [
             'role' => 'tenant',
+            'is_active' => true,
         ]);
     }
 }

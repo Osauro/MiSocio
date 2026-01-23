@@ -95,7 +95,7 @@ class Clientes extends Component
             $cliente->update($data);
             $this->toast('success', 'Cliente actualizado exitosamente.');
         } else {
-            $data['tenant_id'] = Auth::user()->tenant_id;
+            $data['tenant_id'] = currentTenantId();
             Cliente::create($data);
             $this->toast('success', 'Cliente creado exitosamente.');
         }

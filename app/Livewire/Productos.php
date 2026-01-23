@@ -169,7 +169,7 @@ class Productos extends Component
 
                 if (!$medidaExistente) {
                     Medida::create([
-                        'tenant_id' => Auth::user()->tenant_id,
+                        'tenant_id' => currentTenantId(),
                         'nombre' => trim($this->medida),
                     ]);
                 }

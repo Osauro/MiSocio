@@ -9,7 +9,9 @@
         </a>
     </div>
     <div class="page-main-header col">
-        <div class="header-left"></div>
+        <div class="header-left">
+            @livewire('tenant-switcher')
+        </div>
         <div class="nav-right">
             <ul class="header-right">
                 <li class="profile-nav custom-dropdown">
@@ -20,7 +22,7 @@
                         <div class="user-content">
                             <h6>{{ Str::limit(Auth::user()->name ?? 'Usuario', 10, '...') }}</h6>
                             <p class="mb-0">
-                                {{ Auth::user()->role ?? 'Role' }}
+                                {{ Auth::user()->roleInCurrentTenant() ?? 'Role' }}
                                 <i class="fa-solid fa-chevron-down"></i>
                             </p>
                         </div>
