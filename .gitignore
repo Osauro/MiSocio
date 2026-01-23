@@ -1,0 +1,75 @@
+# Laravel & PHP
+/vendor/
+/node_modules/
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+*.log
+
+# Environment files
+.env
+.env.backup
+.env.production
+.env.*.php
+.env.php
+
+# IDE & Editors
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
+.phpactor.json
+*.sublime-project
+*.sublime-workspace
+.project
+.buildpath
+.settings
+*.swp
+*.swo
+*~
+
+# Testing & Cache
+.phpunit.result.cache
+/.phpunit.cache
+/phpunit.xml
+coverage/
+.coverage
+.php_cs.cache
+.php-cs-fixer.cache
+
+# Composer
+/auth.json
+composer.phar
+composer.lock
+
+# NPM & Frontend
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+/public/mix-manifest.json
+
+# Laravel specific
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+.rr.yaml
+pail.log
+
+# OS Files
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+._*
+
+# Security & Deployment
+/bootstrap/cache/config.php
+/bootstrap/cache/routes-v7.php
+/bootstrap/cache/events.php
+/bootstrap/cache/packages.php
+/bootstrap/cache/services.php

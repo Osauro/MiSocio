@@ -1,0 +1,329 @@
+<div>
+    <div class="container-fluid">
+        <div class="row starter-main">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header card-no-border pb-0">
+                        <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <h3 class="d-none d-md-block mb-0">Productos</h3>
+                            <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Buscar productos"
+                                        wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
+                                    <button class="btn btn-primary" wire:click="create">Agregar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body transaction-history pt-0 mt-3">
+                        <div class="row g-2">
+                            @forelse($productos as $producto)
+                                <div class="col-lg-4 col-md-6 col-sm-12">
+                                    <div class="card mb-0 shadow-sm producto-card">
+                                        <div class="card-body p-2">
+                                            <div class="d-flex align-items-start">
+                                                <!-- Imagen del producto y botones -->
+                                                <div class="flex-shrink-0 me-2 text-center" style="width: 70px;">
+                                                    <div style="height: 70px; margin-bottom: 4px;">
+                                                        @if ($producto->imagen)
+                                                            <img src="{{ Storage::url($producto->imagen) }}"
+                                                                alt="{{ $producto->nombre }}" class="rounded"
+                                                                style="width: 70px; height: 70px; object-fit: cover;">
+                                                        @else
+                                                            <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                                                                style="width: 70px; height: 70px;">
+                                                                <i class="fa-solid fa-image fa-2x text-muted"></i>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <!-- Botones debajo de la imagen -->
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <button class="btn btn-link p-0 text-primary btn-zoom"
+                                                            wire:click="edit({{ $producto->id }})" title="Editar"
+                                                            style="font-size: 1.2rem;">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </button>
+                                                        <button class="btn btn-link p-0 text-danger btn-zoom"
+                                                            wire:click="confirmDeleteProduct({{ $producto->id }})"
+                                                            title="Eliminar" style="font-size: 1.2rem;">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Información del producto -->
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1">{{ $producto->nombre }}</h6>
+                                                    <p class="text-muted mb-1 small">
+                                                        <span
+                                                            class="badge bg-secondary">{{ $producto->categoria->nombre ?? 'Sin categoría' }}</span>
+                                                        @if ($producto->codigo)
+                                                            <span class="ms-2">Código:
+                                                                <strong>{{ $producto->codigo }}</strong></span>
+                                                        @endif
+                                                    </p>
+                                                    <div class="mb-2 small">
+                                                        <i class="fa-solid fa-box text-primary"></i>
+                                                        <strong>Stock:</strong> {{ $producto->stock }}
+                                                        <span class="ms-2">
+                                                            <i class="fa-solid fa-ruler text-info"></i>
+                                                            <strong>Medida:</strong> {{ $producto->medida }}
+                                                            ({{ $producto->cantidad }})
+                                                        </span>
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <span class="badge bg-dark me-1 badge-precio">
+                                                            {{ number_format($producto->precio_de_compra, 2) }}
+                                                        </span>
+                                                        <span class="badge bg-success me-1 badge-precio">
+                                                            {{ number_format($producto->precio_por_mayor, 2) }}
+                                                        </span>
+                                                        <span class="badge bg-danger badge-precio">
+                                                            {{ number_format($producto->precio_por_menor, 2) }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="col-12">
+                                    <div class="text-center py-5 empty-state">
+                                        <i class="fa-solid fa-box-open fa-5x mb-3 text-muted"></i>
+                                        <p class="h5 text-muted mb-0">No se encontraron resultados</p>
+                                    </div>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer fijo con paginado -->
+    <footer class="fixed-footer shadow-sm py-2">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
+                <div class="w-100 d-flex justify-content-center justify-content-md-end">
+                    {{ $productos->links() }}
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal para Crear/Editar Producto -->
+    <div wire:ignore.self class="modal fade" id="crudModal" tabindex="-1" role="dialog" aria-labelledby="modalcrud">
+        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ $editMode ? 'Editar Producto' : 'Nuevo Producto' }}</h5>
+                    <button type="button" class="btn-close" wire:click="closeModal"></button>
+                </div>
+                <div class="modal-body">
+                    <form wire:submit.prevent="save">
+                        <div class="row">
+                            <!-- Columna Izquierda: Imagen -->
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Imagen del Producto</label>
+                                    <div class="image-upload-area" onclick="document.getElementById('imagen').click()"
+                                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
+                                        ondragleave="handleDragLeave(event)"
+                                        style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; height: 100%; min-height: 300px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                                        @if ($imagen)
+                                            <img src="{{ $imagen->temporaryUrl() }}" alt="Preview"
+                                                style="max-width: 100%; max-height: 280px; object-fit: contain;">
+                                        @elseif ($editMode && isset($producto_actual_imagen))
+                                            <img src="{{ Storage::url($producto_actual_imagen) }}" alt="Producto"
+                                                style="max-width: 100%; max-height: 280px; object-fit: contain;">
+                                        @else
+                                            <div class="text-muted">
+                                                <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2"></i>
+                                                <p class="mb-0 small">Arrastra una imagen aquí</p>
+                                                <p class="mb-0 small">o haz clic para seleccionar</p>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <input type="file" class="d-none @error('imagen') is-invalid @enderror"
+                                        wire:model="imagen" id="imagen" accept="image/*">
+                                    @error('imagen')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <!-- Columna Derecha: Formulario -->
+                            <div class="col-md-8">
+                                <div class="row">
+                                    <!-- Nombre -->
+                                    <div class="col-md-12 mb-3">
+                                        <label for="nombre" class="form-label">Nombre <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text"
+                                            class="form-control @error('nombre') is-invalid @enderror"
+                                            wire:model="nombre" id="nombre"
+                                            placeholder="Ej: Cerveza Paceña 620ml">
+                                        @error('nombre')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Categoría -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="categoria_id" class="form-label">Categoría <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select @error('categoria_id') is-invalid @enderror"
+                                            wire:model="categoria_id" id="categoria_id">
+                                            <option value="">Seleccione una categoría</option>
+                                            @foreach ($categorias as $categoria)
+                                                <option value="{{ $categoria->id }}">{{ $categoria->nombre }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('categoria_id')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Código -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="codigo" class="form-label">Código</label>
+                                        <input type="text"
+                                            class="form-control @error('codigo') is-invalid @enderror"
+                                            wire:model="codigo" id="codigo" placeholder="Ej: CRV001">
+                                        @error('codigo')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Medida -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="medida" class="form-label">Medida <span
+                                                class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            @if ($addingNewMedida)
+                                                <input type="text"
+                                                    class="form-control @error('medida') is-invalid @enderror"
+                                                    wire:model="medida" id="medida" placeholder="Ej: six pack">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                    wire:click="toggleMedidaInput" title="Volver al selector">
+                                                    <i class="fa-solid fa-arrow-left"></i>
+                                                </button>
+                                            @else
+                                                <select class="form-select @error('medida') is-invalid @enderror"
+                                                    wire:model="medida" id="medida">
+                                                    <option value="">Seleccione una medida</option>
+                                                    @foreach ($medidas as $medida_item)
+                                                        <option value="{{ $medida_item->nombre }}">
+                                                            {{ ucfirst($medida_item->nombre) }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                    wire:click="toggleMedidaInput" title="Agregar nueva medida">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+                                            @endif
+                                        </div>
+                                        @error('medida')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Cantidad -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="cantidad" class="form-label">Cantidad (unidades) <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number"
+                                            class="form-control @error('cantidad') is-invalid @enderror"
+                                            wire:model="cantidad" id="cantidad" placeholder="Ej: 620">
+                                        @error('cantidad')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Precio de Compra -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="precio_de_compra" class="form-label">Precio Compra (Bs.) <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" step="0.01"
+                                            class="form-control @error('precio_de_compra') is-invalid @enderror"
+                                            wire:model="precio_de_compra" id="precio_de_compra" placeholder="0.00">
+                                        @error('precio_de_compra')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Precio por Mayor -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="precio_por_mayor" class="form-label">Precio Mayor (Bs.) <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" step="0.01"
+                                            class="form-control @error('precio_por_mayor') is-invalid @enderror"
+                                            wire:model="precio_por_mayor" id="precio_por_mayor" placeholder="0.00">
+                                        @error('precio_por_mayor')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Precio por Menor -->
+                                    <div class="col-md-4 mb-3">
+                                        <label for="precio_por_menor" class="form-label">Precio Menor (Bs.) <span
+                                                class="text-danger">*</span></label>
+                                        <input type="number" step="0.01"
+                                            class="form-control @error('precio_por_menor') is-invalid @enderror"
+                                            wire:model="precio_por_menor" id="precio_por_menor" placeholder="0.00">
+                                        @error('precio_por_menor')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <!-- Botones normales (ocultar durante procesamiento) -->
+                    <div wire:loading.remove>
+                        <button type="button" class="btn btn-secondary" wire:click="closeModal">Cancelar</button>
+                        <button type="button" class="btn btn-primary" wire:click="save">
+                            {{ $editMode ? 'Actualizar' : 'Guardar' }}
+                        </button>
+                    </div>
+
+                    <!-- Botón de procesando (mostrar solo durante procesamiento) -->
+                    <div wire:loading>
+                        <button type="button" class="btn btn-primary" disabled>
+                            <span class="spinner-border spinner-border-sm me-2" role="status"
+                                aria-hidden="true"></span>
+                            Procesando...
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener('livewire:init', () => {
+        // Eventos de modal
+        Livewire.on('showmodal', event => {
+            $('#crudModal').modal('show')
+            setTimeout(() => {
+                document.getElementById('nombre').select()
+            }, 500)
+        })
+
+        Livewire.on('closemodal', event => {
+            $('#crudModal').modal('hide')
+            document.getElementById('searchInput').focus()
+        })
+
+        Livewire.on('medida-created', event => {
+            Livewire.dispatch('$refresh')
+        })
+    })
+</script>
