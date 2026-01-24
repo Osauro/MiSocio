@@ -38,7 +38,6 @@ class Productos extends Component
     public $precio_por_menor;
     public $stock;
     public $control = true;
-    public $vencidos = 0;
     public $tags_input = '';
 
     protected $rules = [
@@ -52,7 +51,6 @@ class Productos extends Component
         'precio_por_mayor' => 'required|numeric|min:0',
         'precio_por_menor' => 'required|numeric|min:0',
         'control' => 'boolean',
-        'vencidos' => 'nullable|integer|min:0',
         'tags_input' => 'nullable|string',
     ];
 
@@ -83,8 +81,7 @@ class Productos extends Component
         return view('livewire.productos', [
             'productos' => $this->getProductos(),
             'categorias' => $this->getCategorias(),
-            'medidas' => $this->getMedidas(),
-            'allTags' => $this->getAllTags()
+            'medidas' => $this->getMedidas()
         ]);
     }
 
@@ -124,14 +121,6 @@ class Productos extends Component
     public function getMedidas()
     {
         return Medida::orderBy('nombre')->get();
-    }
-
-    /**
-     * Obtener todos los tags disponibles para autocompletado.
-     */
-    public function getAllTags()
-    {
-        return Tag::orderBy('nombre')->pluck('nombre');
     }
 
     /**
@@ -176,7 +165,6 @@ class Productos extends Component
         $this->precio_por_menor = $producto->precio_por_menor;
         $this->stock = $producto->stock;
         $this->control = $producto->control;
-        $this->vencidos = $producto->vencidos;
         $this->tags_input = $producto->tags_string;
         $this->producto_actual_imagen = $producto->imagen; // Guardar la imagen actual
 
@@ -224,7 +212,6 @@ class Productos extends Component
                     'precio_por_mayor' => $this->precio_por_mayor,
                     'precio_por_menor' => $this->precio_por_menor,
                     'control' => $this->control,
-                    'vencidos' => $this->vencidos ?? 0,
                 ];
 
                 // Solo actualizar imagen si se subió una nueva
@@ -257,7 +244,6 @@ class Productos extends Component
                     'precio_por_menor' => $this->precio_por_menor,
                     'stock' => 0,
                     'control' => $this->control,
-                    'vencidos' => $this->vencidos ?? 0,
                 ]);
 
                 // Sincronizar tags
@@ -350,7 +336,6 @@ class Productos extends Component
         $this->precio_por_menor = null;
         $this->stock = null;
         $this->control = true;
-        $this->vencidos = 0;
         $this->tags_input = '';
         $this->addingNewMedida = false;
         $this->resetErrorBag();

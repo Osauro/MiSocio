@@ -215,6 +215,19 @@
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
+
+                                <!-- Control de Stock debajo de la imagen -->
+                                <div class="mb-3">
+                                    <label class="form-label">Control de Stock</label>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" 
+                                            id="control" wire:model="control">
+                                        <label class="form-check-label" for="control">
+                                            {{ $control ? 'Activado' : 'Desactivado' }}
+                                        </label>
+                                    </div>
+                                    <small class="text-muted">Si está desactivado, no se restará del stock al vender</small>
+                                </div>
                             </div>
 
                             <!-- Columna Derecha: Formulario -->
@@ -342,52 +355,46 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Control de Stock -->
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label">Control de Stock</label>
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                id="control" wire:model="control">
-                                            <label class="form-check-label" for="control">
-                                                {{ $control ? 'Activado' : 'Desactivado' }}
-                                            </label>
-                                        </div>
-                                        <small class="text-muted">Si está desactivado, no se restará del stock al vender</small>
-                                    </div>
-
-                                    <!-- Stock Vencido -->
-                                    <div class="col-md-6 mb-3">
-                                        <label for="vencidos" class="form-label">Stock Vencido/Pinchado</label>
-                                        <input type="number"
-                                            class="form-control @error('vencidos') is-invalid @enderror"
-                                            wire:model="vencidos" id="vencidos" placeholder="0">
-                                        @error('vencidos')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <small class="text-muted">Cantidad de unidades vencidas o dañadas</small>
-                                    </div>
-
-                                    <!-- Tags -->
-                                    <div class="col-md-12 mb-3">
+                                    <!-- Tags / Nombres Alternativos -->
+                                    <div class="col-md-12 mb-3" x-data="tagsInput()">
                                         <label for="tags_input" class="form-label">
                                             <i class="fa-solid fa-tags me-1"></i>Tags / Nombres Alternativos
                                         </label>
-                                        <input type="text"
-                                            class="form-control @error('tags_input') is-invalid @enderror"
-                                            wire:model="tags_input"
-                                            id="tags_input"
-                                            list="tagsList"
-                                            placeholder="Ej: Coca cola, Coca, Coca-cola">
-                                        <datalist id="tagsList">
-                                            @foreach($allTags as $tag)
-                                                <option value="{{ $tag }}">
-                                            @endforeach
-                                        </datalist>
+                                        
+                                        <!-- Área de tags como badges -->
+                                        <div class="tags-container border rounded p-2 mb-2" 
+                                             style="min-height: 50px; cursor: text; background-color: #fff;"
+                                             @click="$refs.tagInput.focus()">
+                                            <template x-for="(tag, index) in tags" :key="index">
+                                                <span class="badge bg-primary me-1 mb-1" 
+                                                      style="font-size: 0.875rem; padding: 0.4rem 0.6rem;">
+                                                    <span x-text="tag"></span>
+                                                    <button type="button" class="btn-close btn-close-white ms-2" 
+                                                            style="font-size: 0.6rem; padding: 0;"
+                                                            @click.stop="removeTag(index)"
+                                                            aria-label="Eliminar">
+                                                    </button>
+                                                </span>
+                                            </template>
+                                            <input type="text" 
+                                                   x-ref="tagInput"
+                                                   x-model="currentTag"
+                                                   @keydown.enter.prevent="addTag"
+                                                   @keydown.comma.prevent="addTag"
+                                                   @input="updateWire"
+                                                   class="border-0 outline-0"
+                                                   style="outline: none; box-shadow: none; min-width: 200px;"
+                                                   placeholder="Escribe y presiona coma o enter">
+                                        </div>
+                                        
+                                        <!-- Input oculto para Livewire -->
+                                        <input type="hidden" wire:model="tags_input" x-ref="hiddenInput">
+                                        
                                         @error('tags_input')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <div class="text-danger small">{{ $message }}</div>
                                         @enderror
                                         <small class="text-muted">
-                                            Separa los tags con comas. Ayudan a buscar el producto con diferentes nombres.
+                                            Presiona <kbd>,</kbd> o <kbd>Enter</kbd> para agregar cada tag
                                         </small>
                                     </div>
                                 </div>
@@ -436,4 +443,45 @@
             Livewire.dispatch('$refresh')
         })
     })
+
+    // Alpine.js component para tags profesionales
+    function tagsInput() {
+        return {
+            tags: [],
+            currentTag: '',
+            
+            init() {
+                // Cargar tags iniciales desde Livewire
+                const initialTags = this.$wire.get('tags_input');
+                if (initialTags) {
+                    this.tags = initialTags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                }
+                
+                // Sincronizar con Livewire cuando cambie
+                this.$watch('tags', () => {
+                    this.updateWire();
+                });
+            },
+            
+            addTag() {
+                const tag = this.currentTag.trim();
+                if (tag && !this.tags.includes(tag)) {
+                    this.tags.push(tag);
+                    this.currentTag = '';
+                    this.updateWire();
+                }
+            },
+            
+            removeTag(index) {
+                this.tags.splice(index, 1);
+                this.updateWire();
+            },
+            
+            updateWire() {
+                const tagsString = this.tags.join(', ');
+                this.$wire.set('tags_input', tagsString);
+            }
+        }
+    }
 </script>
+

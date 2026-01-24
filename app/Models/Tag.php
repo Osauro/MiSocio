@@ -21,19 +21,20 @@ class Tag extends Model
 
     /**
      * Normalizar el nombre del tag antes de guardarlo.
+     * Cada palabra con primera letra en mayúscula (Title Case).
      */
     public function setNombreAttribute($value): void
     {
-        // Normalizar: primera letra mayúscula, resto minúsculas, sin espacios extras
-        $this->attributes['nombre'] = ucfirst(trim(strtolower($value)));
+        // Normalizar: Title Case (primera letra de cada palabra en mayúscula)
+        $this->attributes['nombre'] = mb_convert_case(trim($value), MB_CASE_TITLE, 'UTF-8');
     }
 
     /**
-     * Buscar o crear un tag por nombre.
+     * Buscar o crear un tag por nombre normalizado.
      */
     public static function findOrCreateByName(string $nombre): self
     {
-        $nombreNormalizado = ucfirst(trim(strtolower($nombre)));
+        $nombreNormalizado = mb_convert_case(trim($nombre), MB_CASE_TITLE, 'UTF-8');
 
         return static::firstOrCreate(['nombre' => $nombreNormalizado]);
     }
