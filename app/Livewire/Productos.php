@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Categoria;
 use App\Models\Medida;
 use App\Models\Producto;
+use App\Models\Tag;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +37,9 @@ class Productos extends Component
     public $precio_por_mayor;
     public $precio_por_menor;
     public $stock;
+    public $control = true;
+    public $vencidos = 0;
+    public $tags_input = '';
 
     protected $rules = [
         'categoria_id' => 'required|exists:categorias,id',
@@ -47,6 +51,9 @@ class Productos extends Component
         'precio_de_compra' => 'required|numeric|min:0',
         'precio_por_mayor' => 'required|numeric|min:0',
         'precio_por_menor' => 'required|numeric|min:0',
+        'control' => 'boolean',
+        'vencidos' => 'nullable|integer|min:0',
+        'tags_input' => 'nullable|string',
     ];
 
     protected $messages = [
@@ -76,7 +83,8 @@ class Productos extends Component
         return view('livewire.productos', [
             'productos' => $this->getProductos(),
             'categorias' => $this->getCategorias(),
-            'medidas' => $this->getMedidas()
+            'medidas' => $this->getMedidas(),
+            'allTags' => $this->getAllTags()
         ]);
     }
 
@@ -85,12 +93,15 @@ class Productos extends Component
      */
     public function getProductos()
     {
-        return Producto::with('categoria')
+        return Producto::with(['categoria', 'tags'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('nombre', 'like', '%' . $this->search . '%')
                         ->orWhere('codigo', 'like', '%' . $this->search . '%')
                         ->orWhereHas('categoria', function ($query) {
+                            $query->where('nombre', 'like', '%' . $this->search . '%');
+                        })
+                        ->orWhereHas('tags', function ($query) {
                             $query->where('nombre', 'like', '%' . $this->search . '%');
                         });
                 });
@@ -113,6 +124,14 @@ class Productos extends Component
     public function getMedidas()
     {
         return Medida::orderBy('nombre')->get();
+    }
+
+    /**
+     * Obtener todos los tags disponibles para autocompletado.
+     */
+    public function getAllTags()
+    {
+        return Tag::orderBy('nombre')->pluck('nombre');
     }
 
     /**
@@ -156,6 +175,9 @@ class Productos extends Component
         $this->precio_por_mayor = $producto->precio_por_mayor;
         $this->precio_por_menor = $producto->precio_por_menor;
         $this->stock = $producto->stock;
+        $this->control = $producto->control;
+        $this->vencidos = $producto->vencidos;
+        $this->tags_input = $producto->tags_string;
         $this->producto_actual_imagen = $producto->imagen; // Guardar la imagen actual
 
         $this->editMode = true;
@@ -201,6 +223,8 @@ class Productos extends Component
                     'precio_de_compra' => $this->precio_de_compra,
                     'precio_por_mayor' => $this->precio_por_mayor,
                     'precio_por_menor' => $this->precio_por_menor,
+                    'control' => $this->control,
+                    'vencidos' => $this->vencidos ?? 0,
                 ];
 
                 // Solo actualizar imagen si se subió una nueva
@@ -214,10 +238,13 @@ class Productos extends Component
 
                 $producto->update($dataToUpdate);
 
+                // Sincronizar tags
+                $producto->syncTagsFromString($this->tags_input);
+
                 $this->toast('success', 'Producto actualizado exitosamente.');
             } else {
                 // Crear nuevo producto
-                Producto::create([
+                $producto = Producto::create([
                     'tenant_id' => Auth::user()->tenant_id,
                     'categoria_id' => $this->categoria_id,
                     'nombre' => $this->nombre,
@@ -229,7 +256,12 @@ class Productos extends Component
                     'precio_por_mayor' => $this->precio_por_mayor,
                     'precio_por_menor' => $this->precio_por_menor,
                     'stock' => 0,
+                    'control' => $this->control,
+                    'vencidos' => $this->vencidos ?? 0,
                 ]);
+
+                // Sincronizar tags
+                $producto->syncTagsFromString($this->tags_input);
 
                 $this->toast('success', 'Producto creado exitosamente.');
             }
@@ -317,6 +349,9 @@ class Productos extends Component
         $this->precio_por_mayor = null;
         $this->precio_por_menor = null;
         $this->stock = null;
+        $this->control = true;
+        $this->vencidos = 0;
+        $this->tags_input = '';
         $this->addingNewMedida = false;
         $this->resetErrorBag();
     }

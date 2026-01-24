@@ -59,10 +59,31 @@
                                                         @if ($producto->codigo)
                                                             <span class="text-muted ms-1">{{ $producto->codigo }}</span>
                                                         @endif
+                                                        @if(!$producto->control)
+                                                            <span class="badge bg-warning text-dark ms-1" title="Control de stock desactivado">
+                                                                <i class="fa-solid fa-eye-slash"></i> Sin control
+                                                            </span>
+                                                        @endif
                                                     </div>
+                                                    @if($producto->tags->count() > 0)
+                                                        <div class="small mb-1">
+                                                            <i class="fa-solid fa-tags text-muted me-1" style="font-size: 0.7rem;"></i>
+                                                            @foreach($producto->tags->take(3) as $tag)
+                                                                <span class="badge bg-light text-dark border me-1" style="font-size: 0.65rem;">{{ $tag->nombre }}</span>
+                                                            @endforeach
+                                                            @if($producto->tags->count() > 3)
+                                                                <span class="text-muted" style="font-size: 0.7rem;">+{{ $producto->tags->count() - 3 }}</span>
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                     <div class="small text-muted mb-2">
                                                         <i class="fa-solid fa-box text-primary me-1"></i>
                                                         Stock: {{ $producto->stock_formateado }}
+                                                        @if($producto->vencidos > 0)
+                                                            <span class="text-danger ms-1" title="Stock vencido/pinchado">
+                                                                <i class="fa-solid fa-triangle-exclamation"></i> {{ $producto->vencidos }}
+                                                            </span>
+                                                        @endif
                                                         <span class="ms-2">
                                                             <i class="fa-solid fa-ruler text-info me-1"></i>
                                                             {{ $producto->medida_formateada }} ({{ $producto->cantidad }})
@@ -319,6 +340,55 @@
                                         @error('precio_por_menor')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
+                                    </div>
+
+                                    <!-- Control de Stock -->
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Control de Stock</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="control" wire:model="control">
+                                            <label class="form-check-label" for="control">
+                                                {{ $control ? 'Activado' : 'Desactivado' }}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Si está desactivado, no se restará del stock al vender</small>
+                                    </div>
+
+                                    <!-- Stock Vencido -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="vencidos" class="form-label">Stock Vencido/Pinchado</label>
+                                        <input type="number"
+                                            class="form-control @error('vencidos') is-invalid @enderror"
+                                            wire:model="vencidos" id="vencidos" placeholder="0">
+                                        @error('vencidos')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <small class="text-muted">Cantidad de unidades vencidas o dañadas</small>
+                                    </div>
+
+                                    <!-- Tags -->
+                                    <div class="col-md-12 mb-3">
+                                        <label for="tags_input" class="form-label">
+                                            <i class="fa-solid fa-tags me-1"></i>Tags / Nombres Alternativos
+                                        </label>
+                                        <input type="text"
+                                            class="form-control @error('tags_input') is-invalid @enderror"
+                                            wire:model="tags_input"
+                                            id="tags_input"
+                                            list="tagsList"
+                                            placeholder="Ej: Coca cola, Coca, Coca-cola">
+                                        <datalist id="tagsList">
+                                            @foreach($allTags as $tag)
+                                                <option value="{{ $tag }}">
+                                            @endforeach
+                                        </datalist>
+                                        @error('tags_input')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <small class="text-muted">
+                                            Separa los tags con comas. Ayudan a buscar el producto con diferentes nombres.
+                                        </small>
                                     </div>
                                 </div>
                             </div>

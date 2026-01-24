@@ -22,6 +22,8 @@ class Producto extends Model
         'precio_por_mayor',
         'precio_por_menor',
         'stock',
+        'control',
+        'vencidos',
     ];
 
     protected $casts = [
@@ -30,6 +32,8 @@ class Producto extends Model
         'precio_por_menor' => 'decimal:2',
         'stock' => 'integer',
         'cantidad' => 'integer',
+        'control' => 'boolean',
+        'vencidos' => 'integer',
     ];
 
     /**
@@ -66,6 +70,46 @@ class Producto extends Model
     public function ventaItems(): HasMany
     {
         return $this->hasMany(VentaItem::class);
+    }
+
+    /**
+     * Relación con tags (many-to-many).
+     */
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'producto_tag')->withTimestamps();
+    }
+
+    /**
+     * Sincronizar tags del producto desde un string separado por comas.
+     * Normaliza y crea tags si no existen.
+     */
+    public function syncTagsFromString(?string $tagsString): void
+    {
+        if (empty($tagsString)) {
+            $this->tags()->detach();
+            return;
+        }
+
+        $tagNames = array_map('trim', explode(',', $tagsString));
+        $tagIds = [];
+
+        foreach ($tagNames as $tagName) {
+            if (!empty($tagName)) {
+                $tag = Tag::findOrCreateByName($tagName);
+                $tagIds[] = $tag->id;
+            }
+        }
+
+        $this->tags()->sync($tagIds);
+    }
+
+    /**
+     * Obtener los tags como string separado por comas.
+     */
+    public function getTagsStringAttribute(): string
+    {
+        return $this->tags->pluck('nombre')->join(', ');
     }
 
     /**
