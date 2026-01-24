@@ -189,24 +189,25 @@ class Productos extends Component
      */
     public function save()
     {
+        // Si estamos agregando una categoría nueva, crearla/obtenerla ANTES de validar
+        if ($this->addingNewCategoria && $this->categoria_id) {
+            $categoriaExistente = Categoria::where('nombre', trim($this->categoria_id))->first();
+
+            if (!$categoriaExistente) {
+                $nuevaCategoria = Categoria::create([
+                    'tenant_id' => currentTenantId(),
+                    'nombre' => trim($this->categoria_id),
+                ]);
+                $this->categoria_id = $nuevaCategoria->id;
+            } else {
+                $this->categoria_id = $categoriaExistente->id;
+            }
+        }
+
+        // Ahora validar con el ID correcto
         $this->validate();
 
         try {
-            // Si estamos agregando una categoría nueva, guardarla primero
-            if ($this->addingNewCategoria && $this->categoria_id) {
-                $categoriaExistente = Categoria::where('nombre', trim($this->categoria_id))->first();
-
-                if (!$categoriaExistente) {
-                    $nuevaCategoria = Categoria::create([
-                        'tenant_id' => currentTenantId(),
-                        'nombre' => trim($this->categoria_id),
-                    ]);
-                    $this->categoria_id = $nuevaCategoria->id;
-                } else {
-                    $this->categoria_id = $categoriaExistente->id;
-                }
-            }
-
             // Si estamos agregando una medida nueva, guardarla primero
             if ($this->addingNewMedida && $this->medida) {
                 $medidaExistente = Medida::where('nombre', trim($this->medida))->first();

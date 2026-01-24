@@ -257,7 +257,7 @@
                                             @if ($addingNewCategoria)
                                                 <input type="text"
                                                     class="form-control @error('categoria_id') is-invalid @enderror"
-                                                    wire:model="categoria_id" id="categoria_id" 
+                                                    wire:model="categoria_id" id="categoria_id"
                                                     placeholder="Ej: Bebidas">
                                                 <button class="btn btn-outline-secondary" type="button"
                                                     wire:click="toggleCategoriaInput" title="Volver al selector">
