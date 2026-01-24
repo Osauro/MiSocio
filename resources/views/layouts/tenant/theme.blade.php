@@ -210,7 +210,106 @@
             localStorage.setItem("color", 'color-5');
             localStorage.setItem("primary", '#884A39');
             localStorage.setItem("secondary", '#C38154');
-        })
+        });
+
+        // Restringir fechas futuras en todos los inputs de tipo date - GLOBAL
+        (function() {
+            const getToday = () => new Date().toISOString().split('T')[0];
+
+            // Función para aplicar max y validar inputs date
+            function restrictFutureDates() {
+                const today = getToday();
+                document.querySelectorAll('input[type="date"]').forEach(input => {
+                    // Siempre forzar el max
+                    input.setAttribute('max', today);
+
+                    // Validar el valor actual
+                    if (input.value && input.value > today) {
+                        input.value = today;
+                    }
+
+                    // Agregar listener de cambio si no existe
+                    if (!input.dataset.maxDateRestricted) {
+                        input.dataset.maxDateRestricted = 'true';
+
+                        input.addEventListener('input', function(e) {
+                            const currentToday = getToday();
+                            this.setAttribute('max', currentToday);
+                            if (this.value > currentToday) {
+                                this.value = currentToday;
+                            }
+                        });
+
+                        input.addEventListener('change', function(e) {
+                            const currentToday = getToday();
+                            this.setAttribute('max', currentToday);
+                            if (this.value > currentToday) {
+                                this.value = currentToday;
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Aplicar inmediatamente
+            restrictFutureDates();
+
+            // Aplicar al cargar el DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', restrictFutureDates);
+            } else {
+                setTimeout(restrictFutureDates, 100);
+            }
+
+            // Observar cambios en el DOM
+            const observer = new MutationObserver(function(mutations) {
+                let shouldRestrict = false;
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length) {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === 1) { // Element node
+                                if (node.tagName === 'INPUT' && node.type === 'date') {
+                                    shouldRestrict = true;
+                                } else if (node.querySelectorAll) {
+                                    if (node.querySelectorAll('input[type="date"]').length > 0) {
+                                        shouldRestrict = true;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+                if (shouldRestrict) {
+                    restrictFutureDates();
+                }
+            });
+
+            observer.observe(document.body || document.documentElement, {
+                childList: true,
+                subtree: true
+            });
+
+            // Hooks de Livewire
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
+                    succeed(() => {
+                        setTimeout(restrictFutureDates, 50);
+                    });
+                });
+
+                Livewire.hook('morph.updated', ({ el, component }) => {
+                    setTimeout(restrictFutureDates, 50);
+                });
+            }
+
+            // Event listeners para Livewire
+            document.addEventListener('livewire:load', () => setTimeout(restrictFutureDates, 100));
+            document.addEventListener('livewire:update', () => setTimeout(restrictFutureDates, 50));
+            document.addEventListener('livewire:navigated', () => setTimeout(restrictFutureDates, 100));
+
+            // Aplicar periódicamente (cada 1 segundo)
+            setInterval(restrictFutureDates, 1000);
+        })();
     </script>
 </body>
 

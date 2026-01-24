@@ -19,6 +19,7 @@ class Productos extends Component
     use WithPagination, WithFileUploads, SweetAlertTrait, RequiresTenant;
 
     public $search = '';
+    public $perPage;
     public $editMode = false;
     public $addingNewMedida = false;
 
@@ -65,6 +66,11 @@ class Productos extends Component
 
     protected $listeners = ['deleteProduct'];
 
+    public function mount()
+    {
+        $this->perPage = $_COOKIE['paginateProductos'] ?? 15;
+    }
+
     public function render()
     {
         return view('livewire.productos', [
@@ -90,7 +96,7 @@ class Productos extends Component
                 });
             })
             ->orderBy('nombre')
-            ->paginate(15);
+            ->paginate($this->perPage);
     }
 
     /**
@@ -142,7 +148,8 @@ class Productos extends Component
         $this->categoria_id = $producto->categoria_id;
         $this->nombre = $producto->nombre;
         $this->codigo = $producto->codigo;
-        $this->imagen = $producto->imagen;
+        // NO asignar la imagen existente al campo, solo guardarla para preview
+        $this->imagen = null;
         $this->medida = $producto->medida;
         $this->cantidad = $producto->cantidad;
         $this->precio_de_compra = $producto->precio_de_compra;

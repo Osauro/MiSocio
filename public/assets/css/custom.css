@@ -143,24 +143,43 @@ body,
 
 .page-header .logo-wrapper {
     background-color: transparent !important;
+    width: auto !important; /* Permitir que se ajuste al contenido */
+    padding: 15px 16px !important; /* Mantener padding original */
+}
+
+/* Asegurar que el logo mantenga su tamaño */
+.page-header .logo-wrapper a img {
+    height: 60px !important;
 }
 
 .page-header .page-main-header {
     background-color: transparent !important;
 }
 
-/* Botón toggle sidebar - Ajustar a la izquierda */
+/* Botón toggle sidebar - Mantener tamaño original */
 .toggle-sidebar {
     margin-left: 15px !important;
     margin-right: 15px !important;
+    height: 40px !important;
+    width: 40px !important;
+    background-color: hsla(20, 20%, 97%, 0.239) !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .toggle-sidebar i {
     color: #fff !important;
+    font-size: 18px !important;
+}
+
+.toggle-sidebar:hover {
+    background-color: hsla(20, 20%, 97%, 0.4) !important;
 }
 
 .toggle-sidebar:hover i {
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 /* Avatar de usuario en el header */
@@ -183,6 +202,32 @@ body,
 .page-sidebar {
     display: flex;
     flex-direction: column;
+    margin-top: 0 !important;
+    top: 90px !important; /* Escritorio */
+}
+
+@media (max-width: 991.98px) {
+    .page-sidebar {
+        top: 70px !important;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .page-sidebar {
+        top: 70px !important;
+    }
+}
+
+@media (max-width: 680px) {
+    .page-sidebar {
+        top: 70px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .page-sidebar {
+        top: 70px !important;
+    }
 }
 
 .page-sidebar .main-sidebar {

@@ -65,7 +65,7 @@
         <div class="loader"><span></span><span></span><span></span><span></span><span></span></div>
     </div>
 
-    <div class="page-wrapper horizontal-sidebar" id="pageWrapper">
+    <div class="page-wrapper compact-sidebar" id="pageWrapper">
 
         @include('layouts.landlord.header')
 
@@ -86,7 +86,7 @@
 
         <!-- Componente de perfil de usuario -->
         @livewire('perfil-usuario')
-        
+
         <!-- Componente selector de tenant -->
         @livewire('tenant-selector')
     </div>

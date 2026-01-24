@@ -10,79 +10,98 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Buscar productos"
                                         wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
-                                    <button class="btn btn-primary" wire:click="create">Agregar</button>
+                                    <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="card-body transaction-history pt-0 mt-3 pb-4">
+                    <div class="card-body transaction-history pt-0 mt-3 pb-2">
                         <div class="row g-2">
                             @forelse($productos as $producto)
                                 <div class="col-lg-4 col-md-6 col-sm-12">
                                     <div class="card mb-0 shadow-sm producto-card">
                                         <div class="card-body p-2">
-                                            <div class="d-flex align-items-start">
-                                                <!-- Imagen del producto y botones -->
-                                                <div class="flex-shrink-0 me-2 text-center" style="width: 70px;">
-                                                    <div style="height: 70px; margin-bottom: 4px;">
-                                                        @if ($producto->imagen)
-                                                            <img src="{{ Storage::url($producto->imagen) }}"
-                                                                alt="{{ $producto->nombre }}" class="rounded"
-                                                                style="width: 70px; height: 70px; object-fit: cover;">
-                                                        @else
-                                                            <div class="bg-light d-flex align-items-center justify-content-center rounded"
-                                                                style="width: 70px; height: 70px;">
-                                                                <i class="fa-solid fa-image fa-2x text-muted"></i>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                    <!-- Botones debajo de la imagen -->
-                                                    <div class="d-flex justify-content-center gap-2">
-                                                        <button class="btn btn-link p-0 text-primary btn-zoom"
-                                                            wire:click="edit({{ $producto->id }})" title="Editar"
-                                                            style="font-size: 1.2rem;">
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </button>
-                                                        <button class="btn btn-link p-0 text-danger btn-zoom"
-                                                            wire:click="confirmDeleteProduct({{ $producto->id }})"
-                                                            title="Eliminar" style="font-size: 1.2rem;">
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    </div>
+                                            <div class="d-flex align-items-start position-relative">
+                                                <!-- Botones en esquina superior derecha -->
+                                                <div class="position-absolute top-0 end-0">
+                                                    <button class="btn btn-link p-1 text-primary btn-zoom"
+                                                        wire:click="edit({{ $producto->id }})" title="Editar"
+                                                        style="font-size: 1rem;">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button class="btn btn-link p-1 text-danger btn-zoom"
+                                                        wire:click="confirmDeleteProduct({{ $producto->id }})"
+                                                        title="Eliminar" style="font-size: 1rem;">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+
+                                                <!-- Imagen del producto -->
+                                                <div class="flex-shrink-0 me-3">
+                                                    @if ($producto->imagen)
+                                                        <img src="{{ Storage::url($producto->imagen) }}"
+                                                            alt="{{ $producto->nombre }}" class="rounded"
+                                                            style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #e9ecef;">
+                                                    @else
+                                                        <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                                                            style="width: 60px; height: 60px; border: 2px solid #e9ecef;">
+                                                            <i class="fa-solid fa-image fa-2x text-muted"></i>
+                                                        </div>
+                                                    @endif
                                                 </div>
 
                                                 <!-- Información del producto -->
                                                 <div class="flex-grow-1">
-                                                    <h6 class="mb-1">{{ $producto->nombre }}</h6>
-                                                    <p class="text-muted mb-1 small">
-                                                        <span
-                                                            class="badge bg-secondary">{{ $producto->categoria->nombre ?? 'Sin categoría' }}</span>
+                                                    <h6 class="mb-1 fw-semibold">{{ $producto->nombre }}</h6>
+                                                    <div class="small mb-1">
+                                                        <span class="badge bg-secondary">{{ $producto->categoria->nombre ?? 'Sin categoría' }}</span>
                                                         @if ($producto->codigo)
-                                                            <span class="ms-2">Código:
-                                                                <strong>{{ $producto->codigo }}</strong></span>
+                                                            <span class="text-muted ms-1">{{ $producto->codigo }}</span>
                                                         @endif
-                                                    </p>
-                                                    <div class="mb-2 small">
-                                                        <i class="fa-solid fa-box text-primary"></i>
-                                                        <strong>Stock:</strong> {{ $producto->stock }}
+                                                    </div>
+                                                    <div class="small text-muted mb-2">
+                                                        <i class="fa-solid fa-box text-primary me-1"></i>
+                                                        Stock: {{ $producto->stock_formateado }}
                                                         <span class="ms-2">
-                                                            <i class="fa-solid fa-ruler text-info"></i>
-                                                            <strong>Medida:</strong> {{ $producto->medida }}
-                                                            ({{ $producto->cantidad }})
+                                                            <i class="fa-solid fa-ruler text-info me-1"></i>
+                                                            {{ $producto->medida_formateada }} ({{ $producto->cantidad }})
                                                         </span>
                                                     </div>
-                                                    <div class="text-end">
-                                                        <span class="badge bg-dark me-1 badge-precio">
-                                                            {{ number_format($producto->precio_de_compra, 2) }}
-                                                        </span>
-                                                        <span class="badge bg-success me-1 badge-precio">
-                                                            {{ number_format($producto->precio_por_mayor, 2) }}
-                                                        </span>
-                                                        <span class="badge bg-danger badge-precio">
-                                                            {{ number_format($producto->precio_por_menor, 2) }}
-                                                        </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-light py-1 px-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div class="badge bg-dark text-center py-2 px-2" style="min-width: 80px;">
+                                                    <div style="font-weight: 600; line-height: 1.2;">
+                                                        @php
+                                                            $precio = number_format($producto->precio_de_compra, 2);
+                                                            [$entero, $decimal] = explode('.', $precio);
+                                                        @endphp
+                                                        <span style="font-size: 1.1rem;">{{ $entero }}.</span><span style="font-size: 0.8rem; vertical-align: top;">{{ $decimal }}</span>
                                                     </div>
+                                                    <small class="d-block" style="font-size: 0.65rem;">Compra</small>
+                                                </div>
+                                                <div class="badge bg-success text-center py-2 px-2" style="min-width: 80px;">
+                                                    <div style="font-weight: 600; line-height: 1.2;">
+                                                        @php
+                                                            $precio = number_format($producto->precio_por_mayor, 2);
+                                                            [$entero, $decimal] = explode('.', $precio);
+                                                        @endphp
+                                                        <span style="font-size: 1.1rem;">{{ $entero }}.</span><span style="font-size: 0.8rem; vertical-align: top;">{{ $decimal }}</span>
+                                                    </div>
+                                                    <small class="d-block" style="font-size: 0.65rem;">Mayor</small>
+                                                </div>
+                                                <div class="badge bg-danger text-center py-2 px-2" style="min-width: 80px;">
+                                                    <div style="font-weight: 600; line-height: 1.2;">
+                                                        @php
+                                                            $precio = number_format($producto->precio_por_menor, 2);
+                                                            [$entero, $decimal] = explode('.', $precio);
+                                                        @endphp
+                                                        <span style="font-size: 1.1rem;">{{ $entero }}.</span><span style="font-size: 0.8rem; vertical-align: top;">{{ $decimal }}</span>
+                                                    </div>
+                                                    <small class="d-block" style="font-size: 0.65rem;">Menor</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -108,7 +127,28 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
-                <div class="w-100 d-flex justify-content-center justify-content-md-end">
+                <div class="d-flex align-items-center gap-2">
+                    <div x-data="{
+                         init() {
+                             const saved = localStorage.getItem('paginateProductos') || document.cookie.split('; ').find(row => row.startsWith('paginateProductos='))?.split('=')[1];
+                             if (saved) {
+                                 $wire.set('perPage', parseInt(saved));
+                             }
+                         }
+                     }">
+                        <input type="number"
+                               class="form-control form-control-sm text-center"
+                               style="width: 60px;"
+                               wire:model.live="perPage"
+                               min="1"
+                               max="100"
+                               title="Registros por página"
+                               onfocus="this.select()"
+                               @input="
+                                   localStorage.setItem('paginateProductos', $event.target.value);
+                                   document.cookie = 'paginateProductos=' + $event.target.value + '; path=/; max-age=31536000';
+                               ">
+                    </div>
                     {{ $productos->links() }}
                 </div>
             </div>
@@ -134,7 +174,7 @@
                                         ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
                                         ondragleave="handleDragLeave(event)"
                                         style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; height: 100%; min-height: 300px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                                        @if ($imagen)
+                                        @if ($imagen && is_object($imagen))
                                             <img src="{{ $imagen->temporaryUrl() }}" alt="Preview"
                                                 style="max-width: 100%; max-height: 280px; object-fit: contain;">
                                         @elseif ($editMode && isset($producto_actual_imagen))

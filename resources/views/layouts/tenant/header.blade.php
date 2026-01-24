@@ -7,41 +7,33 @@
         <a class="close-btn toggle-sidebar" href="javascript:void(0)">
             <i class="fa-solid fa-bars fa-lg"></i>
         </a>
+
+        <!-- Botón selector de tenant -->
+        @php
+            $currentTenant = currentTenant();
+            $tenantColor = getThemeColor();
+        @endphp
+        <button class="btn btn-tenant-selector ms-2"
+                onclick="Livewire.dispatch('openTenantSelector')"
+                title="{{ $currentTenant?->name ?? 'Cambiar tienda' }}"
+                style="background: {{ $tenantColor }};">
+            <i class="fa-solid fa-store"></i>
+        </button>
+
+        <!-- Botón de modo Landlord (solo para Super Admins) -->
+        @if(Auth::user()->isSuperAdmin())
+            <a href="{{ route('landlord.home') }}"
+               class="btn btn-mode-switch ms-2"
+               title="Ir a modo Landlord (Gestión del Sistema)">
+                <i class="fa-solid fa-crown"></i>
+            </a>
+        @endif
     </div>
     <div class="page-main-header col">
         <div class="header-left position-relative d-flex align-items-center justify-content-center w-100">
-            <!-- Logo para móviles -->
-            <a href="/" class="d-md-none position-absolute" style="left: 50%; transform: translateX(-50%);">
-                <img src="{{ asset('assets/images/logo.png') }}" alt="logo"
-                    style="height: 35px; width: auto; object-fit: contain;" />
-            </a>
         </div>
         <div class="nav-right">
             <ul class="header-right">
-                <!-- Botón de modo Landlord (solo para Super Admins) -->
-                @if(Auth::user()->isSuperAdmin())
-                    <li>
-                        <a href="{{ route('landlord.home') }}" 
-                           class="btn btn-mode-switch"
-                           title="Ir a modo Landlord (Gestión del Sistema)">
-                            <i class="fa-solid fa-crown"></i>
-                        </a>
-                    </li>
-                @endif
-
-                <!-- Botón selector de tenant -->
-                <li>
-                    @php
-                        $currentTenant = currentTenant();
-                        $tenantColor = getThemeColor();
-                    @endphp
-                    <button class="btn btn-tenant-selector"
-                            onclick="Livewire.dispatch('openTenantSelector')"
-                            title="{{ $currentTenant?->name ?? 'Cambiar tienda' }}"
-                            style="background: {{ $tenantColor }};">
-                        <i class="fa-solid fa-store"></i>
-                    </button>
-                </li>
                 <li class="profile-nav">
                     <div class="user-img" id="toggleProfileSidebar" style="cursor: pointer;">
                         <img id="headerAvatar"
@@ -67,11 +59,11 @@
 
 <style>
     .btn-mode-switch {
-        border: 2px solid #dc3545;
-        background: white;
+        border: 2px solid #fff;
+        background: rgba(255, 255, 255, 0.2);
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -82,26 +74,27 @@
     }
 
     .btn-mode-switch:hover {
-        background: #dc3545;
+        background: rgba(255, 255, 255, 0.3);
         transform: translateY(-2px) scale(1.05);
-        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .btn-mode-switch i {
-        color: #dc3545;
-        font-size: 16px;
-        transition: color 0.3s ease;
+        color: #ffd700;
+        font-size: 18px;
+        transition: all 0.3s ease;
     }
 
     .btn-mode-switch:hover i {
-        color: white;
+        color: #fff;
+        filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.6));
     }
 
     .btn-tenant-selector {
         border: none;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 44px;
+        height: 44px;
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -120,17 +113,11 @@
         font-size: 18px;
     }
 
-    /* Asegurar que los botones sean visibles en móvil */
+    /* Ocultar botones en móvil (se mostrarán en el sidebar del perfil) */
     @media (max-width: 767px) {
-        .header-right > li {
-            display: inline-block !important;
-        }
-
         .btn-tenant-selector,
         .btn-mode-switch {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
+            display: none !important;
         }
     }
 </style>

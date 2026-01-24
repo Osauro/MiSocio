@@ -114,7 +114,7 @@
                             <i class="fa-solid fa-info-circle me-2"></i>
                             Módulos en desarrollo. Próximamente podrás gestionar:
                         </div>
-                        
+
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="border rounded p-3 text-center">

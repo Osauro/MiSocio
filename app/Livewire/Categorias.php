@@ -17,6 +17,7 @@ class Categorias extends Component
     use WithPagination, WithFileUploads, SweetAlertTrait, RequiresTenant;
 
     public $search = '';
+    public $perPage;
     public $editMode = false;
 
     // Campos de la categoría
@@ -38,6 +39,11 @@ class Categorias extends Component
 
     protected $listeners = ['deleteCategoria'];
 
+    public function mount()
+    {
+        $this->perPage = $_COOKIE['paginateCategorias'] ?? 15;
+    }
+
     public function render()
     {
         return view('livewire.categorias', [
@@ -56,7 +62,7 @@ class Categorias extends Component
             $query->where('nombre', 'like', '%' . $this->search . '%');
         }
 
-        return $query->orderBy('nombre')->paginate(15);
+        return $query->orderBy('nombre')->paginate($this->perPage);
     }
 
     /**

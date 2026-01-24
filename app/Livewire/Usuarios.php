@@ -18,6 +18,7 @@ class Usuarios extends Component
     use WithPagination, WithFileUploads, SweetAlertTrait, RequiresTenant;
 
     public $search = '';
+    public $perPage;
     public $editMode = false;
 
     // Campos del usuario
@@ -52,6 +53,11 @@ class Usuarios extends Component
 
     protected $listeners = ['deleteUsuario'];
 
+    public function mount()
+    {
+        $this->perPage = $_COOKIE['paginateUsuarios'] ?? 15;
+    }
+
     public function render()
     {
         return view('livewire.usuarios', [
@@ -75,7 +81,7 @@ class Usuarios extends Component
                 });
             })
             ->orderBy('name')
-            ->paginate(15);
+            ->paginate($this->perPage);
     }
 
     public function create()

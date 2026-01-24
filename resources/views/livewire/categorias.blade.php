@@ -10,7 +10,7 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Buscar categorías"
                                         wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
-                                    <button class="btn btn-primary" wire:click="create">Agregar</button>
+                                    <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -21,43 +21,43 @@
                             @forelse($categorias as $categoria)
                                 <div class="col-lg-4 col-md-6 col-sm-12">
                                     <div class="card mb-0 shadow-sm producto-card">
-                                        <div class="card-body p-2">
-                                            <div class="d-flex align-items-start">
-                                                <!-- Imagen de la categoría y botones -->
-                                                <div class="flex-shrink-0 me-2 text-center" style="width: 70px;">
-                                                    <div style="height: 70px; margin-bottom: 4px;">
-                                                        @if ($categoria->imagen)
-                                                            <img src="{{ Storage::url($categoria->imagen) }}"
-                                                                alt="{{ $categoria->nombre }}" class="rounded"
-                                                                style="width: 70px; height: 70px; object-fit: cover;">
-                                                        @else
-                                                            <div class="bg-light d-flex align-items-center justify-content-center rounded"
-                                                                style="width: 70px; height: 70px;">
-                                                                <i class="fa-solid fa-layer-group fa-2x text-muted"></i>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                    <!-- Botones debajo de la imagen -->
-                                                    <div class="d-flex justify-content-center gap-2">
-                                                        <button class="btn btn-link p-0 text-primary btn-zoom"
-                                                            wire:click="edit({{ $categoria->id }})" title="Editar"
-                                                            style="font-size: 1.2rem;">
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </button>
-                                                        <button class="btn btn-link p-0 text-danger btn-zoom"
-                                                            wire:click="confirmDeleteCategoria({{ $categoria->id }})"
-                                                            title="Eliminar" style="font-size: 1.2rem;">
-                                                            <i class="fa-solid fa-trash"></i>
-                                                        </button>
-                                                    </div>
+                                        <div class="card-body p-3">
+                                            <div class="d-flex align-items-start position-relative">
+                                                <!-- Botones en esquina superior derecha -->
+                                                <div class="position-absolute top-0 end-0">
+                                                    <button class="btn btn-link p-1 text-primary btn-zoom"
+                                                        wire:click="edit({{ $categoria->id }})" title="Editar"
+                                                        style="font-size: 1rem;">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <button class="btn btn-link p-1 text-danger btn-zoom"
+                                                        wire:click="confirmDeleteCategoria({{ $categoria->id }})"
+                                                        title="Eliminar" style="font-size: 1rem;">
+                                                        <i class="fa-solid fa-trash"></i>
+                                                    </button>
+                                                </div>
+
+                                                <!-- Imagen de la categoría -->
+                                                <div class="flex-shrink-0 me-3">
+                                                    @if ($categoria->imagen)
+                                                        <img src="{{ Storage::url($categoria->imagen) }}"
+                                                            alt="{{ $categoria->nombre }}" class="rounded"
+                                                            style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #e9ecef;">
+                                                    @else
+                                                        <div class="bg-light d-flex align-items-center justify-content-center rounded"
+                                                            style="width: 60px; height: 60px; border: 2px solid #e9ecef;">
+                                                            <i class="fa-solid fa-layer-group fa-2x text-muted"></i>
+                                                        </div>
+                                                    @endif
                                                 </div>
 
                                                 <!-- Información de la categoría -->
                                                 <div class="flex-grow-1">
-                                                    <h6 class="mb-1">{{ $categoria->nombre }}</h6>
-                                                    <p class="text-muted mb-0 small">
-                                                        {{ $categoria->productos_count ?? 0 }} producto(s)
-                                                    </p>
+                                                    <h6 class="mb-1 fw-semibold">{{ $categoria->nombre }}</h6>
+                                                    <div class="small">
+                                                        <i class="fa-solid fa-box text-primary me-1"></i>
+                                                        <span class="text-muted">{{ $categoria->productos_count ?? 0 }} producto(s)</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -83,7 +83,28 @@
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
-                <div class="w-100 d-flex justify-content-center justify-content-md-end">
+                <div class="d-flex align-items-center gap-2">
+                    <div x-data="{
+                         init() {
+                             const saved = localStorage.getItem('paginateCategorias') || document.cookie.split('; ').find(row => row.startsWith('paginateCategorias='))?.split('=')[1];
+                             if (saved) {
+                                 $wire.set('perPage', parseInt(saved));
+                             }
+                         }
+                     }">
+                        <input type="number"
+                               class="form-control form-control-sm text-center"
+                               style="width: 60px;"
+                               wire:model.live="perPage"
+                               min="1"
+                               max="100"
+                               title="Registros por página"
+                               onfocus="this.select()"
+                               @input="
+                                   localStorage.setItem('paginateCategorias', $event.target.value);
+                                   document.cookie = 'paginateCategorias=' + $event.target.value + '; path=/; max-age=31536000';
+                               ">
+                    </div>
                     {{ $categorias->links() }}
                 </div>
             </div>

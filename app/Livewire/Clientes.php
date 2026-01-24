@@ -14,6 +14,7 @@ class Clientes extends Component
     use WithPagination, SweetAlertTrait, RequiresTenant;
 
     public $search = '';
+    public $perPage;
     public $editMode = false;
     public $clienteId;
     public $nombre = '';
@@ -36,6 +37,11 @@ class Clientes extends Component
 
     protected $listeners = ['deleteCliente'];
 
+    public function mount()
+    {
+        $this->perPage = $_COOKIE['paginateClientes'] ?? 21;
+    }
+
     public function render()
     {
         return view('livewire.clientes', [
@@ -54,7 +60,7 @@ class Clientes extends Component
             });
         }
 
-        return $query->orderBy('nombre')->paginate(21);
+        return $query->orderBy('nombre')->paginate($this->perPage);
     }
 
     public function create()

@@ -5,8 +5,9 @@ use App\Livewire\Categorias;
 use App\Livewire\Clientes;
 use App\Livewire\HomeLandlord;
 use App\Livewire\HomeTenant;
+use App\Livewire\Kardex;
+use App\Livewire\Movimientos;
 use App\Livewire\Productos;
-use App\Livewire\TestCliente;
 use App\Livewire\Usuarios;
 use App\Livewire\Ventas;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Ventas - Todos los usuarios pueden acceder
     Route::livewire('tenant/ventas', Ventas::class)->name('tenant.ventas');
 
+    // Kardex - Todos los usuarios pueden ver
+    Route::livewire('tenant/kardex', Kardex::class)->name('tenant.kardex');
+
     // Ruta de debug temporal - Solo para desarrollo
     Route::get('tenant/debug-user', function () {
         return view('debug-user');
@@ -46,7 +50,7 @@ Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
     Route::livewire('tenant/categorias', Categorias::class)->name('tenant.categorias');
     Route::livewire('tenant/clientes', Clientes::class)->name('tenant.clientes');
     Route::livewire('tenant/usuarios', Usuarios::class)->name('tenant.usuarios');
-    Route::livewire('tenant/test-cliente', TestCliente::class)->name('tenant.test-cliente');
+    Route::livewire('tenant/movimientos', Movimientos::class)->name('tenant.movimientos');
 });
 
 // Rutas para landlord - Solo Landlords

@@ -67,4 +67,41 @@ class Producto extends Model
     {
         return $this->hasMany(VentaItem::class);
     }
+
+    /**
+     * Obtiene el stock formateado en cajas y unidades
+     */
+    public function getStockFormateadoAttribute(): string
+    {
+        if ($this->stock == 0) {
+            return '0';
+        }
+
+        if ($this->cantidad <= 1) {
+            // Si no hay conversión, mostrar solo el stock
+            return number_format($this->stock, 0);
+        }
+
+        $cajas = floor($this->stock / $this->cantidad);
+        $unidades = $this->stock % $this->cantidad;
+
+        // Abreviatura de la medida (primera letra en minúscula)
+        $medidaAbrev = strtolower(substr($this->medida, 0, 1));
+
+        if ($cajas > 0 && $unidades > 0) {
+            return "{$cajas}{$medidaAbrev} - {$unidades}u";
+        } elseif ($cajas > 0) {
+            return "{$cajas}{$medidaAbrev}";
+        } else {
+            return "{$unidades}u";
+        }
+    }
+
+    /**
+     * Obtiene la medida con primera letra en mayúscula
+     */
+    public function getMedidaFormateadaAttribute(): string
+    {
+        return ucfirst(strtolower($this->medida));
+    }
 }

@@ -1,23 +1,27 @@
 <header class="page-header row">
     <div class="logo-wrapper d-flex align-items-center col-auto p-0">
         <a href="/">
-            <img class="light-logo img-fluid" src="{{ asset('assets/images/saas_pos_blanco_editado.png') }}" alt="logo" style="height: 60px!important" />
-            <img class="dark-logo img-fluid" src="{{ asset('assets/images/saas_pos_blanco_editado.png') }}" alt="logo" style="height: 60px!important" />
+            <img class="light-logo img-fluid" src="{{ asset('assets/images/logo.png') }}" alt="logo"
+                style="height: 60px!important; margin-left:10px" />
         </a>
         <a class="close-btn toggle-sidebar" href="javascript:void(0)">
             <i class="fa-solid fa-bars fa-lg"></i>
         </a>
     </div>
     <div class="page-main-header col">
-        <div class="header-left">
-            @livewire('tenant-switcher')
+        <div class="header-left position-relative d-flex align-items-center justify-content-center w-100">
+            <!-- Logo para móviles -->
+            <a href="/" class="d-md-none position-absolute" style="left: 50%; transform: translateX(-50%);">
+                <img src="{{ asset('assets/images/logo.png') }}" alt="logo"
+                    style="height: 35px; width: auto; object-fit: contain;" />
+            </a>
         </div>
         <div class="nav-right">
             <ul class="header-right">
-                <!-- Botón para volver al modo Tenant -->
+                <!-- Botón para volver al modo Tenant (solo si tiene tenants) -->
                 @if(Auth::user()->tenants()->wherePivot('is_active', true)->count() > 0)
                     <li>
-                        <a href="{{ route('tenant.home') }}" 
+                        <a href="{{ route('tenant.home') }}"
                            class="btn btn-mode-switch-tenant"
                            title="Ir a modo Tenant (Trabajar en una tienda)">
                             <i class="fa-solid fa-store"></i>
