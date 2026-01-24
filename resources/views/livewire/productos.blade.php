@@ -220,7 +220,7 @@
                                 <div class="mb-3">
                                     <label class="form-label">Control de Stock</label>
                                     <div class="form-check form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" 
+                                        <input class="form-check-input" type="checkbox" role="switch"
                                             id="control" wire:model="control">
                                         <label class="form-check-label" for="control">
                                             {{ $control ? 'Activado' : 'Desactivado' }}
@@ -360,36 +360,35 @@
                                         <label for="tags_input" class="form-label">
                                             <i class="fa-solid fa-tags me-1"></i>Tags / Nombres Alternativos
                                         </label>
-                                        
+
                                         <!-- Área de tags como badges -->
-                                        <div class="tags-container border rounded p-2 mb-2" 
+                                        <div class="tags-container border rounded p-2 mb-2"
                                              style="min-height: 50px; cursor: text; background-color: #fff;"
                                              @click="$refs.tagInput.focus()">
                                             <template x-for="(tag, index) in tags" :key="index">
-                                                <span class="badge bg-primary me-1 mb-1" 
+                                                <span class="badge bg-primary me-1 mb-1"
                                                       style="font-size: 0.875rem; padding: 0.4rem 0.6rem;">
                                                     <span x-text="tag"></span>
-                                                    <button type="button" class="btn-close btn-close-white ms-2" 
+                                                    <button type="button" class="btn-close btn-close-white ms-2"
                                                             style="font-size: 0.6rem; padding: 0;"
                                                             @click.stop="removeTag(index)"
                                                             aria-label="Eliminar">
                                                     </button>
                                                 </span>
                                             </template>
-                                            <input type="text" 
+                                            <input type="text"
                                                    x-ref="tagInput"
                                                    x-model="currentTag"
                                                    @keydown.enter.prevent="addTag"
                                                    @keydown.comma.prevent="addTag"
-                                                   @input="updateWire"
                                                    class="border-0 outline-0"
                                                    style="outline: none; box-shadow: none; min-width: 200px;"
                                                    placeholder="Escribe y presiona coma o enter">
                                         </div>
-                                        
+
                                         <!-- Input oculto para Livewire -->
                                         <input type="hidden" wire:model="tags_input" x-ref="hiddenInput">
-                                        
+
                                         @error('tags_input')
                                             <div class="text-danger small">{{ $message }}</div>
                                         @enderror
@@ -449,20 +448,20 @@
         return {
             tags: [],
             currentTag: '',
-            
+
             init() {
                 // Cargar tags iniciales desde Livewire
                 const initialTags = this.$wire.get('tags_input');
                 if (initialTags) {
                     this.tags = initialTags.split(',').map(t => t.trim()).filter(t => t.length > 0);
                 }
-                
+
                 // Sincronizar con Livewire cuando cambie
                 this.$watch('tags', () => {
                     this.updateWire();
                 });
             },
-            
+
             addTag() {
                 const tag = this.currentTag.trim();
                 if (tag && !this.tags.includes(tag)) {
@@ -471,12 +470,12 @@
                     this.updateWire();
                 }
             },
-            
+
             removeTag(index) {
                 this.tags.splice(index, 1);
                 this.updateWire();
             },
-            
+
             updateWire() {
                 const tagsString = this.tags.join(', ');
                 this.$wire.set('tags_input', tagsString);
