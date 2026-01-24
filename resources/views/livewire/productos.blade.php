@@ -454,15 +454,26 @@
 
             init() {
                 // Cargar tags iniciales desde Livewire
-                const initialTags = this.$wire.get('tags_input');
-                if (initialTags) {
-                    this.tags = initialTags.split(',').map(t => t.trim()).filter(t => t.length > 0);
-                }
+                this.loadTagsFromWire();
 
-                // Sincronizar con Livewire cuando cambie
+                // Escuchar cambios en tags_input desde Livewire (cuando se edita)
+                this.$watch('$wire.tags_input', () => {
+                    this.loadTagsFromWire();
+                });
+
+                // Sincronizar con Livewire cuando cambie el array de tags
                 this.$watch('tags', () => {
                     this.updateWire();
                 });
+            },
+
+            loadTagsFromWire() {
+                const tagsInput = this.$wire.tags_input;
+                if (tagsInput && tagsInput.length > 0) {
+                    this.tags = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                } else {
+                    this.tags = [];
+                }
             },
 
             addTag() {
