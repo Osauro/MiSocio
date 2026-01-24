@@ -253,16 +253,33 @@
                                     <div class="col-md-6 mb-3">
                                         <label for="categoria_id" class="form-label">Categoría <span
                                                 class="text-danger">*</span></label>
-                                        <select class="form-select @error('categoria_id') is-invalid @enderror"
-                                            wire:model="categoria_id" id="categoria_id">
-                                            <option value="">Seleccione una categoría</option>
-                                            @foreach ($categorias as $categoria)
-                                                <option value="{{ $categoria->id }}">{{ $categoria->nombre }}
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <div class="input-group">
+                                            @if ($addingNewCategoria)
+                                                <input type="text"
+                                                    class="form-control @error('categoria_id') is-invalid @enderror"
+                                                    wire:model="categoria_id" id="categoria_id" 
+                                                    placeholder="Ej: Bebidas">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                    wire:click="toggleCategoriaInput" title="Volver al selector">
+                                                    <i class="fa-solid fa-arrow-left"></i>
+                                                </button>
+                                            @else
+                                                <select class="form-select @error('categoria_id') is-invalid @enderror"
+                                                    wire:model="categoria_id" id="categoria_id">
+                                                    <option value="">Seleccione una categoría</option>
+                                                    @foreach ($categorias as $categoria)
+                                                        <option value="{{ $categoria->id }}">{{ $categoria->nombre }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                    wire:click="toggleCategoriaInput" title="Agregar nueva categoría">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+                                            @endif
+                                        </div>
                                         @error('categoria_id')
-                                            <div class="invalid-feedback">{{ $message }}</div>
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
                                         @enderror
                                     </div>
 

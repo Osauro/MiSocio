@@ -22,6 +22,7 @@ class Productos extends Component
     public $search = '';
     public $perPage;
     public $editMode = false;
+    public $addingNewCategoria = false;
     public $addingNewMedida = false;
 
     // Campos del producto
@@ -124,6 +125,17 @@ class Productos extends Component
     }
 
     /**
+     * Alternar entre select de categoría e input para nueva categoría.
+     */
+    public function toggleCategoriaInput()
+    {
+        $this->addingNewCategoria = !$this->addingNewCategoria;
+        if ($this->addingNewCategoria) {
+            $this->categoria_id = '';
+        }
+    }
+
+    /**
      * Alternar entre select de medida e input para nueva medida.
      */
     public function toggleMedidaInput()
@@ -180,6 +192,21 @@ class Productos extends Component
         $this->validate();
 
         try {
+            // Si estamos agregando una categoría nueva, guardarla primero
+            if ($this->addingNewCategoria && $this->categoria_id) {
+                $categoriaExistente = Categoria::where('nombre', trim($this->categoria_id))->first();
+
+                if (!$categoriaExistente) {
+                    $nuevaCategoria = Categoria::create([
+                        'tenant_id' => currentTenantId(),
+                        'nombre' => trim($this->categoria_id),
+                    ]);
+                    $this->categoria_id = $nuevaCategoria->id;
+                } else {
+                    $this->categoria_id = $categoriaExistente->id;
+                }
+            }
+
             // Si estamos agregando una medida nueva, guardarla primero
             if ($this->addingNewMedida && $this->medida) {
                 $medidaExistente = Medida::where('nombre', trim($this->medida))->first();
@@ -337,6 +364,7 @@ class Productos extends Component
         $this->stock = null;
         $this->control = true;
         $this->tags_input = '';
+        $this->addingNewCategoria = false;
         $this->addingNewMedida = false;
         $this->resetErrorBag();
     }
