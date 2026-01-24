@@ -42,10 +42,10 @@
                                                     @if ($producto->imagen)
                                                         <img src="{{ Storage::url($producto->imagen) }}"
                                                             alt="{{ $producto->nombre }}" class="rounded"
-                                                            style="width: 60px; height: 60px; object-fit: cover; border: 2px solid #e9ecef;">
+                                                            style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #e9ecef;">
                                                     @else
                                                         <div class="bg-light d-flex align-items-center justify-content-center rounded"
-                                                            style="width: 60px; height: 60px; border: 2px solid #e9ecef;">
+                                                            style="width: 80px; height: 80px; border: 2px solid #e9ecef;">
                                                             <i class="fa-solid fa-image fa-2x text-muted"></i>
                                                         </div>
                                                     @endif
@@ -65,17 +65,20 @@
                                                             </span>
                                                         @endif
                                                     </div>
-                                                    @if($producto->tags->count() > 0)
-                                                        <div class="small mb-1">
-                                                            <i class="fa-solid fa-tags text-muted me-1" style="font-size: 0.7rem;"></i>
+                                                    <!-- Fila de tags - siempre visible -->
+                                                    <div class="small mb-1">
+                                                        <i class="fa-solid fa-tags text-muted me-1" style="font-size: 0.7rem;"></i>
+                                                        @if($producto->tags->count() > 0)
                                                             @foreach($producto->tags->take(3) as $tag)
-                                                                <span class="badge bg-light text-dark border me-1" style="font-size: 0.65rem;">{{ $tag->nombre }}</span>
+                                                                <span class="badge bg-info text-white me-1" style="font-size: 0.65rem;">{{ $tag->nombre }}</span>
                                                             @endforeach
                                                             @if($producto->tags->count() > 3)
                                                                 <span class="text-muted" style="font-size: 0.7rem;">+{{ $producto->tags->count() - 3 }}</span>
                                                             @endif
-                                                        </div>
-                                                    @endif
+                                                        @else
+                                                            <span class="text-muted" style="font-size: 0.7rem;">───────</span>
+                                                        @endif
+                                                    </div>
                                                     <div class="small text-muted mb-2">
                                                         <i class="fa-solid fa-box text-primary me-1"></i>
                                                         Stock: {{ $producto->stock_formateado }}
