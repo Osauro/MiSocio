@@ -49,7 +49,7 @@
                                                         <div class="col-5">
                                                             <img src="{{ $item['imagen'] }}" alt="{{ $item['nombre'] }}"
                                                                 class="rounded w-100"
-                                                                style="height: 100px; object-fit: cover;">
+                                                                style="aspect-ratio: 1/1; object-fit: cover;">
                                                         </div>
 
                                                         <!-- Inputs (Derecha) -->
