@@ -9,6 +9,7 @@ use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class Compra extends Component
@@ -194,17 +195,28 @@ class Compra extends Component
     }
 
     public function eliminarItem($id)
-    {
+    {Log::info('=== ELIMINAR ITEM ===');
+        Log::info('Parámetro recibido:', ['id' => $id, 'tipo' => gettype($id)]);
+        
         // El parámetro viene como array desde el JS: {id: itemId}
         $itemId = is_array($id) && isset($id['id']) ? $id['id'] : $id;
+        
+        Log::info('Item ID extraído:', ['itemId' => $itemId]);
 
         // Eliminar de la base de datos
         $deleted = CompraItem::destroy($itemId);
+        
+        Log::info('Resultado de eliminación:', ['deleted' => $deleted]);
 
         if ($deleted) {
+            Log::info('Recargando items y actualizando totales');
             // Recargar items desde la base de datos
             $this->cargarItems();
             $this->actualizarTotales();
+            $this->toast('success', 'Producto eliminado de la compra');
+            Log::info('Items después de recargar:', ['count' => count($this->items)]);
+        } else {
+            Log::warning('No se pudo eliminar el item', ['itemId' => $itemId]
             $this->toast('success', 'Producto eliminado de la compra');
         }
     }
