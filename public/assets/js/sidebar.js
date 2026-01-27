@@ -77,9 +77,9 @@ sidebarListItems.forEach((item) => {
 // Sidebar toggle js
     const sidebarToggle = document.querySelector(".toggle-sidebar");
 
-    // SIEMPRE iniciar cerrado (sin localStorage)
-    wrapper.classList.remove("sidebar-open");
-    sidebarToggle.classList.remove("close");
+    // SIEMPRE iniciar cerrado (INVERTIDO - sidebar-open significa cerrado)
+    wrapper.classList.add("sidebar-open");
+    sidebarToggle.classList.add("close");
 
     sidebarToggle.addEventListener("click", function () {
       wrapper.classList.toggle("sidebar-open");
@@ -235,9 +235,9 @@ document.addEventListener("DOMContentLoaded", function () {
   var toggleSidebarButton = document.querySelector(".toggle-sidebar");
   var widthWindow = window.innerWidth;
 
-  // SIEMPRE iniciar cerrado (sin importar el ancho de pantalla)
-  pageWrapper.classList.remove("sidebar-open");
-  toggleSidebarButton.classList.remove("close");
+  // SIEMPRE iniciar cerrado (INVERTIDO - sidebar-open significa cerrado)
+  pageWrapper.classList.add("sidebar-open");
+  toggleSidebarButton.classList.add("close");
 
   window.addEventListener("resize", function () {
     var widthWindow = window.innerWidth;
