@@ -196,24 +196,17 @@ class Compra extends Component
     public function eliminarItem($id)
     {
         // El parámetro viene como array desde el JS: {id: itemId}
-        $itemId = is_array($id) ? $id['id'] : $id;
-        
-        // Buscar el item por ID
-        $index = collect($this->items)->search(function ($item) use ($itemId) {
-            return $item['id'] == $itemId;
-        });
+        $itemId = is_array($id) && isset($id['id']) ? $id['id'] : $id;
 
-        if ($index === false) {
-            return;
+        // Eliminar de la base de datos
+        $deleted = CompraItem::destroy($itemId);
+
+        if ($deleted) {
+            // Recargar items desde la base de datos
+            $this->cargarItems();
+            $this->actualizarTotales();
+            $this->toast('success', 'Producto eliminado de la compra');
         }
-
-        CompraItem::destroy($itemId);
-
-        unset($this->items[$index]);
-        $this->items = array_values($this->items);
-
-        $this->actualizarTotales();
-        $this->toast('success', 'Producto eliminado de la compra');
     }
 
     public function render()
