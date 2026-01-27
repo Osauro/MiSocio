@@ -182,6 +182,17 @@ class Compra extends Component
         $this->compra->refresh();
     }
 
+    public function confirmEliminarItem($index)
+    {
+        $item = $this->items[$index];
+        $this->confirmDelete(
+            $index,
+            '¿Eliminar producto?',
+            "¿Desea eliminar {$item['nombre']} de la compra?",
+            'eliminarItem'
+        );
+    }
+
     public function eliminarItem($index)
     {
         $item = $this->items[$index];
@@ -192,10 +203,7 @@ class Compra extends Component
         $this->items = array_values($this->items);
 
         $this->actualizarTotales();
-        $this->dispatch('alert', [
-            'type' => 'success',
-            'message' => 'Producto eliminado de la compra'
-        ]);
+        $this->toast('success', 'Producto eliminado de la compra');
     }
 
     public function render()

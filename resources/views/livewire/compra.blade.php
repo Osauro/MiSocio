@@ -36,7 +36,7 @@
                                                             <h5 class="mb-0 text-truncate fw-bold">{{ $item['nombre'] }}</h5>
                                                         </div>
                                                         <a href="javascript:void(0)" class="text-danger ms-1"
-                                                            wire:click="eliminarItem({{ $index }})"
+                                                            wire:click="confirmEliminarItem({{ $index }})"
                                                             title="Eliminar"
                                                             style="font-size: 1.1rem;">
                                                             <i class="fa-solid fa-trash"></i>
