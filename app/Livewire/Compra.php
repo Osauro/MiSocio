@@ -133,7 +133,7 @@ class Compra extends Component
 
         $this->buscar = '';
         $this->productosEncontrados = [];
-        
+
         // Devolver el foco al buscador
         $this->dispatch('focusBuscador');
     }
@@ -186,18 +186,25 @@ class Compra extends Component
     {
         $item = $this->items[$index];
         $this->confirmDelete(
-            $index,
+            $item['id'], // Usar el ID del item en lugar del índice
             '¿Eliminar producto?',
             "¿Desea eliminar {$item['nombre']} de la compra?",
             'eliminarItem'
         );
     }
 
-    public function eliminarItem($index)
+    public function eliminarItem($itemId)
     {
-        $item = $this->items[$index];
+        // Buscar el item por ID
+        $index = collect($this->items)->search(function ($item) use ($itemId) {
+            return $item['id'] == $itemId;
+        });
 
-        CompraItem::destroy($item['id']);
+        if ($index === false) {
+            return;
+        }
+
+        CompraItem::destroy($itemId);
 
         unset($this->items[$index]);
         $this->items = array_values($this->items);
