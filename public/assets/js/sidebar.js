@@ -77,26 +77,18 @@ sidebarListItems.forEach((item) => {
 // Sidebar toggle js
     const sidebarToggle = document.querySelector(".toggle-sidebar");
 
-    // Cargar estado guardado del sidebar
-    const savedSidebarState = localStorage.getItem('sidebarState');
-    if (savedSidebarState === 'open') {
-      wrapper.classList.add("sidebar-open");
-      sidebarToggle.classList.add("close");
-    } else if (savedSidebarState === 'closed') {
-      wrapper.classList.remove("sidebar-open");
-      sidebarToggle.classList.remove("close");
-    }
+    // SIEMPRE iniciar cerrado (sin localStorage)
+    wrapper.classList.remove("sidebar-open");
+    sidebarToggle.classList.remove("close");
 
     sidebarToggle.addEventListener("click", function () {
       wrapper.classList.toggle("sidebar-open");
       const wrapperClose = wrapper.classList.contains("sidebar-open");
 
-      // Guardar estado en localStorage
+      // Solo cambiar clases visuales (sin guardar estado)
       if (wrapperClose) {
-        localStorage.setItem('sidebarState', 'open');
         sidebarToggle.classList.add("close");
       } else {
-        localStorage.setItem('sidebarState', 'closed');
         sidebarToggle.classList.remove("close");
       }
     });
@@ -243,37 +235,13 @@ document.addEventListener("DOMContentLoaded", function () {
   var toggleSidebarButton = document.querySelector(".toggle-sidebar");
   var widthWindow = window.innerWidth;
 
-  // Solo aplicar el comportamiento responsive si NO hay estado guardado
-  const savedSidebarState = localStorage.getItem('sidebarState');
-
-  if (!savedSidebarState) {
-    // Comportamiento predeterminado solo si no hay estado guardado
-    if (widthWindow <= 1199) {
-      pageWrapper.classList.add("sidebar-open");
-      toggleSidebarButton.classList.add("close");
-    }
-  }
+  // SIEMPRE iniciar cerrado (sin importar el ancho de pantalla)
+  pageWrapper.classList.remove("sidebar-open");
+  toggleSidebarButton.classList.remove("close");
 
   window.addEventListener("resize", function () {
     var widthWindow = window.innerWidth;
-    if (widthWindow <= 1199) {
-      // En dispositivos pequeños, mantener el sidebar cerrado por defecto
-      // a menos que el usuario lo haya abierto explícitamente
-      const currentState = localStorage.getItem('sidebarState');
-      if (!currentState || currentState === 'closed') {
-        pageWrapper.classList.add("sidebar-open");
-        toggleSidebarButton.classList.add("close");
-      }
-    } else {
-      // En pantallas grandes, respetar el estado guardado
-      const currentState = localStorage.getItem('sidebarState');
-      if (currentState === 'open') {
-        pageWrapper.classList.add("sidebar-open");
-        toggleSidebarButton.classList.add("close");
-      } else if (currentState === 'closed') {
-        pageWrapper.classList.remove("sidebar-open");
-        toggleSidebarButton.classList.remove("close");
-      }
-    }
+    // En el resize, mantener el comportamiento actual del sidebar
+    // sin forzar cambios automáticos
   });
 });
