@@ -89,11 +89,13 @@
                                                                 </div>
                                                                 <div class="col-6">
                                                                     <label class="form-label mb-1 small fw-bold">Subtotal</label>
-                                                                    <input type="text"
+                                                                    <input type="number"
                                                                         class="form-control form-control-sm text-end fw-bold"
-                                                                        value="Bs. {{ number_format($item['subtotal'], 2) }}"
-                                                                        readonly
-                                                                        style="background-color: #e9ecef;">
+                                                                        wire:model.live="items.{{ $index }}.subtotal"
+                                                                        wire:change="actualizarSubtotal({{ $index }})"
+                                                                        step="0.01"
+                                                                        min="0"
+                                                                        placeholder="0.00">
                                                                 </div>
                                                             </div>
                                                         </div>

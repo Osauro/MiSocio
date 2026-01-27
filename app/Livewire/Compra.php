@@ -98,16 +98,22 @@ class Compra extends Component
         $existe = collect($this->items)->firstWhere('producto_id', $productoId);
 
         if ($existe) {
-            $this->alert('warning', 'El producto ya está agregado a la compra');
+            $this->dispatch('alert', [
+                'type' => 'warning',
+                'message' => 'El producto ya está agregado a la compra'
+            ]);
             return;
         }
+
+        // Precio de compra del producto
+        $precioCompra = $producto->precio_de_compra ?? 0;
 
         // Crear el item en la base de datos
         $compraItem = CompraItem::create([
             'compra_id' => $this->compraId,
             'producto_id' => $productoId,
             'cantidad' => 0,
-            'precio' => 0,
+            'precio' => $precioCompra,
             'subtotal' => 0,
         ]);
 
@@ -121,7 +127,7 @@ class Compra extends Component
             'cantidad_por_medida' => $producto->cantidad ?? 1,
             'enteros' => 0,
             'unidades' => 0,
-            'precio' => 0,
+            'precio' => $precioCompra,
             'subtotal' => 0,
         ];
 
@@ -134,15 +140,27 @@ class Compra extends Component
         $item = $this->items[$index];
 
         $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
-        $subtotal = $cantidadTotal * $item['precio'];
-
-        $this->items[$index]['subtotal'] = round($subtotal, 2);
+        
+        // Actualizar subtotal solo si no se editó manualmente
+        $this->items[$index]['subtotal'] = round($cantidadTotal * $item['precio'], 2);
 
         // Actualizar en la base de datos
         CompraItem::where('id', $item['id'])->update([
             'cantidad' => $cantidadTotal,
             'precio' => $item['precio'],
             'subtotal' => $this->items[$index]['subtotal'],
+        ]);
+
+        $this->actualizarTotales();
+    }
+
+    public function actualizarSubtotal($index)
+    {
+        $item = $this->items[$index];
+
+        // Actualizar en la base de datos cuando se edita el subtotal manualmente
+        CompraItem::where('id', $item['id'])->update([
+            'subtotal' => $item['subtotal'],
         ]);
 
         $this->actualizarTotales();
@@ -171,7 +189,10 @@ class Compra extends Component
         $this->items = array_values($this->items);
 
         $this->actualizarTotales();
-        $this->alert('success', 'Producto eliminado de la compra');
+        $this->dispatch('alert', [
+            'type' => 'success',
+            'message' => 'Producto eliminado de la compra'
+        ]);
     }
 
     public function render()
