@@ -134,10 +134,17 @@
                                         <div class="search-results" style="max-height: 500px; overflow-y: auto;">
                                             @if(strlen($buscar) >= 2)
                                                 @forelse($productosEncontrados as $producto)
-                                                    <div class="card mb-2 border-0 shadow-sm producto-result"
+                                                    @php
+                                                        $yaAgregado = collect($items)->firstWhere('producto_id', $producto['id']);
+                                                    @endphp
+                                                    <div class="card mb-2 border-0 shadow-sm producto-result {{ $yaAgregado ? 'disabled' : '' }}"
                                                         wire:key="producto-{{ $producto['id'] }}"
-                                                        wire:click="agregarProducto({{ $producto['id'] }})"
-                                                        style="cursor: pointer;">
+                                                        @if(!$yaAgregado)
+                                                            wire:click="agregarProducto({{ $producto['id'] }})"
+                                                            style="cursor: pointer;"
+                                                        @else
+                                                            style="cursor: not-allowed; opacity: 0.5; background-color: #f8f9fa;"
+                                                        @endif>
                                                         <div class="card-body p-2">
                                                             <div class="d-flex align-items-center gap-2">
                                                                 <img src="{{ $producto['photo_url'] }}"
@@ -150,7 +157,11 @@
                                                                         Stock: {{ $producto['stock'] }} {{ $producto['medida'] ?? 'u' }}
                                                                     </small>
                                                                 </div>
-                                                                <i class="fa-solid fa-plus text-primary"></i>
+                                                                @if($yaAgregado)
+                                                                    <i class="fa-solid fa-check text-success"></i>
+                                                                @else
+                                                                    <i class="fa-solid fa-plus text-primary"></i>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>
