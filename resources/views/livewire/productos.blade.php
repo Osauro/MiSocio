@@ -20,40 +20,47 @@
                         <div class="row g-2">
                             @forelse($productos as $producto)
                                 <div class="col-lg-4 col-md-6 col-sm-12">
-                                    <div class="card mb-0 shadow-sm producto-card">
+                                    <div class="card mb-0 shadow-sm producto-card {{ $producto->trashed() ? 'border-danger' : '' }}"
+                                         style="{{ $producto->trashed() ? 'background-color: #f8d7da;' : '' }}">
                                         <div class="card-body p-2">
                                             <div class="d-flex align-items-start position-relative">
                                                 <!-- Botones en esquina superior derecha -->
-                                                <div class="position-absolute top-0 end-0">
-                                                    <button class="btn btn-link p-1 text-primary btn-zoom"
-                                                        wire:click="edit({{ $producto->id }})" title="Editar"
-                                                        style="font-size: 1rem;">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
-                                                    </button>
-                                                    <button class="btn btn-link p-1 text-danger btn-zoom"
-                                                        wire:click="confirmDeleteProduct({{ $producto->id }})"
-                                                        title="Eliminar" style="font-size: 1rem;">
-                                                        <i class="fa-solid fa-trash"></i>
-                                                    </button>
+                                                <div class="position-absolute top-0 end-0 d-flex gap-1">
+                                                    @if($producto->trashed())
+                                                        <!-- Producto eliminado: solo mostrar botón restaurar -->
+                                                        <button class="btn btn-sm btn-success"
+                                                            wire:click="restaurar({{ $producto->id }})"
+                                                            title="Restaurar Producto">
+                                                            <i class="fa-solid fa-rotate-left"></i>
+                                                        </button>
+                                                    @else
+                                                        <!-- Producto activo: botones normales -->
+                                                        <button class="btn btn-sm btn-primary"
+                                                            wire:click="edit({{ $producto->id }})" title="Editar">
+                                                            <i class="fa-solid fa-pen"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-danger"
+                                                            wire:click="confirmDeleteProduct({{ $producto->id }})"
+                                                            title="Eliminar">
+                                                            <i class="fa-solid fa-trash"></i>
+                                                        </button>
+                                                    @endif
                                                 </div>
 
                                                 <!-- Imagen del producto -->
                                                 <div class="flex-shrink-0 me-3">
-                                                    @if ($producto->imagen)
-                                                        <img src="{{ Storage::url($producto->imagen) }}"
-                                                            alt="{{ $producto->nombre }}" class="rounded"
-                                                            style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #e9ecef;">
-                                                    @else
-                                                        <div class="bg-light d-flex align-items-center justify-content-center rounded"
-                                                            style="width: 80px; height: 80px; border: 2px solid #e9ecef;">
-                                                            <i class="fa-solid fa-image fa-2x text-muted"></i>
-                                                        </div>
-                                                    @endif
+                                                    <img src="{{ $producto->photo_url }}"
+                                                        alt="{{ $producto->nombre }}" class="rounded"
+                                                        style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #e9ecef; cursor: pointer;"
+                                                        x-on:click="$dispatch('mostrarKardex', { productoId: {{ $producto->id }} })"
+                                                        title="Ver movimientos de Kardex">
                                                 </div>
 
                                                 <!-- Información del producto -->
                                                 <div class="flex-grow-1">
-                                                    <h6 class="mb-1 fw-semibold">{{ $producto->nombre }}</h6>
+                                                    <h6 class="mb-1 fw-semibold">
+                                                        {{ $producto->nombre }}
+                                                    </h6>
                                                     <div class="small mb-1">
                                                         <span class="badge bg-secondary">{{ $producto->categoria->nombre ?? 'Sin categoría' }}</span>
                                                         @if ($producto->codigo)
@@ -201,8 +208,8 @@
                                         @if ($imagen && is_object($imagen))
                                             <img src="{{ $imagen->temporaryUrl() }}" alt="Preview"
                                                 style="max-width: 100%; max-height: 280px; object-fit: contain;">
-                                        @elseif ($editMode && isset($producto_actual_imagen))
-                                            <img src="{{ Storage::url($producto_actual_imagen) }}" alt="Producto"
+                                        @elseif ($editMode && $producto_actual)
+                                            <img src="{{ $producto_actual->photo_url }}" alt="Producto"
                                                 style="max-width: 100%; max-height: 280px; object-fit: contain;">
                                         @else
                                             <div class="text-muted">
@@ -442,7 +449,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Componente anidado de Kardex Modal -->
+    <livewire:kardex-modal />
 </div>
+
 <script>
     document.addEventListener('livewire:init', () => {
         // Eventos de modal
@@ -514,4 +525,3 @@
         }
     }
 </script>
-

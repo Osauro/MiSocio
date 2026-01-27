@@ -576,6 +576,90 @@ body,
 .profile-nav .user-wrap:hover {
     opacity: 0.8;
 }
-    justify-content: center;
-    align-items: center;
+
+/* ========================================
+   CARD HEADERS - Z-INDEX GLOBAL
+   ======================================== */
+.card-header {
+    position: relative;
+    z-index: 100 !important;
+    background-color: white;
+}
+
+/* ========================================
+   AVATAR GROUP - PRODUCTOS EN COMPRAS/VENTAS
+   ======================================== */
+.avatar-group {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    margin-top: 25px;
+}
+
+.avatar-group .avatar {
+    position: relative;
+    display: inline-block;
+    margin-left: -10px;
+    transition: transform 0.3s ease, z-index 0s;
+    z-index: 1;
+}
+
+.avatar-group .avatar:first-child {
+    margin-left: 0;
+}
+
+.avatar-group .avatar:hover {
+    transform: scale(1.5);
+    z-index: 10;
+}
+
+.avatar-group .avatar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    object-fit: cover;
+    transition: box-shadow 0.3s ease;
+}
+
+.avatar-group .avatar:hover img {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.avatar-group .avatar .quantity-badge {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    background: var(--theme-default, #7366ff);
+    color: white;
+    border-radius: 12px;
+    padding: 3px 8px;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+    min-width: 35px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    line-height: 1.2;
+}
+
+/* Padding especial para cards de compras */
+.compra-card-body {
+    padding-top: 2rem !important;
+}
+
+/* ========================================
+   PAGINACIÓN MÓVIL - MOSTRAR SOLO 4 PÁGINAS
+   ======================================== */
+@media (max-width: 575.98px) {
+    /* Ocultar páginas intermedias en móviles, mostrar solo primera, segunda, tercera y última */
+    .pagination .page-item:not(:first-child):not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(4)):not(:last-child):not(.active) {
+        display: none !important;
+    }
+
+    /* Mostrar siempre la página activa */
+    .pagination .page-item.active {
+        display: inline-block !important;
+    }
 }

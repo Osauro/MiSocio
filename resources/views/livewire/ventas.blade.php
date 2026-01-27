@@ -29,4 +29,7 @@
             </div>
         </div>
     </div>
+
+    <!-- Componente anidado de Kardex Modal (preparado para cuando se implemente el POS) -->
+    <livewire:kardex-modal />
 </div>

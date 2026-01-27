@@ -51,12 +51,15 @@ class Kardex extends Component
     {
         // El GlobalScope de Kardex filtra automáticamente por tenant
         $kardexQuery = KardexModel::query()
-            ->with(['producto', 'user']);
+            ->with(['producto' => function($query) {
+                $query->withTrashed(); // Mostrar productos eliminados en kardex histórico
+            }, 'user']);
 
         // Filtrar por búsqueda (nombre de producto o código)
         if ($this->search) {
             $kardexQuery->whereHas('producto', function ($query) {
-                $query->where('nombre', 'like', '%' . $this->search . '%')
+                $query->withTrashed() // Incluir productos eliminados en búsqueda
+                    ->where('nombre', 'like', '%' . $this->search . '%')
                     ->orWhere('codigo', 'like', '%' . $this->search . '%');
             });
         }

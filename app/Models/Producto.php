@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
 
 class Producto extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'tenant_id',
         'categoria_id',
@@ -46,6 +48,30 @@ class Producto extends Model
                 $builder->where('tenant_id', currentTenantId());
             }
         });
+    }
+
+    /**
+     * Scope para obtener solo productos activos (no eliminados).
+     */
+    public function scopeActivos($query)
+    {
+        return $query->whereNull('deleted_at');
+    }
+
+    /**
+     * Scope para obtener productos incluyendo eliminados.
+     */
+    public function scopeConEliminados($query)
+    {
+        return $query->withTrashed();
+    }
+
+    /**
+     * Scope para obtener solo productos eliminados.
+     */
+    public function scopeSoloEliminados($query)
+    {
+        return $query->onlyTrashed();
     }
 
     /**
@@ -148,4 +174,13 @@ class Producto extends Model
     {
         return ucfirst(strtolower($this->medida));
     }
-}
+    /**
+     * Obtener la URL de la foto del producto o la imagen por defecto.
+     */
+    public function getPhotoUrlAttribute(): string
+    {
+        if ($this->imagen && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->imagen)) {
+            return asset('storage/' . $this->imagen);
+        }
+        return asset('assets/images/product-placeholder.svg');
+    }}

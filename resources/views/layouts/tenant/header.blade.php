@@ -34,6 +34,17 @@
         </div>
         <div class="nav-right">
             <ul class="header-right">
+                <!-- Cart Icons -->
+                <li class="cart-nav">
+                    @livewire('compra-cart')
+                </li>
+                <li class="cart-nav">
+                    @livewire('venta-cart')
+                </li>
+                <li class="cart-nav">
+                    @livewire('prestamo-cart')
+                </li>
+
                 <li class="profile-nav">
                     <div class="user-img" id="toggleProfileSidebar" style="cursor: pointer;">
                         <img id="headerAvatar"
@@ -113,11 +124,68 @@
         font-size: 18px;
     }
 
-    /* Ocultar botones en móvil (se mostrarán en el sidebar del perfil) */
-    @media (max-width: 767px) {
-        .btn-tenant-selector,
-        .btn-mode-switch {
-            display: none !important;
+    /* Cart Icons Styles */
+    .cart-nav {
+        margin-right: 8px;
+        display: flex;
+        align-items: center;
+    }
+
+    .cart-icon-link {
+        background-color: var(--theme-default, #7366ff);
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .cart-icon-link i {
+        color: white !important;
+    }
+
+    .cart-icon-link:hover {
+        background-color: var(--theme-default, #7366ff);
+        color: white;
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .cart-icon-link .badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 8px;
+        min-width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        box-shadow: 0 2px 6px rgba(220, 53, 69, 0.5);
+    }
+
+    @media (max-width: 768px) {
+        .cart-nav {
+            margin-right: 6px;
+        }
+
+        .cart-icon-link {
+            width: 36px;
+            height: 36px;
+        }
+
+        .cart-icon-link i {
+            font-size: 1rem !important;
+        }
+
+        .cart-icon-link .badge {
+            font-size: 10px;
+            padding: 3px 6px;
         }
     }
 </style>

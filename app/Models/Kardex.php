@@ -101,6 +101,22 @@ class Kardex extends Model
     }
 
     /**
+     * Obtiene la entrada formateada
+     */
+    public function getEntradaFormateadoAttribute(): string
+    {
+        return $this->formatearCantidad($this->entrada);
+    }
+
+    /**
+     * Obtiene la salida formateada
+     */
+    public function getSalidaFormateadoAttribute(): string
+    {
+        return $this->formatearCantidad($this->salida);
+    }
+
+    /**
      * Obtiene la entrada/salida formateada
      */
     public function getMovimientoFormateadoAttribute(): string

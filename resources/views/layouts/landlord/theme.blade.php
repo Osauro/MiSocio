@@ -10,7 +10,7 @@
     <meta name="keywords"
         content="admin template, Admiro admin template, best javascript admin, dashboard template, bootstrap admin template, responsive admin template, web app" />
     <meta name="author" content="pixelstrap" />
-    <title> SaaS POS</title>
+    <title>{{ config('app.name', 'LicoPOS') }}</title>
     <!-- Favicon icon-->
     <link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />

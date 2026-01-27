@@ -31,6 +31,7 @@ class Productos extends Component
     public $nombre;
     public $codigo;
     public $imagen;
+    public $producto_actual; // Para tener acceso al producto completo al editar
     public $producto_actual_imagen; // Para mostrar la imagen existente al editar
     public $medida;
     public $cantidad;
@@ -91,7 +92,14 @@ class Productos extends Component
      */
     public function getProductos()
     {
-        return Producto::with(['categoria', 'tags'])
+        $query = Producto::query();
+
+        // Solo incluir productos eliminados cuando hay búsqueda
+        if ($this->search) {
+            $query->withTrashed();
+        }
+
+        return $query->with(['categoria', 'tags'])
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('nombre', 'like', '%' . $this->search . '%')
@@ -162,7 +170,7 @@ class Productos extends Component
     public function edit($id)
     {
         $this->resetForm();
-        $producto = Producto::findOrFail($id);
+        $producto = Producto::withTrashed()->findOrFail($id);
 
         $this->productoId = $producto->id;
         $this->categoria_id = $producto->categoria_id;
@@ -178,10 +186,25 @@ class Productos extends Component
         $this->stock = $producto->stock;
         $this->control = $producto->control;
         $this->tags_input = $producto->tags_string;
+        $this->producto_actual = $producto; // Guardar el objeto completo
         $this->producto_actual_imagen = $producto->imagen; // Guardar la imagen actual
 
         $this->editMode = true;
         $this->dispatch('showmodal');
+    }
+
+    /**
+     * Restaurar un producto eliminado.
+     */
+    public function restaurar($id)
+    {
+        $producto = Producto::withTrashed()->findOrFail($id);
+        $producto->restore();
+
+        $this->dispatch('alert', [
+            'type' => 'success',
+            'message' => 'Producto restaurado exitosamente'
+        ]);
     }
 
     /**
@@ -312,7 +335,7 @@ class Productos extends Component
      */
     public function confirmDeleteProduct($id)
     {
-        $this->confirmDelete($id, '¿Eliminar producto?', 'Esta acción no se puede revertir', 'deleteProduct');
+        $this->confirmDelete($id, '¿Eliminar producto?', 'Al eliminar el stock del producto se pondrá en 0.<br><br>Esta acción no se puede revertir.', 'deleteProduct');
     }
 
     /**
@@ -323,14 +346,35 @@ class Productos extends Component
         try {
             $producto = Producto::findOrFail($id);
 
+            // Si el producto tiene stock, registrar salida en kardex
+            if ($producto->stock > 0) {
+                Kardex::create([
+                    'tenant_id' => currentTenantId(),
+                    'user_id' => auth()->id(),
+                    'producto_id' => $producto->id,
+                    'entrada' => 0,
+                    'salida' => $producto->stock,
+                    'anterior' => $producto->stock,
+                    'saldo' => 0,
+                    'precio' => 0,
+                    'total' => 0,
+                    'obs' => "Producto eliminado - Stock puesto a 0"
+                ]);
+
+                // Actualizar stock a 0
+                $producto->stock = 0;
+                $producto->save();
+            }
+
             // Eliminar imagen si existe
             if ($producto->imagen && Storage::disk('public')->exists($producto->imagen)) {
                 Storage::disk('public')->delete($producto->imagen);
             }
 
+            // Soft delete del producto
             $producto->delete();
 
-            $this->toast('success', 'Producto eliminado exitosamente.');
+            $this->toast('success', 'Producto eliminado exitosamente. Stock puesto en 0.');
             $this->resetPage();
         } catch (\Exception $e) {
             $this->alertError('Error', 'No se pudo eliminar el producto: ' . $e->getMessage());
@@ -356,6 +400,7 @@ class Productos extends Component
         $this->nombre = '';
         $this->codigo = '';
         $this->imagen = null;
+        $this->producto_actual = null;
         $this->producto_actual_imagen = null;
         $this->medida = '';
         $this->cantidad = null;

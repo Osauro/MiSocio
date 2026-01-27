@@ -82,7 +82,7 @@ function initSweetAlertListeners() {
         Livewire.on('swal:confirm', (data) => {
             Swal.fire({
                 title: data.title || data[0].title,
-                text: data.text || data[0].text,
+                html: data.text || data[0].text, // Usar 'html' en lugar de 'text' para renderizar HTML
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',

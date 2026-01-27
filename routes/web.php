@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Livewire\Categorias;
 use App\Livewire\Clientes;
+use App\Livewire\Compra;
+use App\Livewire\Compras;
 use App\Livewire\HomeLandlord;
 use App\Livewire\HomeTenant;
 use App\Livewire\Kardex;
@@ -51,6 +53,12 @@ Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
     Route::livewire('tenant/clientes', Clientes::class)->name('tenant.clientes');
     Route::livewire('tenant/usuarios', Usuarios::class)->name('tenant.usuarios');
     Route::livewire('tenant/movimientos', Movimientos::class)->name('tenant.movimientos');
+
+    // Compras - Solo administradores
+    Route::livewire('tenant/compras', Compras::class)->name('tenant.compras');
+
+    // Crear/Editar Compra - Solo administradores
+    Route::livewire('tenant/compra/{compraId}', Compra::class)->name('tenant.compra');
 });
 
 // Rutas para landlord - Solo Landlords

@@ -61,6 +61,17 @@
                 </a>
             </li>
 
+            <!-- Compras - Solo Admins -->
+            @if(canManageTenant())
+                <li class="sidebar-list">
+                    <i class="fa-solid fa-thumbtack"></i>
+                    <a class="sidebar-link" href="{{ route('tenant.compras') }}">
+                        <i class="fa-solid fa-basket-shopping fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                        <h6 class="f-w-600">Compras</h6>
+                    </a>
+                </li>
+            @endif
+
             <!-- Kardex - Todos los usuarios -->
             <li class="sidebar-list">
                 <i class="fa-solid fa-thumbtack"></i>
@@ -77,17 +88,6 @@
                     <a class="sidebar-link" href="{{ route('tenant.movimientos') }}">
                         <i class="fa-solid fa-file-invoice-dollar fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Movimientos</h6>
-                    </a>
-                </li>
-            @endif
-
-            <!-- Compras - Solo Admins -->
-            @if(canManageTenant())
-                <li class="sidebar-list">
-                    <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="#">
-                        <i class="fa-solid fa-cart-shopping fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
-                        <h6 class="f-w-600">Compras</h6>
                     </a>
                 </li>
             @endif

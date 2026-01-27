@@ -16,13 +16,11 @@ class Compra extends Model
         'proveedor_id',
         'estado',
         'efectivo',
-        'online',
         'credito',
     ];
 
     protected $casts = [
         'efectivo' => 'decimal:2',
-        'online' => 'decimal:2',
         'credito' => 'decimal:2',
     ];
 

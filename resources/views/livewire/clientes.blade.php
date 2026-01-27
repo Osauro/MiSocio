@@ -24,15 +24,14 @@
                                         <div class="card-body p-3">
                                             <div class="d-flex justify-content-between align-items-start mb-2">
                                                 <h5 class="mb-0 fw-semibold">{{ $cliente->nombre }}</h5>
-                                                <div class="d-flex gap-2">
-                                                    <button class="btn btn-link p-0 text-primary btn-zoom"
-                                                        wire:click="edit({{ $cliente->id }})" title="Editar"
-                                                        style="font-size: 1.1rem;">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                <div class="d-flex gap-1">
+                                                    <button class="btn btn-sm btn-primary"
+                                                        wire:click="edit({{ $cliente->id }})" title="Editar">
+                                                        <i class="fa-solid fa-pen"></i>
                                                     </button>
-                                                    <button class="btn btn-link p-0 text-danger btn-zoom"
+                                                    <button class="btn btn-sm btn-danger"
                                                         wire:click="confirmDeleteCliente({{ $cliente->id }})"
-                                                        title="Eliminar" style="font-size: 1.1rem;">
+                                                        title="Eliminar">
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </div>

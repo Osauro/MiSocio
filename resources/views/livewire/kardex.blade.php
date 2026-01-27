@@ -44,16 +44,9 @@
                                         <tr wire:click="filtrarPorProducto('{{ $item->producto->nombre }}')"
                                             style="cursor: pointer;">
                                             <td>
-                                                @if ($item->producto->imagen)
-                                                    <img src="{{ Storage::url($item->producto->imagen) }}"
-                                                        alt="{{ $item->producto->nombre }}" class="rounded"
-                                                        style="width: 64px; height: 64px; object-fit: cover;">
-                                                @else
-                                                    <div class="bg-light d-flex align-items-center justify-content-center rounded"
-                                                        style="width: 64px; height: 64px;">
-                                                        <i class="fa-solid fa-image text-muted"></i>
-                                                    </div>
-                                                @endif
+                                                <img src="{{ $item->producto->photo_url }}"
+                                                    alt="{{ $item->producto->nombre }}" class="rounded"
+                                                    style="width: 64px; height: 64px; object-fit: cover;">
                                             </td>
                                             <td class="text-center text-truncate">
                                                 {{ $item->created_at->format('d/m/Y') }}
@@ -84,9 +77,19 @@
                                             <td class="text-end text-truncate">
                                                 <strong>{{ $item->saldo_formateado }}</strong>
                                             </td>
-                                            <td class="text-end text-truncate">{{ number_format($item->precio, 2) }}</td>
                                             <td class="text-end text-truncate">
-                                                <strong>{{ number_format($item->total, 2) }}</strong>
+                                                @if($item->entrada > 0 && !canManageTenant())
+                                                    ***
+                                                @else
+                                                    {{ number_format($item->precio, 2) }}
+                                                @endif
+                                            </td>
+                                            <td class="text-end text-truncate">
+                                                @if($item->entrada > 0 && !canManageTenant())
+                                                    ***
+                                                @else
+                                                    <strong>{{ number_format($item->total, 2) }}</strong>
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty

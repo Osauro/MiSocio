@@ -24,15 +24,14 @@
                                         <div class="card-body p-3">
                                             <div class="d-flex align-items-start position-relative">
                                                 <!-- Botones en esquina superior derecha -->
-                                                <div class="position-absolute top-0 end-0">
-                                                    <button class="btn btn-link p-1 text-primary btn-zoom"
-                                                        wire:click="edit({{ $categoria->id }})" title="Editar"
-                                                        style="font-size: 1rem;">
-                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                <div class="position-absolute top-0 end-0 d-flex gap-1">
+                                                    <button class="btn btn-sm btn-primary"
+                                                        wire:click="edit({{ $categoria->id }})" title="Editar">
+                                                        <i class="fa-solid fa-pen"></i>
                                                     </button>
-                                                    <button class="btn btn-link p-1 text-danger btn-zoom"
+                                                    <button class="btn btn-sm btn-danger"
                                                         wire:click="confirmDeleteCategoria({{ $categoria->id }})"
-                                                        title="Eliminar" style="font-size: 1rem;">
+                                                        title="Eliminar">
                                                         <i class="fa-solid fa-trash"></i>
                                                     </button>
                                                 </div>
