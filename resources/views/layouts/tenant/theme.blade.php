@@ -135,7 +135,7 @@
     {{-- <script src="{{ asset('assets/js/dashboard/dashboard_1.js') }}"></script> --}}
     <!-- custom script -->
     <script src="{{ asset('assets/js/script.js') }}"></script>
-    <script src="../assets/js/toasts-custom.js"></script>
+    <script src="{{ asset('assets/js/toasts-custom.js') }}"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Custom JS -->
