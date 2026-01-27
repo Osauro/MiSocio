@@ -33,7 +33,7 @@
                                                     <!-- Nombre y Botón -->
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                         <div class="flex-grow-1">
-                                                            <h6 class="mb-0 text-truncate">{{ $item['nombre'] }}</h6>
+                                                            <h5 class="mb-0 text-truncate fw-bold">{{ $item['nombre'] }}</h5>
                                                         </div>
                                                         <a href="javascript:void(0)" class="text-danger ms-1"
                                                             wire:click="eliminarItem({{ $index }})"
