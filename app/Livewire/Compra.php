@@ -193,8 +193,11 @@ class Compra extends Component
         );
     }
 
-    public function eliminarItem($itemId)
+    public function eliminarItem($id)
     {
+        // El parámetro viene como array desde el JS: {id: itemId}
+        $itemId = is_array($id) ? $id['id'] : $id;
+        
         // Buscar el item por ID
         $index = collect($this->items)->search(function ($item) use ($itemId) {
             return $item['id'] == $itemId;
