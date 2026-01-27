@@ -133,6 +133,9 @@ class Compra extends Component
 
         $this->buscar = '';
         $this->productosEncontrados = [];
+        
+        // Devolver el foco al buscador
+        $this->dispatch('focusBuscador');
     }
 
     public function actualizarItem($index)
@@ -140,7 +143,7 @@ class Compra extends Component
         $item = $this->items[$index];
 
         $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
-        
+
         // Actualizar subtotal solo si no se editó manualmente
         $this->items[$index]['subtotal'] = round($cantidadTotal * $item['precio'], 2);
 

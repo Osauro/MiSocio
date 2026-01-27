@@ -127,6 +127,7 @@
                                     <div class="card-body p-2">
                                         <!-- Input de Búsqueda -->
                                         <input type="text"
+                                            id="buscadorCompra"
                                             class="form-control mb-2"
                                             wire:model.live.debounce.300ms="buscar"
                                             placeholder="Nombre o código..."
@@ -221,6 +222,16 @@
                     }
                 `;
                 document.head.appendChild(style);
+            });
+
+            // Devolver foco al buscador después de agregar producto
+            $wire.on('focusBuscador', () => {
+                setTimeout(() => {
+                    const buscador = document.getElementById('buscadorCompra');
+                    if (buscador) {
+                        buscador.focus();
+                    }
+                }, 100);
             });
         </script>
     @endscript
