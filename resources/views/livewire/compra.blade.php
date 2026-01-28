@@ -56,25 +56,49 @@
                                                         <div class="col-7">
                                                             <div class="row g-1">
                                                                 <!-- Fila 1: Enteros y Unidades -->
+                                                                @if($item['cantidad_por_medida'] > 1)
                                                                 <div class="col-6">
                                                                     <label class="form-label mb-1 small fw-bold">Enteros</label>
                                                                     <input type="number"
-                                                                        class="form-control form-control-sm text-center"
-                                                                        wire:model.live="items.{{ $index }}.enteros"
+                                                                        class="form-control form-control-sm text-end"
+                                                                        wire:model.blur="items.{{ $index }}.enteros"
                                                                         wire:change="actualizarItem({{ $index }})"
+                                                                        @keydown.enter.prevent="abrirModalSuma({{ $index }}, 'enteros', $event.target.value)"
+                                                                        onclick="this.select()"
+                                                                        inputmode="numeric"
+                                                                        step="1"
                                                                         min="0"
                                                                         placeholder="0">
                                                                 </div>
                                                                 <div class="col-6">
                                                                     <label class="form-label mb-1 small fw-bold">Unidades</label>
                                                                     <input type="number"
-                                                                        class="form-control form-control-sm text-center"
-                                                                        wire:model.live="items.{{ $index }}.unidades"
+                                                                        class="form-control form-control-sm text-end"
+                                                                        wire:model.blur="items.{{ $index }}.unidades"
                                                                         wire:change="actualizarItem({{ $index }})"
+                                                                        @keydown.enter.prevent="abrirModalSuma({{ $index }}, 'unidades', $event.target.value)"
+                                                                        onclick="this.select()"
+                                                                        inputmode="numeric"
+                                                                        step="1"
                                                                         min="0"
                                                                         max="{{ $item['cantidad_por_medida'] - 1 }}"
                                                                         placeholder="0">
                                                                 </div>
+                                                                @else
+                                                                <div class="col-12">
+                                                                    <label class="form-label mb-1 small fw-bold">Cantidad</label>
+                                                                    <input type="number"
+                                                                        class="form-control form-control-sm text-end"
+                                                                        wire:model.blur="items.{{ $index }}.unidades"
+                                                                        wire:change="actualizarItem({{ $index }})"
+                                                                        @keydown.enter.prevent="abrirModalSuma({{ $index }}, 'unidades', $event.target.value)"
+                                                                        onclick="this.select()"
+                                                                        inputmode="numeric"
+                                                                        step="1"
+                                                                        min="0"
+                                                                        placeholder="0">
+                                                                </div>
+                                                                @endif
 
                                                                 <!-- Fila 2: Precio y Subtotal -->
                                                                 <div class="col-6">
@@ -83,9 +107,10 @@
                                                                         class="form-control form-control-sm text-end"
                                                                         wire:model.live="items.{{ $index }}.precio"
                                                                         wire:change="actualizarItem({{ $index }})"
-                                                                        step="0.01"
+                                                                        onclick="this.select()"
+                                                                        step="1"
                                                                         min="0"
-                                                                        placeholder="0.00">
+                                                                        placeholder="0">
                                                                 </div>
                                                                 <div class="col-6">
                                                                     <label class="form-label mb-1 small fw-bold">Subtotal</label>
@@ -93,9 +118,10 @@
                                                                         class="form-control form-control-sm text-end fw-bold"
                                                                         wire:model.live="items.{{ $index }}.subtotal"
                                                                         wire:change="actualizarSubtotal({{ $index }})"
-                                                                        step="0.01"
+                                                                        onclick="this.select()"
+                                                                        step="1"
                                                                         min="0"
-                                                                        placeholder="0.00">
+                                                                        placeholder="0">
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -233,6 +259,45 @@
                     }
                 }, 100);
             });
+
+            // Modal para sumar cantidad con SweetAlert
+            window.abrirModalSuma = function(index, campo, valorActual) {
+                Swal.fire({
+                    title: 'Agregar cantidad',
+                    input: 'number',
+                    inputValue: '',
+                    inputAttributes: {
+                        min: 0,
+                        step: 1,
+                        autocomplete: 'off'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Sumar',
+                    cancelButtonText: 'Cancelar',
+                    didOpen: () => {
+                        const input = Swal.getInput();
+                        input.focus();
+                        input.select();
+                    },
+                    preConfirm: (cantidad) => {
+                        if (!cantidad || cantidad < 0) {
+                            Swal.showValidationMessage('Ingrese una cantidad válida');
+                            return false;
+                        }
+                        return cantidad;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                        const cantidadASumar = parseInt(result.value);
+                        const valorActualNum = parseInt(valorActual) || 0;
+                        const nuevoValor = valorActualNum + cantidadASumar;
+
+                        // Actualizar el valor en Livewire
+                        $wire.set('items.' + index + '.' + campo, nuevoValor);
+                        $wire.call('actualizarItem', index);
+                    }
+                });
+            }
         </script>
     @endscript
 </div>

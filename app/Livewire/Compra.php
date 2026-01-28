@@ -10,6 +10,7 @@ use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Compra extends Component
@@ -63,6 +64,8 @@ class Compra extends Component
                 'enteros' => $enteros,
                 'unidades' => $unidades,
                 'precio' => $item->precio,
+                'precio_por_mayor' => $item->producto->precio_por_mayor ?? 0,
+                'precio_por_menor' => $item->producto->precio_por_menor ?? 0,
                 'subtotal' => $item->subtotal,
             ];
         })->toArray();
@@ -129,6 +132,8 @@ class Compra extends Component
             'enteros' => 0,
             'unidades' => 0,
             'precio' => $precioCompra,
+            'precio_por_mayor' => $producto->precio_por_mayor ?? 0,
+            'precio_por_menor' => $producto->precio_por_menor ?? 0,
             'subtotal' => 0,
         ];
 
@@ -143,10 +148,34 @@ class Compra extends Component
     {
         $item = $this->items[$index];
 
+        // Validar que enteros y unidades no sean negativos
+        $this->items[$index]['enteros'] = max(0, intval($item['enteros']));
+        $this->items[$index]['unidades'] = max(0, intval($item['unidades']));
+
+        // Actualizar la referencia del item
+        $item = $this->items[$index];
+
+        // Si las unidades son iguales o mayores a cantidad_por_medida, convertir a enteros
+        if ($item['unidades'] >= $item['cantidad_por_medida']) {
+            $enterosExtras = floor($item['unidades'] / $item['cantidad_por_medida']);
+            $this->items[$index]['enteros'] += $enterosExtras;
+            $this->items[$index]['unidades'] = $item['unidades'] % $item['cantidad_por_medida'];
+
+            // Actualizar la referencia del item
+            $item = $this->items[$index];
+        }
+
         $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
-        // Actualizar subtotal solo si no se editó manualmente
-        $this->items[$index]['subtotal'] = round($cantidadTotal * $item['precio'], 2);
+        // Calcular subtotal: (precio / cantidad_por_medida) * cantidad_total
+        // El precio siempre representa el precio de compra del paquete completo
+        if ($item['cantidad_por_medida'] > 0) {
+            $subtotal = ($item['precio'] / $item['cantidad_por_medida']) * $cantidadTotal;
+        } else {
+            $subtotal = 0;
+        }
+
+        $this->items[$index]['subtotal'] = round($subtotal, 2);
 
         // Actualizar en la base de datos
         CompraItem::where('id', $item['id'])->update([
@@ -162,9 +191,19 @@ class Compra extends Component
     {
         $item = $this->items[$index];
 
+        $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
+
+        // Recalcular el precio basado en el nuevo subtotal
+        // precio = (subtotal / cantidad_total) * cantidad_por_medida
+        if ($cantidadTotal > 0 && $item['cantidad_por_medida'] > 0) {
+            $nuevoPrecio = ($item['subtotal'] / $cantidadTotal) * $item['cantidad_por_medida'];
+            $this->items[$index]['precio'] = round($nuevoPrecio, 2);
+        }
+
         // Actualizar en la base de datos cuando se edita el subtotal manualmente
         CompraItem::where('id', $item['id'])->update([
             'subtotal' => $item['subtotal'],
+            'precio' => $this->items[$index]['precio'],
         ]);
 
         $this->actualizarTotales();
@@ -186,37 +225,25 @@ class Compra extends Component
     public function confirmEliminarItem($index)
     {
         $item = $this->items[$index];
+
         $this->confirmDelete(
-            $item['id'], // Usar el ID del item en lugar del índice
+            $item['id'],
             '¿Eliminar producto?',
             "¿Desea eliminar {$item['nombre']} de la compra?",
             'eliminarItem'
         );
     }
 
+    #[On('eliminarItem')]
     public function eliminarItem($id)
-    {Log::info('=== ELIMINAR ITEM ===');
-        Log::info('Parámetro recibido:', ['id' => $id, 'tipo' => gettype($id)]);
-        
+    {
         // El parámetro viene como array desde el JS: {id: itemId}
         $itemId = is_array($id) && isset($id['id']) ? $id['id'] : $id;
-        
-        Log::info('Item ID extraído:', ['itemId' => $itemId]);
 
         // Eliminar de la base de datos
-        $deleted = CompraItem::destroy($itemId);
-        
-        Log::info('Resultado de eliminación:', ['deleted' => $deleted]);
-
-        if ($deleted) {
-            Log::info('Recargando items y actualizando totales');
-            // Recargar items desde la base de datos
+        if (CompraItem::destroy($itemId)) {
             $this->cargarItems();
             $this->actualizarTotales();
-            $this->toast('success', 'Producto eliminado de la compra');
-            Log::info('Items después de recargar:', ['count' => count($this->items)]);
-        } else {
-            Log::warning('No se pudo eliminar el item', ['itemId' => $itemId]
             $this->toast('success', 'Producto eliminado de la compra');
         }
     }
