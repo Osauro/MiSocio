@@ -20,15 +20,26 @@
                         <div class="row g-3">
                             @forelse($compras as $compra)
                                 <div class="col-md-4 col-12">
-                                    <div class="card mb-0 shadow-sm">
+                                    <div class="card mb-0 shadow-sm {{ $compra->estado === 'Eliminado' ? 'opacity-50' : '' }}">
                                         <div class="card-body compra-card-body">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div class="flex-grow-1">
                                                     <!-- Header -->
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
-                                                        <h4 class="mb-0 fw-bold">Compra #{{ $compra->id }}</h4>
+                                                        <h4 class="mb-0 fw-bold">
+                                                            Compra #{{ $compra->numero_folio }}
+                                                            @if($compra->estado === 'Eliminado')
+                                                                <span class="badge bg-danger ms-2">Cancelada</span>
+                                                            @endif
+                                                        </h4>
                                                         <div class="d-flex gap-1">
-                                                            @if ($compra->estado === 'Completo')
+                                                            @if ($compra->estado === 'Eliminado')
+                                                                <button class="btn btn-sm btn-info"
+                                                                    wire:click="verDetalles({{ $compra->id }})"
+                                                                    title="Ver detalles">
+                                                                    <i class="fa-solid fa-eye"></i>
+                                                                </button>
+                                                            @elseif ($compra->estado === 'Completo')
                                                                 <button class="btn btn-sm btn-info"
                                                                     wire:click="verDetalles({{ $compra->id }})"
                                                                     title="Ver detalles">
@@ -43,18 +54,19 @@
                                                                     <i class="fa-solid fa-pen"></i>
                                                                 </button>
                                                                 <button class="btn btn-sm btn-danger"
-                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $compra->id }}, message: '¿Está seguro de eliminar la compra #{{ $compra->id }}?' })"
-                                                                    title="Eliminar">
+                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $compra->id }}, message: '¿Está seguro de eliminar la compra #{{ $compra->numero_folio }}?' })"
+                                                                    title="Cancelar">
                                                                     <i class="fa-solid fa-trash"></i>
                                                                 </button>
                                                             @else
-                                                                <button class="btn btn-sm btn-success"
+                                                                <a href="{{ route('tenant.compra', ['compraId' => $compra->id]) }}"
+                                                                    class="btn btn-sm btn-success"
                                                                     title="Continuar compra">
                                                                     <i class="fa-solid fa-arrow-right"></i>
-                                                                </button>
+                                                                </a>
                                                                 <button class="btn btn-sm btn-danger"
-                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $compra->id }}, message: '¿Está seguro de eliminar la compra #{{ $compra->id }}?' })"
-                                                                    title="Eliminar">
+                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $compra->id }}, message: '¿Está seguro de eliminar la compra #{{ $compra->numero_folio }}?' })"
+                                                                    title="Cancelar">
                                                                     <i class="fa-solid fa-trash"></i>
                                                                 </button>
                                                             @endif
@@ -157,7 +169,7 @@
         <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
 
         <!-- Modal -->
-        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"numero_folio
             style="z-index: 1050; overflow-y: auto;">
             <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                 <div class="modal-content shadow-lg border-0">

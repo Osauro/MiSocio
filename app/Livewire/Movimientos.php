@@ -84,7 +84,7 @@ class Movimientos extends Component
                             ->whereDate('created_at', '<=', $this->fecha_fin);
         }
 
-        $movimientos = $movimientosQuery->orderBy('created_at', 'desc')->paginate($this->perPage);
+        $movimientos = $movimientosQuery->orderBy('id', 'desc')->paginate($this->perPage);
 
         // Calcular totales (aplicar mismo filtro de fechas si existe)
         $totalesQuery = Movimiento::query();

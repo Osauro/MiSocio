@@ -85,6 +85,27 @@ class Compras extends Component
                 $query->withTrashed();
             }])->findOrFail($compraId);
 
+            // Si la compra está PENDIENTE, eliminar físicamente
+            if ($compra->estado === 'Pendiente') {
+                $compra->delete();
+                DB::commit();
+
+                $this->dispatch('alert', [
+                    'type' => 'success',
+                    'message' => 'Compra pendiente eliminada exitosamente'
+                ]);
+                return;
+            }
+
+            // Si la compra está COMPLETA, marcar como Eliminado y devolver productos/dinero
+            if ($compra->estado !== 'Completo') {
+                $this->dispatch('alert', [
+                    'type' => 'error',
+                    'message' => 'Solo se pueden eliminar compras pendientes o completas'
+                ]);
+                return;
+            }
+
             // 1. Verificar que hay suficiente stock en todos los productos
             $productosConStockInsuficiente = [];
 
@@ -219,7 +240,7 @@ class Compras extends Component
                     'saldo' => $producto->stock,
                     'precio' => $item->precio,
                     'total' => $item->subtotal,
-                    'obs' => "Eliminación de compra #{$compra->id}"
+                    'obs' => "Eliminación de compra #{$compra->numero_folio}"
                 ]);
             }
 
@@ -228,14 +249,15 @@ class Compras extends Component
                 Movimiento::create([
                     'tenant_id' => currentTenantId(),
                     'user_id' => auth()->id(),
-                    'detalle' => "Devolución por eliminación de compra #{$compra->id}",
+                    'detalle' => "Devolución por eliminación de compra #{$compra->numero_folio}",
                     'ingreso' => $compra->efectivo,
                     'egreso' => 0
                 ]);
             }
 
-            // 4. Eliminar la compra
-            $compra->delete();
+            // 4. Marcar la compra como eliminada (no borrar físicamente)
+            $compra->estado = 'Eliminado';
+            $compra->save();
 
             DB::commit();
 

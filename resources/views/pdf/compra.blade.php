@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compra #{{ $compra->id }}</title>
+    <title>Compra #{{ $compra->numero_folio }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -99,7 +99,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>COMPRA #{{ $compra->id }}</h1>
+        <h1>COMPRA #{{ $compra->numero_folio }}</h1>
         <p style="margin: 5px 0;">{{ currentTenant()->name ?? 'LicoPOS' }}</p>
     </div>
 

@@ -5,14 +5,14 @@
                 <div class="card">
                     <div class="card-header card-no-border pb-0">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h3 class="d-none d-md-block mb-0">Compra #{{ $compra->id }}</h3>
+                            <h3 class="d-none d-md-block mb-0">Compra #{{ $compra->numero_folio }}</h3>
                             <div class="d-flex gap-2">
-                                <a href="{{ route('tenant.compras') }}" class="btn btn-secondary">
+                                <button wire:click="cancelarCompra" class="btn btn-secondary">
                                     <i class="fa-solid fa-times me-1"></i>
                                     <span class="d-none d-md-inline">Cancelar</span>
-                                </a>
+                                </button>
                                 @if(count($items) > 0)
-                                    <button type="button" class="btn btn-success">
+                                    <button type="button" wire:click="iniciarCompletarCompra" class="btn btn-success">
                                         <i class="fa-solid fa-check me-1"></i>
                                         <span class="d-none d-md-inline">Completar</span>
                                     </button>
@@ -143,7 +143,7 @@
 
                             <!-- Columna de Buscador (Derecha) -->
                             <div class="col-md-4 col-lg-3">
-                                <div class="card sticky-top shadow-sm" style="top: 80px;">
+                                <div class="card sticky-top shadow-sm" style="top: 80px; z-index: 1;">
                                     <div class="card-header bg-primary text-white">
                                         <h6 class="mb-0">
                                             <i class="fa-solid fa-search me-2"></i>
@@ -182,9 +182,14 @@
                                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                                                 <div class="flex-grow-1">
                                                                     <div class="fw-bold small">{{ $producto['nombre'] }}</div>
-                                                                    <small class="text-muted">
-                                                                        Stock: {{ $producto['stock'] }} {{ $producto['medida'] ?? 'u' }}
-                                                                    </small>
+                                                                    <div class="d-flex gap-1 mt-1">
+                                                                        <span class="badge bg-info text-dark">
+                                                                            Stock: {{ $producto['stock'] }}
+                                                                        </span>
+                                                                        <span class="badge bg-secondary">
+                                                                            {{ $producto['medida'] }} ({{ $producto['cantidad'] ?? 1 }}u)
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
                                                                 @if($yaAgregado)
                                                                     <i class="fa-solid fa-check text-success"></i>
@@ -216,6 +221,271 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Paso 1: Fecha de Compra -->
+    @if($pasoActual === 1)
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-calendar me-2"></i>
+                        Paso 1: Fecha de Compra
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="fechaCompra" class="form-label fw-bold">Fecha de la compra</label>
+                        <input type="date"
+                            id="fechaCompra"
+                            class="form-control form-control-lg"
+                            wire:model="fechaCompra"
+                            max="{{ date('Y-m-d') }}"
+                            x-init="$nextTick(() => $el.focus())">
+                        <small class="text-muted">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Presiona Enter para continuar o Ctrl+Enter para pago rápido (sin proveedor, todo en efectivo)
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning" wire:click="finalizarPagoRapido">
+                        <i class="fa-solid fa-bolt me-1"></i>
+                        Pago Rápido (Ctrl+Enter)
+                    </button>
+                    <button type="button" class="btn btn-primary" wire:click="avanzarPaso1">
+                        <i class="fa-solid fa-arrow-right me-1"></i>
+                        Siguiente
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal Paso 2: Selección de Proveedor -->
+    @if($pasoActual === 2)
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-user-tie me-2"></i>
+                        Paso 2: Seleccionar Proveedor
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="buscarProveedor" class="form-label fw-bold">Buscar proveedor</label>
+                        <input type="text"
+                            id="buscarProveedor"
+                            class="form-control form-control-lg"
+                            wire:model.live.debounce.300ms="buscarProveedor"
+                            placeholder="Celular (8 dígitos) o nombre..."
+                            x-init="$nextTick(() => $el.focus())">
+                        <small class="text-muted">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Ingresa 8 dígitos para buscar por celular o el nombre del proveedor
+                        </small>
+                    </div>
+
+                    <!-- Resultados de búsqueda -->
+                    @if(count($proveedoresEncontrados) > 0)
+                        <div class="list-group mb-3" style="max-height: 300px; overflow-y: auto;">
+                            @foreach($proveedoresEncontrados as $proveedor)
+                                <button type="button"
+                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                    wire:click="seleccionarProveedor({{ $proveedor['id'] }})">
+                                    <div>
+                                        <h6 class="mb-0">{{ $proveedor['nombre'] }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fa-solid fa-phone me-1"></i>
+                                            {{ $proveedor['celular'] }}
+                                        </small>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <!-- Formulario para nuevo proveedor -->
+                    @if($mostrarFormNuevoProveedor)
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Nombre</label>
+                                <input type="text"
+                                    id="nuevoProveedorNombre"
+                                    class="form-control"
+                                    wire:model="nuevoProveedor.nombre"
+                                    x-init="$nextTick(() => $el.focus())"
+                                    @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
+                                @error('nuevoProveedor.nombre') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Celular</label>
+                                <input type="text"
+                                    class="form-control"
+                                    wire:model="nuevoProveedor.celular"
+                                    @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
+                                @error('nuevoProveedor.celular') <span class="text-danger small">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Dirección</label>
+                                <input type="text"
+                                    class="form-control"
+                                    wire:model="nuevoProveedor.direccion"
+                                    @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">NIT</label>
+                                <input type="text"
+                                    class="form-control"
+                                    wire:model="nuevoProveedor.nit"
+                                    @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
+                            </div>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning" wire:click="avanzarPaso2SinProveedor">
+                        <i class="fa-solid fa-forward me-1"></i>
+                        Continuar sin Proveedor
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal Paso 3: Método de Pago -->
+    @if($pasoActual === 3)
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fa-solid fa-money-bill me-2"></i>
+                        Paso 3: Método de Pago
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h5 class="text-center mb-3">
+                            Total: <span class="text-primary">Bs. {{ number_format(collect($items)->sum('subtotal'), 2) }}</span>
+                        </h5>
+                    </div>
+
+                    <!-- Opciones de pago -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Método de pago</label>
+
+                        <div class="row g-2">
+                            <!-- Efectivo -->
+                            <div class="col-6">
+                                <button type="button"
+                                    class="btn btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3 {{ $metodoPago === 'efectivo' ? 'btn-success' : 'btn-outline-success' }}"
+                                    wire:click="seleccionarMetodoEfectivo"
+                                    style="min-height: 100px;">
+                                    <i class="fa-solid fa-money-bill-wave fa-2x mb-2"></i>
+                                    <div>
+                                        Efectivo
+                                        <span class="badge bg-white text-success ms-1">E</span>
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Crédito -->
+                            <div class="col-6">
+                                <button type="button"
+                                    class="btn btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3 {{ $metodoPago === 'credito' ? 'btn-warning' : 'btn-outline-warning' }}"
+                                    wire:click="seleccionarMetodoCredito"
+                                    @if($proveedorSeleccionado === null) disabled @endif
+                                    style="min-height: 100px;">
+                                    <i class="fa-solid fa-credit-card fa-2x mb-2"></i>
+                                    <div>
+                                        Crédito
+                                        <span class="badge bg-white text-warning ms-1">C</span>
+                                    </div>
+                                    @if($proveedorSeleccionado === null)
+                                        <small class="text-danger mt-1">(Requiere proveedor)</small>
+                                    @endif
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input de monto para efectivo (sin saldo suficiente) -->
+                    @if($mostrarInputEfectivo)
+                        <div class="mb-3">
+                            <label for="montoPagoEfectivo" class="form-label fw-bold">Monto de compra en efectivo</label>
+                            <div class="alert alert-warning mb-2">
+                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                Saldo en caja: Bs. {{ number_format($saldoCaja, 2) }}
+                            </div>
+                            <input type="number"
+                                id="montoPagoEfectivo"
+                                class="form-control form-control-lg text-end"
+                                wire:model.live="montoPago"
+                                min="0"
+                                step="0.01"
+                                x-init="$nextTick(() => { $el.focus(); $el.select(); })">
+                            <small class="text-muted">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                Se creará un movimiento de egreso en caja
+                            </small>
+                        </div>
+                    @endif
+
+                    <!-- Input de monto si es crédito -->
+                    @if($metodoPago === 'credito' && $proveedorSeleccionado !== null)
+                        <div class="mb-3">
+                            <label for="montoPago" class="form-label fw-bold">Monto en efectivo</label>
+                            <input type="number"
+                                id="montoPago"
+                                class="form-control form-control-lg text-end"
+                                wire:model.live="montoPago"
+                                min="0"
+                                max="{{ collect($items)->sum('subtotal') }}"
+                                step="0.01"
+                                x-init="$nextTick(() => { $el.focus(); $el.select(); })">
+                            <small class="text-muted">
+                                @if($montoPago == 0)
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Toda la compra será a crédito
+                                @else
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Efectivo: Bs. {{ number_format($montoPago, 2) }} |
+                                    Crédito: Bs. {{ number_format(collect($items)->sum('subtotal') - $montoPago, 2) }}
+                                @endif
+                            </small>
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    @if($mostrarInputEfectivo || $metodoPago === 'credito')
+                        <button type="button" class="btn btn-success" wire:click="finalizarCompra">
+                            <i class="fa-solid fa-check me-1"></i>
+                            Finalizar Compra
+                        </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Footer fijo con totales -->
     <footer class="fixed-footer shadow-sm py-2">
@@ -298,6 +568,82 @@
                     }
                 });
             }
+
+            // Manejar atajos de teclado en modales
+            document.addEventListener('keydown', function(e) {
+                // ESC para retroceder en cualquier paso
+                if (e.key === 'Escape' && $wire.pasoActual > 0) {
+                    e.preventDefault();
+                    $wire.call('retrocederPaso');
+                    return;
+                }
+
+                // Paso 1: Fecha
+                if ($wire.pasoActual === 1) {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        $wire.call('finalizarPagoRapido');
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        $wire.call('avanzarPaso1');
+                    }
+                }
+
+                // Paso 2: Proveedor (Enter para avanzar sin proveedor si no hay búsqueda activa)
+                if ($wire.pasoActual === 2) {
+                    const buscarInput = document.getElementById('buscarProveedor');
+                    if (e.key === 'Enter' && buscarInput && buscarInput.value === '') {
+                        e.preventDefault();
+                        $wire.call('avanzarPaso2SinProveedor');
+                    }
+                }
+
+                // Paso 3: Método de pago
+                if ($wire.pasoActual === 3) {
+                    // Atajos E = Efectivo, C = Crédito
+                    if (e.key.toLowerCase() === 'e') {
+                        e.preventDefault();
+                        $wire.call('seleccionarMetodoEfectivo');
+                    } else if (e.key.toLowerCase() === 'c' && $wire.proveedorSeleccionado !== null) {
+                        e.preventDefault();
+                        $wire.call('seleccionarMetodoCredito');
+                    } else if (e.key === 'Enter' && ($wire.mostrarInputEfectivo || $wire.metodoPago === 'credito')) {
+                        e.preventDefault();
+                        $wire.call('finalizarCompra');
+                    }
+                }
+
+                // Atajo global Ctrl+Enter para completar compra
+                if (e.key === 'Enter' && e.ctrlKey && $wire.pasoActual === 0) {
+                    e.preventDefault();
+                    $wire.call('iniciarCompletarCompra');
+                }
+            });
+
+            // Observador de cambios para mantener el foco en los inputs correctos
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                setTimeout(() => {
+                    // Enfocar input de monto cuando aparece (método de pago a crédito)
+                    const montoPagoInput = document.getElementById('montoPago');
+                    if (montoPagoInput && document.activeElement !== montoPagoInput) {
+                        montoPagoInput.focus();
+                        montoPagoInput.select();
+                    }
+
+                    // Enfocar input de monto efectivo cuando aparece
+                    const montoPagoEfectivoInput = document.getElementById('montoPagoEfectivo');
+                    if (montoPagoEfectivoInput && document.activeElement !== montoPagoEfectivoInput) {
+                        montoPagoEfectivoInput.focus();
+                        montoPagoEfectivoInput.select();
+                    }
+
+                    // Enfocar campo nombre cuando aparece formulario nuevo proveedor
+                    const nuevoProveedorNombre = document.getElementById('nuevoProveedorNombre');
+                    if (nuevoProveedorNombre && document.activeElement !== nuevoProveedorNombre) {
+                        nuevoProveedorNombre.focus();
+                    }
+                }, 50);
+            });
         </script>
     @endscript
 </div>
