@@ -7,22 +7,34 @@ use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
 use App\Traits\RequiresTenant;
+use App\Traits\SweetAlertTrait;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 
 class Compras extends Component
 {
-    use WithPagination, RequiresTenant;
+    use WithPagination, RequiresTenant, SweetAlertTrait;
 
     public $search = '';
     public $perPage = 12;
+    public $fecha_inicio = null;
+    public $fecha_fin = null;
     public $compraSeleccionada = null;
     public $mostrarModal = false;
     public $mostrarResumenEliminacion = false;
     public $resumenEliminacion = [];
     public $mostrarErrorStock = false;
     public $productosInsuficientes = [];
+
+    // Para el pago de crédito
+    public $mostrarModalPago = false;
+    public $compraAPagar = null;
+    public $montoPago = 0;
+    public $saldoCaja = 0;
+    public $pasoPago = 0;
+    public $montoAñadirCaja = 0;
+    public $procesandoPago = false;
 
     public function verDetalles($compraId)
     {
@@ -51,6 +63,176 @@ class Compras extends Component
         $this->productosInsuficientes = [];
     }
 
+    public function abrirModalPago($compraId)
+    {
+        $compra = Compra::with('proveedor')->findOrFail($compraId);
+
+        if ($compra->credito <= 0) {
+            $this->toast('error', 'Esta compra no tiene deuda pendiente');
+            return;
+        }
+
+        $this->compraAPagar = $compra;
+        $this->obtenerSaldoCaja();
+        $this->pasoPago = 1;
+        $this->montoAñadirCaja = 0;
+        $this->montoPago = 0;
+        $this->procesandoPago = false;
+        $this->mostrarModalPago = true;
+    }
+
+    public function cerrarModalPago()
+    {
+        $this->mostrarModalPago = false;
+        $this->compraAPagar = null;
+        $this->montoPago = 0;
+        $this->pasoPago = 0;
+        $this->montoAñadirCaja = 0;
+        $this->procesandoPago = false;
+    }
+
+    private function obtenerSaldoCaja()
+    {
+        $movimientos = Movimiento::where('tenant_id', currentTenantId())->get();
+        $this->saldoCaja = $movimientos->sum('ingreso') - $movimientos->sum('egreso');
+    }
+
+    public function avanzarPasoPago1()
+    {
+        // Si hay monto a añadir, agregarlo a la caja
+        if ($this->montoAñadirCaja > 0) {
+            Movimiento::create([
+                'tenant_id' => currentTenantId(),
+                'user_id' => auth()->id(),
+                'detalle' => 'Añadir fondos para pago de crédito',
+                'ingreso' => $this->montoAñadirCaja,
+                'egreso' => 0
+            ]);
+
+            $this->obtenerSaldoCaja();
+        }
+
+        // Avanzar al paso 2 y determinar monto de pago
+        if ($this->saldoCaja >= $this->compraAPagar->credito) {
+            $this->montoPago = $this->compraAPagar->credito;
+        } else {
+            $this->montoPago = $this->saldoCaja;
+        }
+
+        $this->pasoPago = 2;
+        $this->dispatch('paso-changed');
+    }
+
+    public function avanzarPasoPago2()
+    {
+        // Validaciones
+        if ($this->montoPago <= 0) {
+            $this->toast('error', 'El monto debe ser mayor a 0');
+            return;
+        }
+
+        if ($this->montoPago > $this->compraAPagar->credito) {
+            $this->toast('error', 'El monto no puede ser mayor a la deuda pendiente');
+            return;
+        }
+
+        if ($this->montoPago > $this->saldoCaja) {
+            $this->toast('error', 'El monto no puede ser mayor al saldo en caja');
+            return;
+        }
+
+        // Avanzar al paso 3 y procesar
+        $this->pasoPago = 3;
+        $this->procesarPagoCredito();
+    }
+
+    public function retrocederPasoPago()
+    {
+        if ($this->pasoPago > 1) {
+            $this->pasoPago--;
+
+            // Limpiar datos según el paso
+            if ($this->pasoPago === 1) {
+                $this->montoAñadirCaja = 0;
+                $this->montoPago = 0;
+            }
+
+            $this->dispatch('paso-changed');
+        }
+    }
+
+    private function procesarPagoCredito()
+    {
+        try {
+            $this->procesandoPago = true;
+            DB::beginTransaction();
+
+            // Actualizar la compra
+            $nuevoCredito = $this->compraAPagar->credito - $this->montoPago;
+            $nuevoEfectivo = $this->compraAPagar->efectivo + $this->montoPago;
+
+            $this->compraAPagar->update([
+                'credito' => $nuevoCredito,
+                'efectivo' => $nuevoEfectivo
+            ]);
+
+            // Registrar el movimiento de egreso
+            $nombreProveedor = $this->compraAPagar->proveedor ? $this->compraAPagar->proveedor->nombre : 'Sin proveedor';
+            $detalle = 'Pago de crédito compra #' . $this->compraAPagar->numero_folio . ' - ' . $nombreProveedor;
+
+            if ($nuevoCredito > 0) {
+                $detalle .= ' (Pago parcial: Bs. ' . number_format($this->montoPago, 2) . ' / Saldo pendiente: Bs. ' . number_format($nuevoCredito, 2) . ')';
+            } else {
+                $detalle .= ' (Pago total)';
+            }
+
+            Movimiento::create([
+                'tenant_id' => currentTenantId(),
+                'user_id' => auth()->id(),
+                'detalle' => $detalle,
+                'ingreso' => 0,
+                'egreso' => $this->montoPago
+            ]);
+
+            DB::commit();
+
+            $mensaje = 'Pago registrado exitosamente';
+            if ($nuevoCredito > 0) {
+                $mensaje .= '.<br>Saldo pendiente: Bs. ' . number_format($nuevoCredito, 2);
+            } else {
+                $mensaje .= '.<br>Deuda saldada completamente';
+            }
+
+            $this->toast('success', $mensaje);
+
+            $this->cerrarModalPago();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->procesandoPago = false;
+            $this->toast('error', 'Error al procesar el pago:<br>' . $e->getMessage());
+        }
+    }
+
+    public function limpiarFiltroFechas()
+    {
+        $this->fecha_inicio = null;
+        $this->fecha_fin = null;
+        $this->resetPage();
+    }
+
+    public function updatedFechaInicio()
+    {
+        if ($this->fecha_inicio && !$this->fecha_fin) {
+            $this->fecha_fin = now()->format('Y-m-d');
+        }
+        $this->resetPage();
+    }
+
+    public function updatingFechaFin()
+    {
+        $this->resetPage();
+    }
+
     public function crearCompra()
     {
         // Verificar si el usuario ya tiene una compra pendiente
@@ -60,7 +242,7 @@ class Compras extends Component
 
         if ($compraPendiente) {
             // Redirigir a la compra pendiente
-            return redirect()->route('tenant.compra', ['compraId' => $compraPendiente->id]);
+            return redirect()->route('compra', ['compraId' => $compraPendiente->id]);
         }
 
         // Si no hay pendiente, crear una nueva
@@ -73,7 +255,7 @@ class Compras extends Component
         ]);
 
         // Redirigir a la nueva compra
-        return redirect()->route('tenant.compra', ['compraId' => $nuevaCompra->id]);
+        return redirect()->route('compra', ['compraId' => $nuevaCompra->id]);
     }
 
     public function eliminar($compraId)
@@ -90,19 +272,13 @@ class Compras extends Component
                 $compra->delete();
                 DB::commit();
 
-                $this->dispatch('alert', [
-                    'type' => 'success',
-                    'message' => 'Compra pendiente eliminada exitosamente'
-                ]);
+                $this->toast('success', 'Compra pendiente eliminada exitosamente');
                 return;
             }
 
             // Si la compra está COMPLETA, marcar como Eliminado y devolver productos/dinero
             if ($compra->estado !== 'Completo') {
-                $this->dispatch('alert', [
-                    'type' => 'error',
-                    'message' => 'Solo se pueden eliminar compras pendientes o completas'
-                ]);
+                $this->toast('error', 'Solo se pueden eliminar compras pendientes o completas');
                 return;
             }
 
@@ -276,10 +452,7 @@ class Compras extends Component
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $this->dispatch('alert', [
-                'type' => 'error',
-                'message' => 'Error al eliminar la compra: ' . $e->getMessage()
-            ]);
+            $this->toast('error', 'Error al eliminar la compra:<br>' . $e->getMessage());
         }
     }
 
@@ -312,9 +485,16 @@ class Compras extends Component
                         ->orWhereHas('compraItems.producto', function ($subQ) {
                             $subQ->withTrashed()
                                 ->where('nombre', 'like', '%' . $this->search . '%')
-                                ->orWhere('codigo', 'like', '%' . $this->search . '%');
+                                ->orWhere('codigo', 'like', '%' . $this->search . '%')
+                                ->orWhereHas('tags', function ($tagQuery) {
+                                    $tagQuery->where('nombre', 'like', '%' . $this->search . '%');
+                                });
                         });
                 });
+            })
+            ->when($this->fecha_inicio && $this->fecha_fin, function ($query) {
+                $query->whereDate('created_at', '>=', $this->fecha_inicio)
+                      ->whereDate('created_at', '<=', $this->fecha_fin);
             })
             ->orderBy('id', 'desc')
             ->paginate($this->perPage);

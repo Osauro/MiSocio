@@ -81,6 +81,9 @@
 
             <div class="page-body">
                 {{ $slot }}
+
+                <!-- Espaciador para vista móvil (barra inferior fija) -->
+                <div class="d-md-none" style="min-height: 80px;"></div>
             </div>
 
         </div>

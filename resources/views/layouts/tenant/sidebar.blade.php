@@ -12,7 +12,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.home') }}">
+                    <a class="sidebar-link" href="{{ route('home') }}">
                         <i class="fa-solid fa-house fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Inicio</h6>
                     </a>
@@ -23,7 +23,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.productos') }}">
+                    <a class="sidebar-link" href="{{ route('productos') }}">
                         <i class="fa-solid fa-box fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Productos</h6>
                     </a>
@@ -34,7 +34,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.categorias') }}">
+                    <a class="sidebar-link" href="{{ route('categorias') }}">
                         <i class="fa-solid fa-layer-group fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Categorías</h6>
                     </a>
@@ -45,7 +45,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.clientes') }}">
+                    <a class="sidebar-link" href="{{ route('clientes') }}">
                         <i class="fa-solid fa-users fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Clientes</h6>
                     </a>
@@ -55,7 +55,7 @@
             <!-- Ventas - Todos los usuarios -->
             <li class="sidebar-list">
                 <i class="fa-solid fa-thumbtack"></i>
-                <a class="sidebar-link" href="{{ route('tenant.ventas') }}">
+                <a class="sidebar-link" href="{{ route('ventas') }}">
                     <i class="fa-solid fa-shopping-cart fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                     <h6 class="f-w-600">Ventas</h6>
                 </a>
@@ -65,7 +65,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.compras') }}">
+                    <a class="sidebar-link" href="{{ route('compras') }}">
                         <i class="fa-solid fa-basket-shopping fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Compras</h6>
                     </a>
@@ -75,7 +75,7 @@
             <!-- Kardex - Todos los usuarios -->
             <li class="sidebar-list">
                 <i class="fa-solid fa-thumbtack"></i>
-                <a class="sidebar-link" href="{{ route('tenant.kardex') }}">
+                <a class="sidebar-link" href="{{ route('kardex') }}">
                     <i class="fa-solid fa-clipboard-list fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                     <h6 class="f-w-600">Kardex</h6>
                 </a>
@@ -85,7 +85,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.movimientos') }}">
+                    <a class="sidebar-link" href="{{ route('movimientos') }}">
                         <i class="fa-solid fa-file-invoice-dollar fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Movimientos</h6>
                     </a>
@@ -96,7 +96,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('tenant.usuarios') }}">
+                    <a class="sidebar-link" href="{{ route('usuarios') }}">
                         <i class="fa-solid fa-user-gear fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Usuarios</h6>
                     </a>

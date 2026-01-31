@@ -42,7 +42,7 @@ function initSweetAlertListeners() {
             Swal.fire({
                 icon: 'success',
                 title: title,
-                text: text,
+                html: text,
                 showConfirmButton: false,
                 timer: 2000
             })
@@ -53,7 +53,7 @@ function initSweetAlertListeners() {
             Swal.fire({
                 icon: 'error',
                 title: title,
-                text: text,
+                html: text,
                 confirmButtonText: 'Aceptar'
             })
         })
@@ -63,7 +63,7 @@ function initSweetAlertListeners() {
             Swal.fire({
                 icon: 'warning',
                 title: title,
-                text: text,
+                html: text,
                 confirmButtonText: 'Aceptar'
             })
         })
@@ -73,7 +73,7 @@ function initSweetAlertListeners() {
             Swal.fire({
                 icon: 'info',
                 title: title,
-                text: text,
+                html: text,
                 confirmButtonText: 'Aceptar'
             })
         })

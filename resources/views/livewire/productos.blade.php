@@ -72,8 +72,8 @@
                                                             </span>
                                                         @endif
                                                     </div>
-                                                    <!-- Fila de tags - siempre visible -->
-                                                    <div class="small mb-1">
+                                                    <!-- Fila de tags - oculta en móviles -->
+                                                    <div class="small mb-1 d-none d-md-block">
                                                         <i class="fa-solid fa-tags text-muted me-1" style="font-size: 0.7rem;"></i>
                                                         @if($producto->tags->count() > 0)
                                                             @foreach($producto->tags->take(3) as $tag)
@@ -383,7 +383,7 @@
                                     </div>
 
                                     <!-- Tags / Nombres Alternativos -->
-                                    <div class="col-md-12 mb-3" x-data="tagsInput()">
+                                    <div class="col-md-12 mb-3" x-data="tagsInput()" wire:ignore>
                                         <label for="tags_input" class="form-label">
                                             <i class="fa-solid fa-tags me-1"></i>Tags / Nombres Alternativos
                                         </label>
@@ -414,7 +414,7 @@
                                         </div>
 
                                         <!-- Input oculto para Livewire -->
-                                        <input type="hidden" wire:model="tags_input" x-ref="hiddenInput">
+                                        <input type="hidden" wire:model.defer="tags_input" x-ref="hiddenInput">
 
                                         @error('tags_input')
                                             <div class="text-danger small">{{ $message }}</div>
@@ -469,6 +469,16 @@
             document.getElementById('searchInput').focus()
         })
 
+        Livewire.on('reset-tags', event => {
+            // Disparar evento para limpiar tags en Alpine
+            window.dispatchEvent(new CustomEvent('reset-tags-alpine'))
+        })
+
+        Livewire.on('load-tags', event => {
+            // Disparar evento para cargar tags en Alpine
+            window.dispatchEvent(new CustomEvent('load-tags-alpine'))
+        })
+
         Livewire.on('medida-created', event => {
             Livewire.dispatch('$refresh')
         })
@@ -484,14 +494,22 @@
                 // Cargar tags iniciales desde Livewire
                 this.loadTagsFromWire();
 
-                // Escuchar cambios en tags_input desde Livewire (cuando se edita)
-                this.$watch('$wire.tags_input', () => {
+                // Escuchar evento para resetear tags
+                window.addEventListener('reset-tags-alpine', () => {
+                    this.resetTags();
+                });
+
+                // Escuchar evento para cargar tags (cuando se edita)
+                window.addEventListener('load-tags-alpine', () => {
                     this.loadTagsFromWire();
                 });
 
-                // Sincronizar con Livewire cuando cambie el array de tags
-                this.$watch('tags', () => {
-                    this.updateWire();
+                // Escuchar eventos de Livewire para resetear o cargar tags
+                window.addEventListener('tags-loaded', (event) => {
+                    if (event.detail && event.detail.tags) {
+                        this.$wire.tags_input = event.detail.tags;
+                        this.loadTagsFromWire();
+                    }
                 });
             },
 
@@ -504,23 +522,32 @@
                 }
             },
 
+            resetTags() {
+                this.tags = [];
+                this.currentTag = '';
+                this.$refs.hiddenInput.value = '';
+            },
+
             addTag() {
                 const tag = this.currentTag.trim();
                 if (tag && !this.tags.includes(tag)) {
                     this.tags.push(tag);
                     this.currentTag = '';
-                    this.updateWire();
+                    this.updateHiddenInput();
+                    // El foco se mantiene automáticamente porque no hay re-renderizado
                 }
             },
 
             removeTag(index) {
                 this.tags.splice(index, 1);
-                this.updateWire();
+                this.updateHiddenInput();
             },
 
-            updateWire() {
+            updateHiddenInput() {
+                // Actualizar directamente el valor del input hidden sin disparar Livewire
                 const tagsString = this.tags.join(', ');
-                this.$wire.set('tags_input', tagsString);
+                this.$refs.hiddenInput.value = tagsString;
+                this.$wire.tags_input = tagsString;
             }
         }
     }

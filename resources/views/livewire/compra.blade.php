@@ -1,12 +1,35 @@
-<div>
+<div x-data="{ mostrarCarritoMovil: false }">
+    <style>
+        /* Control de visibilidad en móvil - Cargado inmediatamente */
+        @media (max-width: 767.98px) {
+            .compra-items-wrapper {
+                display: none !important;
+            }
+            .compra-items-wrapper.show-mobile-items {
+                display: block !important;
+            }
+            .compra-search-wrapper.hide-mobile-search {
+                display: none !important;
+            }
+        }
+
+        /* En desktop siempre mostrar todo */
+        @media (min-width: 768px) {
+            .compra-items-wrapper,
+            .compra-search-wrapper {
+                display: block !important;
+            }
+        }
+    </style>
+
     <div class="container-fluid">
         <div class="row starter-main">
             <div class="col-sm-12">
                 <div class="card">
-                    <div class="card-header card-no-border pb-0">
+                    <div class="card-header card-no-border pb-0 d-none d-md-block" style="position: sticky; top: 0; z-index: 1050; background-color: white;">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h3 class="d-none d-md-block mb-0">Compra #{{ $compra->numero_folio }}</h3>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2">`
                                 <button wire:click="cancelarCompra" class="btn btn-secondary">
                                     <i class="fa-solid fa-times me-1"></i>
                                     <span class="d-none d-md-inline">Cancelar</span>
@@ -23,8 +46,8 @@
 
                     <div class="card-body transaction-history pt-0 mt-3 pb-2">
                         <div class="row">
-                            <!-- Columna de Items (Izquierda) -->
-                            <div class="col-md-8 col-lg-9">
+                            <!-- Columna de Items (Izquierda) - Oculta en móvil por defecto -->
+                            <div class="col-md-8 col-lg-9 d-md-block" :class="{ 'd-none': !mostrarCarritoMovil }">
                                 <div class="row g-2">
                                     @forelse($items as $index => $item)
                                         <div class="col-md-6 col-lg-4 col-xl-4" wire:key="item-{{ $item['id'] }}">
@@ -139,28 +162,29 @@
                                         </div>
                                     @endforelse
                                 </div>
+                                <!-- Espaciador para vista móvil -->
+                                <div class="d-md-none" style="min-height: 80px;"></div>
                             </div>
 
-                            <!-- Columna de Buscador (Derecha) -->
-                            <div class="col-md-4 col-lg-3">
-                                <div class="card sticky-top shadow-sm" style="top: 80px; z-index: 1;">
-                                    <div class="card-header bg-primary text-white">
-                                        <h6 class="mb-0">
-                                            <i class="fa-solid fa-search me-2"></i>
-                                            Buscar Productos
-                                        </h6>
-                                    </div>
+                            <!-- Columna de Buscador (Derecha) - Oculta cuando se muestra carrito en móvil -->
+                            <div class="col-md-4 col-lg-3 d-md-block" :class="{ 'd-none': mostrarCarritoMovil }">
+                                <div class="card shadow-sm" style="position: sticky; top: 10px; z-index: 1;">
                                     <div class="card-body p-2">
-                                        <!-- Input de Búsqueda -->
-                                        <input type="text"
-                                            id="buscadorCompra"
-                                            class="form-control mb-2"
-                                            wire:model.live.debounce.300ms="buscar"
-                                            placeholder="Nombre o código..."
-                                            autofocus>
+                                        <!-- Input de Búsqueda con icono -->
+                                        <div class="input-group mb-2">
+                                            <span class="input-group-text bg-primary text-white">
+                                                <i class="fa-solid fa-search"></i>
+                                            </span>
+                                            <input type="text"
+                                                id="buscadorCompra"
+                                                class="form-control text-end"
+                                                wire:model.live.debounce.300ms="buscar"
+                                                placeholder="Nombre o código..."
+                                                autofocus>
+                                        </div>
 
                                         <!-- Resultados -->
-                                        <div class="search-results" style="max-height: 500px; overflow-y: auto;">
+                                        <div class="search-results" style="max-height: calc(100vh - 300px); overflow-y: auto;">
                                             @if(strlen($buscar) >= 2)
                                                 @forelse($productosEncontrados as $producto)
                                                     @php
@@ -184,7 +208,7 @@
                                                                     <div class="fw-bold small">{{ $producto['nombre'] }}</div>
                                                                     <div class="d-flex gap-1 mt-1">
                                                                         <span class="badge bg-info text-dark">
-                                                                            Stock: {{ $producto['stock'] }}
+                                                                            Stock: {{ $producto['stock_formateado'] ?? $producto['stock'] }}
                                                                         </span>
                                                                         <span class="badge bg-secondary">
                                                                             {{ $producto['medida'] }} ({{ $producto['cantidad'] ?? 1 }}u)
@@ -224,9 +248,9 @@
 
     <!-- Modal Paso 1: Fecha de Compra -->
     @if($pasoActual === 1)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
                         <i class="fa-solid fa-calendar me-2"></i>
@@ -238,13 +262,12 @@
                         <label for="fechaCompra" class="form-label fw-bold">Fecha de la compra</label>
                         <input type="date"
                             id="fechaCompra"
-                            class="form-control form-control-lg"
+                            class="form-control form-control-lg text-end"
                             wire:model="fechaCompra"
-                            max="{{ date('Y-m-d') }}"
-                            x-init="$nextTick(() => $el.focus())">
+                            max="{{ date('Y-m-d') }}">
                         <small class="text-muted">
                             <i class="fa-solid fa-info-circle me-1"></i>
-                            Presiona Enter para continuar o Ctrl+Enter para pago rápido (sin proveedor, todo en efectivo)
+                            Presiona Enter para continuar
                         </small>
                     </div>
                 </div>
@@ -253,13 +276,9 @@
                         <i class="fa-solid fa-times me-1"></i>
                         Cancelar
                     </button>
-                    <button type="button" class="btn btn-warning" wire:click="finalizarPagoRapido">
-                        <i class="fa-solid fa-bolt me-1"></i>
-                        Pago Rápido (Ctrl+Enter)
-                    </button>
                     <button type="button" class="btn btn-primary" wire:click="avanzarPaso1">
                         <i class="fa-solid fa-arrow-right me-1"></i>
-                        Siguiente
+                        Siguiente <span class="badge bg-white text-primary ms-1">Enter</span>
                     </button>
                 </div>
             </div>
@@ -269,9 +288,9 @@
 
     <!-- Modal Paso 2: Selección de Proveedor -->
     @if($pasoActual === 2)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content">
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
                         <i class="fa-solid fa-user-tie me-2"></i>
@@ -283,7 +302,7 @@
                         <label for="buscarProveedor" class="form-label fw-bold">Buscar proveedor</label>
                         <input type="text"
                             id="buscarProveedor"
-                            class="form-control form-control-lg"
+                            class="form-control form-control-lg text-end"
                             wire:model.live.debounce.300ms="buscarProveedor"
                             placeholder="Celular (8 dígitos) o nombre..."
                             x-init="$nextTick(() => $el.focus())">
@@ -320,7 +339,7 @@
                                 <label class="form-label fw-bold">Nombre</label>
                                 <input type="text"
                                     id="nuevoProveedorNombre"
-                                    class="form-control"
+                                    class="form-control text-end"
                                     wire:model="nuevoProveedor.nombre"
                                     x-init="$nextTick(() => $el.focus())"
                                     @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
@@ -329,7 +348,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Celular</label>
                                 <input type="text"
-                                    class="form-control"
+                                    class="form-control text-end"
                                     wire:model="nuevoProveedor.celular"
                                     @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
                                 @error('nuevoProveedor.celular') <span class="text-danger small">{{ $message }}</span> @enderror
@@ -337,14 +356,14 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Dirección</label>
                                 <input type="text"
-                                    class="form-control"
+                                    class="form-control text-end"
                                     wire:model="nuevoProveedor.direccion"
                                     @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">NIT</label>
                                 <input type="text"
-                                    class="form-control"
+                                    class="form-control text-end"
                                     wire:model="nuevoProveedor.nit"
                                     @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
                             </div>
@@ -366,15 +385,96 @@
     </div>
     @endif
 
-    <!-- Modal Paso 3: Método de Pago -->
+    <!-- Modal Paso 3: Añadir Saldo a Caja -->
     @if($pasoActual === 3)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
+                        <i class="fa-solid fa-wallet me-2"></i>
+                        Paso 3: Añadir Saldo a Caja
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        @php
+                            $totalCompra = collect($items)->sum('subtotal');
+                            $faltante = max(0, $totalCompra - $saldoCaja);
+                        @endphp
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-6">
+                                <div class="alert alert-info mb-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span><i class="fa-solid fa-wallet me-1"></i> Saldo en caja:</span>
+                                        <strong>Bs. {{ number_format($saldoCaja, 2) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-warning mb-0">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span><i class="fa-solid fa-shopping-cart me-1"></i> Total compra:</span>
+                                        <strong>Bs. {{ number_format($totalCompra, 2) }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if($faltante > 0)
+                            <div class="alert alert-danger mb-3">
+                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                Faltante: <strong>Bs. {{ number_format($faltante, 2) }}</strong>
+                            </div>
+                        @endif
+
+                        <label for="montoAnadirCaja" class="form-label fw-bold">Monto a añadir (opcional)</label>
+                        <input type="number"
+                            id="montoAnadirCaja"
+                            class="form-control form-control-lg text-end"
+                            wire:model.live="montoAñadirCaja"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            wire:keydown.enter="avanzarPaso3"
+                            x-init="$nextTick(() => { $el.focus(); $el.select(); })">
+                        <small class="text-muted">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Por defecto 0. Presione Enter para continuar
+                        </small>
+                    </div>
+                    @if($montoAñadirCaja > 0)
+                        <div class="alert alert-success">
+                            <i class="fa-solid fa-check-circle me-1"></i>
+                            Se añadirá Bs. {{ number_format($montoAñadirCaja, 2) }} a caja
+                        </div>
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" wire:click="retrocederPaso">
+                        <i class="fa-solid fa-arrow-left me-1"></i>
+                        Atrás
+                    </button>
+                    <button type="button" class="btn btn-primary" wire:click="avanzarPaso3">
+                        <i class="fa-solid fa-arrow-right me-1"></i>
+                        Continuar <span class="badge bg-white text-primary ms-1">Enter</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal Paso 4: Procesar Pago -->
+    @if($pasoActual === 4 && !$procesandoPago)
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
                         <i class="fa-solid fa-money-bill me-2"></i>
-                        Paso 3: Método de Pago
+                        Paso 4: Procesar Pago
                     </h5>
                 </div>
                 <div class="modal-body">
@@ -382,113 +482,94 @@
                         <h5 class="text-center mb-3">
                             Total: <span class="text-primary">Bs. {{ number_format(collect($items)->sum('subtotal'), 2) }}</span>
                         </h5>
+                        <div class="alert alert-info mb-3">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Saldo en caja: <strong>Bs. {{ number_format($saldoCaja, 2) }}</strong>
+                        </div>
                     </div>
 
-                    <!-- Opciones de pago -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Método de pago</label>
+                        <label for="montoPago" class="form-label fw-bold">Monto a pagar en efectivo</label>
+                        <input type="number"
+                            id="montoPago"
+                            class="form-control form-control-lg text-end"
+                            wire:model.live="montoPago"
+                            min="0"
+                            max="{{ collect($items)->sum('subtotal') }}"
+                            step="0.01"
+                            wire:keydown.enter="procesarPago"
+                            x-init="$nextTick(() => { $el.focus(); $el.select(); })">
 
-                        <div class="row g-2">
-                            <!-- Efectivo -->
-                            <div class="col-6">
-                                <button type="button"
-                                    class="btn btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3 {{ $metodoPago === 'efectivo' ? 'btn-success' : 'btn-outline-success' }}"
-                                    wire:click="seleccionarMetodoEfectivo"
-                                    style="min-height: 100px;">
-                                    <i class="fa-solid fa-money-bill-wave fa-2x mb-2"></i>
-                                    <div>
-                                        Efectivo
-                                        <span class="badge bg-white text-success ms-1">E</span>
-                                    </div>
-                                </button>
-                            </div>
+                        @php
+                            $total = collect($items)->sum('subtotal');
+                            $credito = $total - $montoPago;
+                        @endphp
 
-                            <!-- Crédito -->
-                            <div class="col-6">
-                                <button type="button"
-                                    class="btn btn-lg w-100 h-100 d-flex flex-column align-items-center justify-content-center py-3 {{ $metodoPago === 'credito' ? 'btn-warning' : 'btn-outline-warning' }}"
-                                    wire:click="seleccionarMetodoCredito"
-                                    @if($proveedorSeleccionado === null) disabled @endif
-                                    style="min-height: 100px;">
-                                    <i class="fa-solid fa-credit-card fa-2x mb-2"></i>
-                                    <div>
-                                        Crédito
-                                        <span class="badge bg-white text-warning ms-1">C</span>
-                                    </div>
-                                    @if($proveedorSeleccionado === null)
-                                        <small class="text-danger mt-1">(Requiere proveedor)</small>
-                                    @endif
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Input de monto para efectivo (sin saldo suficiente) -->
-                    @if($mostrarInputEfectivo)
-                        <div class="mb-3">
-                            <label for="montoPagoEfectivo" class="form-label fw-bold">Monto de compra en efectivo</label>
-                            <div class="alert alert-warning mb-2">
+                        @if($montoPago < $total && $proveedorSeleccionado !== null)
+                            <div class="alert alert-warning mt-2 mb-0">
                                 <i class="fa-solid fa-exclamation-triangle me-1"></i>
-                                Saldo en caja: Bs. {{ number_format($saldoCaja, 2) }}
+                                Efectivo: Bs. {{ number_format($montoPago, 2) }} |
+                                Crédito: Bs. {{ number_format($credito, 2) }}
                             </div>
-                            <input type="number"
-                                id="montoPagoEfectivo"
-                                class="form-control form-control-lg text-end"
-                                wire:model.live="montoPago"
-                                min="0"
-                                step="0.01"
-                                x-init="$nextTick(() => { $el.focus(); $el.select(); })">
-                            <small class="text-muted">
-                                <i class="fa-solid fa-info-circle me-1"></i>
-                                Se creará un movimiento de egreso en caja
-                            </small>
-                        </div>
-                    @endif
+                        @elseif($montoPago == $total)
+                            <div class="alert alert-success mt-2 mb-0">
+                                <i class="fa-solid fa-check-circle me-1"></i>
+                                Pago completo en efectivo
+                            </div>
+                        @endif
 
-                    <!-- Input de monto si es crédito -->
-                    @if($metodoPago === 'credito' && $proveedorSeleccionado !== null)
-                        <div class="mb-3">
-                            <label for="montoPago" class="form-label fw-bold">Monto en efectivo</label>
-                            <input type="number"
-                                id="montoPago"
-                                class="form-control form-control-lg text-end"
-                                wire:model.live="montoPago"
-                                min="0"
-                                max="{{ collect($items)->sum('subtotal') }}"
-                                step="0.01"
-                                x-init="$nextTick(() => { $el.focus(); $el.select(); })">
-                            <small class="text-muted">
-                                @if($montoPago == 0)
-                                    <i class="fa-solid fa-info-circle me-1"></i>
-                                    Toda la compra será a crédito
-                                @else
-                                    <i class="fa-solid fa-info-circle me-1"></i>
-                                    Efectivo: Bs. {{ number_format($montoPago, 2) }} |
-                                    Crédito: Bs. {{ number_format(collect($items)->sum('subtotal') - $montoPago, 2) }}
-                                @endif
-                            </small>
-                        </div>
-                    @endif
+                        <small class="text-muted d-block mt-2">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Presione Enter para procesar el pago
+                        </small>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
-                        <i class="fa-solid fa-times me-1"></i>
-                        Cancelar
+                    <button type="button" class="btn btn-secondary" wire:click="retrocederPaso">
+                        <i class="fa-solid fa-arrow-left me-1"></i>
+                        Atrás
                     </button>
-                    @if($mostrarInputEfectivo || $metodoPago === 'credito')
-                        <button type="button" class="btn btn-success" wire:click="finalizarCompra">
-                            <i class="fa-solid fa-check me-1"></i>
-                            Finalizar Compra
-                        </button>
-                    @endif
+                    <button type="button" class="btn btn-success" wire:click="procesarPago">
+                        <i class="fa-solid fa-check me-1"></i>
+                        Procesar Pago <span class="badge bg-white text-success ms-1">Enter</span>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
     @endif
 
-    <!-- Footer fijo con totales -->
-    <footer class="fixed-footer shadow-sm py-2">
+    <!-- Modal: Procesando Pago -->
+    @if($procesandoPago)
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+            <div class="modal-content shadow-lg border-0">
+                <div class="modal-body py-5">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary mb-4" role="status" style="width: 4rem; height: 4rem;">
+                            <span class="visually-hidden">Procesando...</span>
+                        </div>
+                        <h4 class="text-primary mb-3">
+                            <i class="fa-solid fa-clock me-2"></i>
+                            Procesando pago...
+                        </h4>
+                        <p class="text-muted mb-0">
+                            Por favor espere mientras se completa la transacción
+                        </p>
+                        <div class="progress mt-4" style="height: 8px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                 role="progressbar"
+                                 style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+<!-- Footer fijo con totales - Oculto en móvil -->
+    <footer class="fixed-footer shadow-sm py-2 d-none d-md-block">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
@@ -504,6 +585,41 @@
             </div>
         </div>
     </footer>
+
+    <!-- Barra inferior fija para móvil -->
+    <div class="mobile-bottom-bar d-md-none fixed-bottom bg-white shadow-lg" style="z-index: 1040; border-top: 1px solid rgba(0,0,0,0.1); padding: 8px;">
+        <div class="d-flex justify-content-between align-items-center gap-2" style="height: 50px;">
+            <!-- Botón Cancelar -->
+            <button wire:click="cancelarCompra" class="btn btn-outline-danger h-100" style="flex: 0 0 60px; padding: 4px;">
+                <i class="fa-solid fa-times d-block" style="font-size: 0.9rem;"></i>
+                <small style="font-size: 0.65rem;">Cancelar</small>
+            </button>
+
+            <!-- Botón Carrito -->
+            <button @click="mostrarCarritoMovil = !mostrarCarritoMovil" class="btn btn-outline-primary position-relative h-100" style="flex: 0 0 60px; padding: 4px;">
+                <i class="fa-solid fa-shopping-cart d-block" style="font-size: 0.9rem;"></i>
+                <small style="font-size: 0.65rem;" x-text="mostrarCarritoMovil ? 'Buscador' : 'Carrito'"></small>
+                @if(count($items) > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                        {{ count($items) }}
+                    </span>
+                @endif
+            </button>
+
+            <!-- Botón Pagar -->
+            @if(count($items) > 0)
+                <button wire:click="iniciarCompletarCompra" class="btn btn-success flex-fill h-100 d-flex align-items-center justify-content-center" style="padding: 4px;">
+                    <i class="fa-solid fa-check me-2" style="font-size: 1.2rem;"></i>
+                    <strong style="font-size: 1.2rem;">Bs {{ number_format($this->total(), 2) }}</strong>
+                </button>
+            @else
+                <button disabled class="btn btn-secondary flex-fill h-100 d-flex align-items-center justify-content-center opacity-50" style="padding: 4px;">
+                    <i class="fa-solid fa-check me-2" style="font-size: 1.2rem;"></i>
+                    <strong style="font-size: 1.2rem;">Bs 0.00</strong>
+                </button>
+            @endif
+        </div>
+    </div>
 
     @script
         <script>
@@ -580,10 +696,7 @@
 
                 // Paso 1: Fecha
                 if ($wire.pasoActual === 1) {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                        e.preventDefault();
-                        $wire.call('finalizarPagoRapido');
-                    } else if (e.key === 'Enter') {
+                    if (e.key === 'Enter') {
                         e.preventDefault();
                         $wire.call('avanzarPaso1');
                     }
@@ -598,22 +711,23 @@
                     }
                 }
 
-                // Paso 3: Método de pago
+                // Paso 3: Añadir saldo a caja (Enter para continuar)
                 if ($wire.pasoActual === 3) {
-                    // Atajos E = Efectivo, C = Crédito
-                    if (e.key.toLowerCase() === 'e') {
+                    if (e.key === 'Enter') {
                         e.preventDefault();
-                        $wire.call('seleccionarMetodoEfectivo');
-                    } else if (e.key.toLowerCase() === 'c' && $wire.proveedorSeleccionado !== null) {
-                        e.preventDefault();
-                        $wire.call('seleccionarMetodoCredito');
-                    } else if (e.key === 'Enter' && ($wire.mostrarInputEfectivo || $wire.metodoPago === 'credito')) {
-                        e.preventDefault();
-                        $wire.call('finalizarCompra');
+                        $wire.call('avanzarPaso3');
                     }
                 }
 
-                // Atajo global Ctrl+Enter para completar compra
+                // Paso 4: Procesar pago (Enter para procesar)
+                if ($wire.pasoActual === 4 && !$wire.procesandoPago) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        $wire.call('procesarPago');
+                    }
+                }
+
+                // Atajo global Ctrl+Enter para iniciar la secuencia de pago
                 if (e.key === 'Enter' && e.ctrlKey && $wire.pasoActual === 0) {
                     e.preventDefault();
                     $wire.call('iniciarCompletarCompra');

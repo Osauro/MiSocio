@@ -20,8 +20,8 @@
             <ul class="header-right">
                 <!-- Botón para volver al modo Tenant (solo si tiene tenants) -->
                 @if(Auth::user()->tenants()->wherePivot('is_active', true)->count() > 0)
-                    <li>
-                        <a href="{{ route('tenant.home') }}"
+                    <li class="d-none d-md-block">
+                        <a href="{{ route('home') }}"
                            class="btn btn-mode-switch-tenant"
                            title="Ir a modo Tenant (Trabajar en una tienda)">
                             <i class="fa-solid fa-store"></i>

@@ -31,39 +31,39 @@ Route::middleware('auth')->group(function () {
 // Rutas que requieren autenticación Y tenant activo
 Route::middleware(['auth', 'tenant'])->group(function () {
     // Ventas - Todos los usuarios pueden acceder
-    Route::livewire('tenant/ventas', Ventas::class)->name('tenant.ventas');
+    Route::livewire('ventas', Ventas::class)->name('ventas');
 
     // Kardex - Todos los usuarios pueden ver
-    Route::livewire('tenant/kardex', Kardex::class)->name('tenant.kardex');
+    Route::livewire('kardex', Kardex::class)->name('kardex');
 
     // Ruta de debug temporal - Solo para desarrollo
-    Route::get('tenant/debug-user', function () {
+    Route::get('debug-user', function () {
         return view('debug-user');
-    })->name('tenant.debug');
+    })->name('debug');
 });
 
 // Rutas de administración del tenant - Solo Landlord y Tenant Admin
 Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
     // Dashboard - Solo administradores
-    Route::livewire('tenant/home', HomeTenant::class)->name('tenant.home');
+    Route::livewire('home', HomeTenant::class)->name('home');
 
     // Gestión de recursos
-    Route::livewire('tenant/productos', Productos::class)->name('tenant.productos');
-    Route::livewire('tenant/categorias', Categorias::class)->name('tenant.categorias');
-    Route::livewire('tenant/clientes', Clientes::class)->name('tenant.clientes');
-    Route::livewire('tenant/usuarios', Usuarios::class)->name('tenant.usuarios');
-    Route::livewire('tenant/movimientos', Movimientos::class)->name('tenant.movimientos');
+    Route::livewire('productos', Productos::class)->name('productos');
+    Route::livewire('categorias', Categorias::class)->name('categorias');
+    Route::livewire('clientes', Clientes::class)->name('clientes');
+    Route::livewire('usuarios', Usuarios::class)->name('usuarios');
+    Route::livewire('movimientos', Movimientos::class)->name('movimientos');
 
     // Compras - Solo administradores
-    Route::livewire('tenant/compras', Compras::class)->name('tenant.compras');
+    Route::livewire('compras', Compras::class)->name('compras');
 
     // Crear/Editar Compra - Solo administradores
-    Route::livewire('tenant/compra/{compraId}', Compra::class)->name('tenant.compra');
+    Route::livewire('compra/{compraId}', Compra::class)->name('compra');
 });
 
 // Rutas para landlord - Solo Landlords
-Route::middleware(['auth', 'landlord'])->group(function () {
-    Route::livewire('landlord/home', HomeLandlord::class)->name('landlord.home');
+Route::middleware(['auth', 'landlord'])->prefix('admin')->group(function () {
+    Route::livewire('home', HomeLandlord::class)->name('admin.home');
     // Aquí irán futuras rutas de gestión de tenants, suscripciones, pagos
 });
 

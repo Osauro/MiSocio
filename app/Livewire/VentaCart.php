@@ -21,7 +21,15 @@ class VentaCart extends Component
 
     public function actualizarContador()
     {
-        $this->cantidadPendientes = Venta::where('estado', 'Pendiente')->count();
+        // Verificar que exista un tenant activo
+        if (!currentTenantId()) {
+            $this->cantidadPendientes = 0;
+            return;
+        }
+
+        $this->cantidadPendientes = Venta::where('tenant_id', currentTenantId())
+            ->where('estado', 'Pendiente')
+            ->count();
     }
 
     public function render()

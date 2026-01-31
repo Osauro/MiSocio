@@ -13,6 +13,7 @@ use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -28,7 +29,7 @@ class Compra extends Component
     public $mostrarBuscador = true;
 
     // Variables para el flujo de pago
-    public $pasoActual = 0; // 0: no iniciado, 1: fecha, 2: proveedor, 3: método pago
+    public $pasoActual = 0; // 0: no iniciado, 1: fecha, 2: proveedor, 3: añadir saldo, 4: pago
     public $fechaCompra;
     public $buscarProveedor = '';
     public $proveedoresEncontrados = [];
@@ -40,16 +41,16 @@ class Compra extends Component
         'direccion' => '',
         'nit' => '',
     ];
-    public $metodoPago = 'efectivo'; // 'efectivo' o 'credito'
+    public $montoAñadirCaja = 0;
     public $montoPago = 0;
-    public $mostrarInputEfectivo = false;
     public $saldoCaja = 0;
+    public $procesandoPago = false;
 
     public function mount($compraId = null)
     {
         if (!$compraId) {
             // Si no viene ID, redirigir a compras
-            return redirect()->route('tenant.compras');
+            return redirect()->route('compras');
         }
 
         // Cargar la compra
@@ -57,7 +58,7 @@ class Compra extends Component
 
         // Verificar que sea del usuario actual y esté pendiente
         if ($this->compra->user_id !== Auth::id() || $this->compra->estado !== 'Pendiente') {
-            return redirect()->route('tenant.compras');
+            return redirect()->route('compras');
         }
 
         $this->compraId = $this->compra->id;
@@ -98,6 +99,9 @@ class Compra extends Component
         if (strlen($this->buscar) >= 2) {
             $this->productosEncontrados = Producto::where('nombre', 'like', '%' . $this->buscar . '%')
                 ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
+                ->orWhereHas('tags', function ($query) {
+                    $query->where('nombre', 'like', '%' . $this->buscar . '%');
+                })
                 ->limit(10)
                 ->get()
                 ->map(function ($producto) {
@@ -107,9 +111,10 @@ class Compra extends Component
                     if ($cantidadPorMedida > 1) {
                         $enteros = intdiv($producto->stock, $cantidadPorMedida);
                         $unidades = $producto->stock % $cantidadPorMedida;
-                        $stockFormateado = $enteros . ($producto->medida ?? 'caja') . ($unidades > 0 ? ' + ' . $unidades . 'u' : '');
+                        $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
+                        $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
                     } else {
-                        $stockFormateado = $producto->stock . ' ' . ($producto->medida ?? 'u');
+                        $stockFormateado = $producto->stock . 'u';
                     }
 
                     return [
@@ -177,6 +182,9 @@ class Compra extends Component
 
         // Devolver el foco al buscador
         $this->dispatch('focusBuscador');
+
+        // Emitir evento al navegador para actualizar badge
+        $this->dispatch('actualizar-badge-compra');
     }
 
     public function actualizarItem($index)
@@ -280,6 +288,9 @@ class Compra extends Component
             $this->cargarItems();
             $this->actualizarTotales();
             $this->toast('success', 'Producto eliminado de la compra');
+
+            // Emitir evento al navegador para actualizar badge
+            $this->dispatch('actualizar-badge-compra');
         }
     }
 
@@ -315,7 +326,7 @@ class Compra extends Component
             $this->toast('success', 'Compra cancelada exitosamente');
 
             // Redirigir a la lista de compras
-            return redirect()->route('tenant.compras');
+            return redirect()->route('compras');
         } catch (\Exception $e) {
             Log::error('Error al cancelar compra: ' . $e->getMessage());
             $this->toast('error', 'Error al cancelar la compra');
@@ -357,27 +368,6 @@ class Compra extends Component
         $this->pasoActual = 2;
     }
 
-    public function finalizarPagoRapido()
-    {
-        // Calcular el total de la compra
-        $total = collect($this->items)->sum('subtotal');
-
-        // Obtener el saldo actual de caja
-        $this->obtenerSaldoCaja();
-
-        // Verificar si hay fondos suficientes
-        if ($this->saldoCaja < $total) {
-            $this->toast('error', 'Fondos insuficientes en caja. Saldo: Bs. ' . number_format($this->saldoCaja, 2) . ' - Necesita: Bs. ' . number_format($total, 2));
-            return;
-        }
-
-        // Completar con proveedor_id = null y todo en efectivo
-        $this->proveedorSeleccionado = null;
-        $this->metodoPago = 'efectivo';
-        $this->montoPago = $total;
-        $this->finalizarCompra();
-    }
-
     public function updatedBuscarProveedor()
     {
         if (strlen($this->buscarProveedor) == 0) {
@@ -399,6 +389,11 @@ class Compra extends Component
                 $this->nuevoProveedor['celular'] = $this->buscarProveedor;
             } else {
                 $this->mostrarFormNuevoProveedor = false;
+
+                // Si hay exactamente 1 resultado, seleccionarlo automáticamente
+                if (count($this->proveedoresEncontrados) === 1) {
+                    $this->seleccionarProveedor($this->proveedoresEncontrados[0]['id']);
+                }
             }
         } else {
             // Búsqueda por nombre
@@ -408,17 +403,24 @@ class Compra extends Component
                 ->toArray();
 
             $this->mostrarFormNuevoProveedor = false;
+
+            // Si hay exactamente 1 resultado, seleccionarlo automáticamente
+            if (count($this->proveedoresEncontrados) === 1) {
+                $this->seleccionarProveedor($this->proveedoresEncontrados[0]['id']);
+            }
         }
     }
 
     public function seleccionarProveedor($proveedorId)
     {
         $this->proveedorSeleccionado = $proveedorId;
-        $this->pasoActual = 3;
-        $this->montoPago = 0; // Por defecto, todo a crédito si hay proveedor
 
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
+
+        // Avanzar a paso 3: añadir saldo a caja
+        $this->pasoActual = 3;
+        $this->montoAñadirCaja = 0;
     }
 
     public function mostrarFormAgregarProveedor()
@@ -471,12 +473,13 @@ class Compra extends Component
     {
         // Continuar sin proveedor (solo efectivo)
         $this->proveedorSeleccionado = null;
-        $this->metodoPago = 'efectivo';
-        $this->montoPago = collect($this->items)->sum('subtotal');
-        $this->pasoActual = 3;
 
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
+
+        // Avanzar a paso 3: añadir saldo a caja
+        $this->pasoActual = 3;
+        $this->montoAñadirCaja = 0;
     }
 
     public function obtenerSaldoCaja()
@@ -485,31 +488,102 @@ class Compra extends Component
         $this->saldoCaja = $ultimoMovimiento ? $ultimoMovimiento->saldo : 0;
     }
 
-    public function seleccionarMetodoEfectivo()
+    public function avanzarPaso3()
     {
-        $this->metodoPago = 'efectivo';
-        $total = collect($this->items)->sum('subtotal');
-        $this->montoPago = $total; // Establecer el monto total
+        // Si hay monto a añadir, registrar el movimiento
+        if ($this->montoAñadirCaja > 0) {
+            try {
+                Movimiento::create([
+                    'tenant_id' => currentTenantId(),
+                    'user_id' => Auth::id(),
+                    'detalle' => 'Aporte de fondos para Compra #' . $this->compra->numero_folio,
+                    'ingreso' => $this->montoAñadirCaja,
+                    'egreso' => 0,
+                ]);
 
-        // Verificar si hay saldo suficiente en caja
-        if ($this->saldoCaja >= $total) {
-            // Hay saldo suficiente, finalizar directamente
-            $this->finalizarCompra();
-        } else {
-            // No hay saldo suficiente, mostrar input
-            $this->mostrarInputEfectivo = true;
+                // Actualizar saldo de caja
+                $this->obtenerSaldoCaja();
+
+                $this->toast('success', 'Fondos añadidos a caja');
+            } catch (\Exception $e) {
+                Log::error('Error al añadir fondos: ' . $e->getMessage());
+                $this->toast('error', 'Error al añadir fondos a caja');
+                return;
+            }
+        }
+
+        // Avanzar a paso 4: pago
+        $this->pasoActual = 4;
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+        $this->montoPago = $total; // Por defecto el monto total
+
+        // Si el saldo en caja es menor al total y hay proveedor, ajustar el monto al saldo disponible
+        if ($this->saldoCaja < $total && $this->proveedorSeleccionado !== null) {
+            $this->montoPago = round($this->saldoCaja, 2);
         }
     }
 
-    public function seleccionarMetodoCredito()
+    public function updatedMontoPago()
     {
-        if ($this->proveedorSeleccionado === null) {
+        // Redondear a 2 decimales
+        $this->montoPago = round(floatval($this->montoPago), 2);
+
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+
+        // No permitir monto superior al total
+        if ($this->montoPago > $total) {
+            $this->montoPago = $total;
+            $this->toast('warning', 'El monto no puede ser superior al total de la compra');
+        }
+
+        // Si el monto es menor al total y no hay proveedor, mostrar error
+        if ($this->montoPago < $total && $this->proveedorSeleccionado === null) {
+            $this->toast('error', 'Debe seleccionar un proveedor para pagar a crédito');
+            $this->montoPago = $total;
+        }
+    }
+
+    public function procesarPago()
+    {
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+
+        // Validar monto
+        if ($this->montoPago > $total) {
+            $this->toast('error', 'El monto no puede ser superior al total');
             return;
         }
 
-        $this->metodoPago = 'credito';
-        $this->montoPago = 0;
-        $this->mostrarInputEfectivo = false;
+        // Si el monto es menor y no hay proveedor, error
+        if ($this->montoPago < $total && $this->proveedorSeleccionado === null) {
+            $this->toast('error', 'Debe seleccionar un proveedor para pagar a crédito');
+            $this->montoPago = $total;
+            return;
+        }
+
+        // Verificar fondos en caja si hay pago en efectivo
+        if ($this->montoPago > 0) {
+            $this->obtenerSaldoCaja();
+
+            // Si no hay saldo suficiente
+            if ($this->saldoCaja < $this->montoPago) {
+                // Si hay proveedor, ajustar el monto al saldo disponible y el resto a crédito
+                if ($this->proveedorSeleccionado !== null) {
+                    $this->montoPago = round($this->saldoCaja, 2);
+                    $this->toast('warning', 'Saldo insuficiente.<br>Se pagará Bs. ' . number_format($this->montoPago, 2) . ' en efectivo y Bs. ' . number_format($total - $this->montoPago, 2) . ' a crédito');
+                } else {
+                    // Sin proveedor, regresar al paso 2 para seleccionar uno
+                    $this->toast('warning', 'Fondos insuficientes.<br>Debe seleccionar un proveedor para pagar a crédito');
+                    $this->pasoActual = 2;
+                    return;
+                }
+            }
+        }
+
+        // Mostrar spinner de procesando
+        $this->procesandoPago = true;
+
+        // Procesar el pago
+        $this->finalizarCompra();
     }
 
     public function retrocederPaso()
@@ -525,10 +599,12 @@ class Compra extends Component
                 $this->proveedorSeleccionado = null;
                 $this->mostrarFormNuevoProveedor = false;
             } elseif ($this->pasoActual === 2) {
-                // Limpiar datos de método de pago
-                $this->metodoPago = 'efectivo';
+                // Limpiar datos de añadir saldo
+                $this->montoAñadirCaja = 0;
+            } elseif ($this->pasoActual === 3) {
+                // Limpiar datos de pago
                 $this->montoPago = 0;
-                $this->mostrarInputEfectivo = false;
+                $this->procesandoPago = false;
             }
         }
     }
@@ -540,22 +616,16 @@ class Compra extends Component
 
             $total = collect($this->items)->sum('subtotal');
 
-            // Determinar efectivo y crédito
-            if ($this->proveedorSeleccionado === null) {
-                // Sin proveedor, todo es efectivo
-                $efectivo = $total;
-                $credito = 0;
-            } else {
-                // Con proveedor
-                if ($this->metodoPago === 'efectivo') {
-                    $efectivo = $total;
-                    $credito = 0;
-                } else {
-                    // Crédito o mixto
-                    $efectivo = $this->montoPago;
-                    $credito = $total - $this->montoPago;
-                }
+            // Obtener el nombre del proveedor si existe
+            $nombreProveedor = null;
+            if ($this->proveedorSeleccionado) {
+                $proveedor = Cliente::find($this->proveedorSeleccionado);
+                $nombreProveedor = $proveedor ? $proveedor->nombre : null;
             }
+
+            // Determinar efectivo y crédito
+            $efectivo = $this->montoPago;
+            $credito = $total - $this->montoPago;
 
             // Actualizar la compra
             $this->compra->update([
@@ -652,35 +722,31 @@ class Compra extends Component
                         'saldo' => $producto->stock, // Stock después del incremento
                         'precio' => $item['precio'],
                         'total' => $item['subtotal'],
-                        'obs' => 'Compra #' . $this->compra->numero_folio . ($this->proveedorSeleccionado ? ' - ' . $this->proveedorSeleccionado->nombre : ''),
+                        'obs' => 'Compra #' . $this->compra->numero_folio . ($nombreProveedor ? ' - ' . $nombreProveedor : ''),
                     ]);
                 }
             }
 
-            // Registrar movimientos de efectivo si es necesario
+            // Registrar egreso por la compra si hay pago en efectivo
             if ($efectivo > 0) {
-                // Si se mostró input de efectivo, significa que no había saldo suficiente
-                // Primero registrar el ingreso de fondos del tenant
-                if ($this->mostrarInputEfectivo) {
-                    $aporte = Movimiento::create([
-                        'tenant_id' => currentTenantId(),
-                        'user_id' => Auth::id(),
-                        'detalle' => 'Aporte de fondos para Compra #' . $this->compra->numero_folio,
-                        'ingreso' => $efectivo,
-                        'egreso' => 0,
-                    ]);
+                // Construir descripción más específica
+                $detalle = 'Compra #' . $this->compra->numero_folio;
 
-                    // Forzar el guardado del aporte antes de crear el egreso
-                    $aporte->save();
-                    DB::commit();
-                    DB::beginTransaction();
+                if ($nombreProveedor) {
+                    $detalle .= ' - ' . $nombreProveedor;
                 }
 
-                // Luego registrar el egreso por la compra
+                // Si hay pago parcial (efectivo + crédito), indicarlo
+                if ($credito > 0) {
+                    $detalle .= ' (Pago parcial: Bs. ' . number_format($efectivo, 2) . ' efectivo + Bs. ' . number_format($credito, 2) . ' crédito)';
+                } else {
+                    $detalle .= ' (Pago total en efectivo)';
+                }
+
                 Movimiento::create([
                     'tenant_id' => currentTenantId(),
                     'user_id' => Auth::id(),
-                    'detalle' => 'Compra #' . $this->compra->numero_folio . ($this->proveedorSeleccionado ? ' - Proveedor' : ' - Sin proveedor'),
+                    'detalle' => $detalle,
                     'ingreso' => 0,
                     'egreso' => $efectivo,
                 ]);
@@ -691,7 +757,7 @@ class Compra extends Component
             $this->toast('success', 'Compra completada exitosamente');
 
             // Redirigir a la lista de compras
-            return redirect()->route('tenant.compras');
+            return redirect()->route('compras');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al finalizar compra: ' . $e->getMessage());
@@ -709,6 +775,14 @@ class Compra extends Component
         $this->mostrarFormNuevoProveedor = false;
         $this->metodoPago = 'efectivo';
         $this->montoPago = 0;
+    }
+
+    #[Computed]
+    public function total()
+    {
+        return collect($this->items)->sum(function ($item) {
+            return floatval($item['subtotal'] ?? 0);
+        });
     }
 
     public function render()

@@ -8,6 +8,15 @@
                             <h3 class="d-none d-md-block mb-0">Compras</h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
+                                    @if($fecha_inicio && $fecha_fin)
+                                        <button type="button" class="btn btn-outline-danger" wire:click="limpiarFiltroFechas" title="Limpiar filtro de fechas">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    @else
+                                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                            <i class="fa-solid fa-calendar-days"></i>
+                                        </button>
+                                    @endif
                                     <input type="text" class="form-control" placeholder="Buscar compra..."
                                         wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
                                     <button class="btn btn-primary" wire:click="crearCompra"><i class="fa-solid fa-plus"></i></button>
@@ -45,6 +54,13 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
+                                                                @if ($compra->credito > 0)
+                                                                    <button class="btn btn-sm btn-warning"
+                                                                        wire:click="abrirModalPago({{ $compra->id }})"
+                                                                        title="Pagar crédito">
+                                                                        <i class="fa-solid fa-money-bill"></i>
+                                                                    </button>
+                                                                @endif
                                                                 <button class="btn btn-sm btn-secondary"
                                                                     wire:click="generarPDF({{ $compra->id }})"
                                                                     title="Generar PDF">
@@ -59,7 +75,7 @@
                                                                     <i class="fa-solid fa-trash"></i>
                                                                 </button>
                                                             @else
-                                                                <a href="{{ route('tenant.compra', ['compraId' => $compra->id]) }}"
+                                                                <a href="{{ route('compra', ['compraId' => $compra->id]) }}"
                                                                     class="btn btn-sm btn-success"
                                                                     title="Continuar compra">
                                                                     <i class="fa-solid fa-arrow-right"></i>
@@ -95,11 +111,11 @@
                                                         <span class="badge bg-primary d-none d-md-inline">Total:
                                                             Bs. {{ number_format($total, 2) }}</span>
                                                         @if ($compra->efectivo > 0)
-                                                            <span class="badge bg-success">Efectivo:
+                                                            <span class="badge bg-success">
                                                                 Bs. {{ number_format($compra->efectivo, 2) }}</span>
                                                         @endif
                                                         @if ($compra->credito > 0)
-                                                            <span class="badge bg-danger">Crédito:
+                                                            <span class="badge bg-danger">
                                                                 Bs. {{ number_format($compra->credito, 2) }}</span>
                                                         @endif
                                                     </div>
@@ -226,7 +242,7 @@
                                     </tr>
                                     @if ($compraSeleccionada->efectivo > 0)
                                         <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">Efectivo:
+                                            <td colspan="3" class="text-end align-middle text-truncate">
                                             </td>
                                             <td class="text-end text-success align-middle text-truncate">
                                                 <strong>Bs.
@@ -236,7 +252,7 @@
                                     @endif
                                     @if ($compraSeleccionada->credito > 0)
                                         <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">Crédito:
+                                            <td colspan="3" class="text-end align-middle text-truncate">
                                             </td>
                                             <td class="text-end text-danger align-middle text-truncate">
                                                 <strong>Bs.
@@ -477,6 +493,309 @@
                         $wire.call('eliminar', data.id);
                     }
                 });
+            });
+        </script>
+    @endscript
+
+    <!-- Modal de Filtro de Fechas -->
+    <div class="modal fade" id="filterDateModal" tabindex="-1" aria-labelledby="filterDateModalLabel"
+        aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterDateModalLabel">Filtrar por Fechas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Desde</label>
+                            <input type="date" class="form-control" wire:model.live="fecha_inicio"
+                                @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Hasta</label>
+                            <input type="date" class="form-control" wire:model.live="fecha_fin"
+                                @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
+                                @if(!$fecha_inicio) disabled @endif>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Pago de Crédito - Paso 1: Añadir Fondos -->
+    @if ($mostrarModalPago && $compraAPagar && $pasoPago === 1)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-money-bill me-2"></i>
+                            Paso 1: Añadir Fondos
+                        </h5>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Información de la Compra -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Compra:</small>
+                                    <strong class="d-block text-dark">#{{ $compraAPagar->numero_folio }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Usuario:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $compraAPagar->user->name ?? 'N/A' }}">{{ $compraAPagar->user->name ?? 'N/A' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Proveedor:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $compraAPagar->proveedor->nombre ?? 'Sin proveedor' }}">{{ $compraAPagar->proveedor->nombre ?? 'Sin proveedor' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Faltante:</small>
+                                    <strong class="d-block text-danger">Bs. {{ number_format(max($compraAPagar->credito - $saldoCaja, 0), 2) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saldos -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Saldo en Caja</small>
+                                    <h5 class="mb-0 text-primary">Bs. {{ number_format($saldoCaja, 2) }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Monto a Pagar</small>
+                                    <h5 class="mb-0 text-danger">Bs. {{ number_format($compraAPagar->credito, 2) }}</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input para añadir fondos -->
+                        <div class="mb-3">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">Bs.</span>
+                                <input type="number"
+                                    id="montoAñadirCaja"
+                                    class="form-control"
+                                    wire:model="montoAñadirCaja"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="0.00"
+                                    autofocus>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                Presiona Enter para continuar
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" wire:click="cerrarModalPago">
+                            <i class="fa-solid fa-times me-1"></i>
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn btn-warning" wire:click="avanzarPasoPago1">
+                            <i class="fa-solid fa-arrow-right me-1"></i>
+                            Continuar <span class="badge bg-white text-dark ms-1">Enter</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Overlay de Pago de Crédito - Paso 2: Ingresar Monto -->
+    @if ($mostrarModalPago && $compraAPagar && $pasoPago === 2)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-money-bill me-2"></i>
+                            Paso 2: Monto a Pagar
+                        </h5>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Información de la Compra -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Compra:</small>
+                                    <strong class="d-block text-dark">#{{ $compraAPagar->numero_folio }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Usuario:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $compraAPagar->user->name ?? 'N/A' }}">{{ $compraAPagar->user->name ?? 'N/A' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Proveedor:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $compraAPagar->proveedor->nombre ?? 'Sin proveedor' }}">{{ $compraAPagar->proveedor->nombre ?? 'Sin proveedor' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Máximo a Pagar:</small>
+                                    <strong class="d-block text-primary">Bs. {{ number_format(min($saldoCaja, $compraAPagar->credito), 2) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saldos -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Saldo en Caja</small>
+                                    <h5 class="mb-0 {{ $saldoCaja >= $compraAPagar->credito ? 'text-success' : 'text-warning' }}">
+                                        Bs. {{ number_format($saldoCaja, 2) }}
+                                    </h5>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Deuda a Pagar</small>
+                                    <h5 class="mb-0 text-danger">Bs. {{ number_format($compraAPagar->credito, 2) }}</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input para monto a pagar -->
+                        <div class="mb-3">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">Bs.</span>
+                                <input type="number"
+                                    id="montoPago"
+                                    class="form-control"
+                                    wire:model.defer="montoPago"
+                                    step="0.01"
+                                    min="0.01"
+                                    max="{{ min($saldoCaja, $compraAPagar->credito) }}"
+                                    placeholder="0.00"
+                                    autofocus>
+                            </div>
+                            @if ($montoPago > 0 && $montoPago < $compraAPagar->credito)
+                                <small class="text-warning d-block mt-2">
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Pago parcial. Saldo pendiente: Bs. {{ number_format($compraAPagar->credito - $montoPago, 2) }}
+                                </small>
+                            @endif
+                            @if ($montoPago > $saldoCaja)
+                                <small class="text-danger d-block mt-2">
+                                    <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                    El monto excede el saldo en caja
+                                </small>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" wire:click="retrocederPasoPago">
+                            <i class="fa-solid fa-arrow-left me-1"></i>
+                            Atrás
+                        </button>
+                        <button type="button"
+                            class="btn btn-warning"
+                            wire:click="avanzarPasoPago2"
+                            {{ ($montoPago <= 0 || $montoPago > $compraAPagar->credito || $montoPago > $saldoCaja) ? 'disabled' : '' }}>
+                            <i class="fa-solid fa-check me-1"></i>
+                            Procesar Pago <span class="badge bg-white text-dark ms-1">Enter</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Overlay de Pago de Crédito - Paso 3: Procesando -->
+    @if ($mostrarModalPago && $compraAPagar && $pasoPago === 3)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-body text-center py-5">
+                        <div class="spinner-border text-warning mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Procesando...</span>
+                        </div>
+                        <h5 class="text-muted">Procesando pago...</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @script
+        <script>
+            // Manejo de teclado para la secuencia de pago
+            document.addEventListener('keydown', function(e) {
+                // Solo si el modal de pago está abierto
+                if (!$wire.mostrarModalPago) return;
+
+                // Paso 1: Añadir fondos
+                if ($wire.pasoPago === 1) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        $wire.avanzarPasoPago1();
+                    }
+                }
+
+                // Paso 2: Monto de pago
+                if ($wire.pasoPago === 2) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const montoPago = parseFloat($wire.montoPago);
+                        const saldoCaja = parseFloat($wire.saldoCaja);
+
+                        // Validar que el monto sea válido
+                        if (montoPago > 0 && montoPago <= saldoCaja) {
+                            $wire.avanzarPasoPago2();
+                        }
+                    }
+                }
+
+                // Escape para cerrar (solo en pasos 1 y 2)
+                if ($wire.pasoPago < 3 && e.key === 'Escape') {
+                    e.preventDefault();
+                    $wire.cerrarModalPago();
+                }
+            });
+
+            // Auto-focus en inputs cuando cambian los pasos
+            $wire.on('paso-changed', () => {
+                setTimeout(() => {
+                    const input = document.querySelector('#montoAñadirCaja, #montoPago');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }, 100);
+            });
+
+            // Focus inicial
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                if ($wire.mostrarModalPago) {
+                    setTimeout(() => {
+                        const input = document.querySelector('#montoAñadirCaja, #montoPago');
+                        if (input) {
+                            input.focus();
+                            input.select();
+                        }
+                    }, 100);
+                }
             });
         </script>
     @endscript

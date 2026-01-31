@@ -191,6 +191,7 @@ class Productos extends Component
 
         $this->editMode = true;
         $this->dispatch('showmodal');
+        $this->dispatch('load-tags'); // Evento para cargar tags en Alpine
     }
 
     /**
@@ -304,7 +305,6 @@ class Productos extends Component
             }
 
             $this->closeModal();
-            $this->resetPage();
         } catch (\Exception $e) {
             $this->alertError('Error', 'Error al guardar el producto: ' . $e->getMessage());
         }
@@ -366,16 +366,13 @@ class Productos extends Component
                 $producto->save();
             }
 
-            // Eliminar imagen si existe
-            if ($producto->imagen && Storage::disk('public')->exists($producto->imagen)) {
-                Storage::disk('public')->delete($producto->imagen);
-            }
+            // NO eliminar la imagen porque el producto puede ser restaurado
+            // La imagen solo se eliminará cuando se elimine permanentemente o se actualice
 
             // Soft delete del producto
             $producto->delete();
 
-            $this->toast('success', 'Producto eliminado exitosamente. Stock puesto en 0.');
-            $this->resetPage();
+            $this->toast('success', 'Producto eliminado exitosamente.<br>Stock puesto en 0.');
         } catch (\Exception $e) {
             $this->alertError('Error', 'No se pudo eliminar el producto: ' . $e->getMessage());
         }
@@ -387,6 +384,7 @@ class Productos extends Component
     public function closeModal()
     {
         $this->dispatch('closemodal');
+        $this->dispatch('reset-tags'); // Evento para limpiar tags en Alpine
         $this->resetForm();
     }
 

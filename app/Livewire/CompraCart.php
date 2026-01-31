@@ -13,8 +13,6 @@ class CompraCart extends Component
     public $cantidadPendientes = 0;
     public $compraPendienteId = null;
 
-    protected $listeners = ['compraActualizada' => 'actualizarContador'];
-
     public function mount()
     {
         $this->actualizarContador();
@@ -22,7 +20,15 @@ class CompraCart extends Component
 
     public function actualizarContador()
     {
-        $compraPendiente = Compra::where('user_id', auth()->id())
+        // Verificar que exista un tenant activo
+        if (!currentTenantId()) {
+            $this->cantidadPendientes = 0;
+            $this->compraPendienteId = null;
+            return;
+        }
+
+        $compraPendiente = Compra::where('tenant_id', currentTenantId())
+            ->where('user_id', auth()->id())
             ->where('estado', 'Pendiente')
             ->first();
 

@@ -50,7 +50,7 @@
 
                 <!-- Botón de modo Landlord (solo para Super Admins) -->
                 @if (Auth::user()->isSuperAdmin())
-                    <a href="{{ route('landlord.home') }}" class="btn btn-mode-switch-mobile"
+                    <a href="{{ route('admin.home') }}" class="btn btn-mode-switch-mobile"
                         title="Ir a modo Landlord (Gestión del Sistema)">
                         <span>Cambiar Modo</span>
                         <i class="fa-solid fa-crown"></i>
