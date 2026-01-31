@@ -66,6 +66,11 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
+                                                                <button class="btn btn-sm btn-secondary"
+                                                                    wire:click="generarPDF({{ $compra->id }})"
+                                                                    title="Generar PDF">
+                                                                    <i class="fa-solid fa-file-pdf"></i>
+                                                                </button>
                                                             @elseif ($compra->estado === 'Completo')
                                                                 <button class="btn btn-sm btn-info"
                                                                     wire:click="verDetalles({{ $compra->id }})"

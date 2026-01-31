@@ -55,6 +55,10 @@
             background-color: #ffc107;
             color: #000;
         }
+        .badge-danger {
+            background-color: #dc3545;
+            color: white;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -95,9 +99,24 @@
             color: #6c757d;
             text-align: center;
         }
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120px;
+            font-weight: bold;
+            color: rgba(220, 53, 69, 0.15);
+            z-index: -1;
+            white-space: nowrap;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
+    @if($compra->estado === 'Eliminado')
+        <div class="watermark">CANCELADA</div>
+    @endif
     <div class="header">
         <h1>COMPRA #{{ $compra->numero_folio }}</h1>
         <p style="margin: 5px 0;">{{ currentTenant()->name ?? 'LicoPOS' }}</p>
@@ -107,7 +126,7 @@
         <div class="info-row">
             <div class="info-label">Estado:</div>
             <div class="info-value">
-                <span class="badge {{ $compra->estado === 'Completo' ? 'badge-success' : 'badge-warning' }}">
+                <span class="badge {{ $compra->estado === 'Completo' ? 'badge-success' : ($compra->estado === 'Eliminado' ? 'badge-danger' : 'badge-warning') }}">
                     {{ $compra->estado }}
                 </span>
             </div>
