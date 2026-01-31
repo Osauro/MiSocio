@@ -227,7 +227,7 @@
 
     /* Agregar padding-top al contenido para compensar el header fijo */
     .page-body-wrapper {
-        padding-top: 80px !important;
+        padding-top: 70px !important;
     }
 
     /* Padding-top mayor en escritorio */

@@ -83,7 +83,7 @@
                 {{ $slot }}
 
                 <!-- Espaciador para vista móvil (barra inferior fija) -->
-                <div class="d-md-none" style="min-height: 80px;"></div>
+                <div class="d-md-none" style="min-height: 70px;"></div>
             </div>
 
         </div>

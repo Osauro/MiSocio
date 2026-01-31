@@ -163,7 +163,7 @@
                                     @endforelse
                                 </div>
                                 <!-- Espaciador para vista móvil -->
-                                <div class="d-md-none" style="min-height: 80px;"></div>
+                                <div class="d-md-none" style="min-height: 70px;"></div>
                             </div>
 
                             <!-- Columna de Buscador (Derecha) - Oculta cuando se muestra carrito en móvil -->

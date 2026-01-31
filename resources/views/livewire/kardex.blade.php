@@ -1,9 +1,9 @@
 <div>
-    <div class="container-fluid">
-        <div class="row starter-main">
-            <div class="col-sm-12">
-                <div class="card">
-                    <div class="card-header card-no-border pb-0">
+    <div class="container-fluid" style="padding-top: 0 !important;">
+        <div class="row starter-main" style="margin-top: 0 !important;">
+            <div class="col-sm-12" style="padding-top: 0 !important;">
+                <div class="card" style="margin-top: 0 !important;">
+                    <div class="card-header card-no-border pb-0 d-none d-md-block">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h3 class="d-none d-md-block mb-0"><i class="fa-solid fa-clipboard-list me-2"></i>Kardex</h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
@@ -21,6 +21,23 @@
                                         wire:model.live="search" style="min-width: 200px;" autofocus>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Buscador fijo para móvil -->
+                    <div class="card-header card-no-border d-md-none" style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
+                        <div class="input-group">
+                            @if($fecha_inicio && $fecha_fin)
+                                <button type="button" class="btn btn-outline-danger" wire:click="limpiarFiltroFechas" title="Limpiar filtro de fechas">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            @else
+                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModalKardex" title="Filtrar por fechas">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </button>
+                            @endif
+                            <input type="text" class="form-control" placeholder="Buscar en kardex"
+                                wire:model.live="search" autofocus>
                         </div>
                     </div>
 
