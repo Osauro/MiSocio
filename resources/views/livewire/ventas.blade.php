@@ -1,28 +1,179 @@
 <div>
-    <div class="container-fluid">
-        <div class="row page-titles">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item active"><a href="javascript:void(0)">Ventas</a></li>
-            </ol>
-        </div>
-
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="card-title mb-0">Punto de Venta</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-info">
-                            <i class="fa-solid fa-info-circle me-2"></i>
-                            Módulo de ventas en desarrollo. Aquí los operadores podrán registrar ventas.
+    <div class="container-fluid" style="padding-top: 0 !important;">
+        <div class="row starter-main" style="margin-top: 0 !important;">
+            <div class="col-sm-12" style="padding-top: 0 !important;">
+                <div class="card" style="margin-top: 0 !important;">
+                    <div class="card-header card-no-border pb-0 d-none d-md-block">
+                        <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <h3 class="d-none d-md-block mb-0">Ventas</h3>
+                            <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
+                                <div class="input-group">
+                                    @if($fecha_inicio && $fecha_fin)
+                                        <button type="button" class="btn btn-outline-danger" wire:click="limpiarFiltroFechas" title="Limpiar filtro de fechas">
+                                            <i class="fa-solid fa-times"></i>
+                                        </button>
+                                    @else
+                                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                            <i class="fa-solid fa-calendar-days"></i>
+                                        </button>
+                                    @endif
+                                    <input type="text" class="form-control" placeholder="Buscar venta..."
+                                        wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
+                                    <button class="btn btn-primary" wire:click="crearVenta"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Aquí irá el punto de venta completo -->
-                        <div class="text-center py-5">
-                            <i class="fa-solid fa-cash-register fa-4x text-muted mb-3"></i>
-                            <h5 class="text-muted">Punto de Venta</h5>
-                            <p class="text-muted">Este módulo estará disponible próximamente</p>
+                    <!-- Buscador fijo para móvil -->
+                    <div class="card-header card-no-border d-md-none" style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
+                        <div class="input-group">
+                            @if($fecha_inicio && $fecha_fin)
+                                <button type="button" class="btn btn-outline-danger" wire:click="limpiarFiltroFechas" title="Limpiar filtro de fechas">
+                                    <i class="fa-solid fa-times"></i>
+                                </button>
+                            @else
+                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                    <i class="fa-solid fa-calendar-days"></i>
+                                </button>
+                            @endif
+                            <input type="text" class="form-control" placeholder="Buscar venta..."
+                                wire:model.live="search" id="searchInput" autofocus>
+                            <button class="btn btn-primary" wire:click="crearVenta"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="card-body transaction-history pt-0 mt-3 pb-2">
+                        <div class="row g-3">
+                            @forelse($ventas as $venta)
+                                <div class="col-md-4 col-12">
+                                    <div class="card mb-0 shadow-sm {{ $venta->estado === 'Eliminado' ? 'opacity-50' : '' }}">
+                                        <div class="card-body compra-card-body">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div class="flex-grow-1">
+                                                    <!-- Header -->
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <h4 class="mb-0 fw-bold">
+                                                            Venta #{{ $venta->numero_folio }}
+                                                            @if($venta->estado === 'Eliminado')
+                                                                <span class="badge bg-danger ms-2">Cancelada</span>
+                                                            @endif
+                                                        </h4>
+                                                        <div class="d-flex gap-1">
+                                                            @if ($venta->estado === 'Eliminado')
+                                                                <button class="btn btn-sm btn-info"
+                                                                    wire:click="verDetalles({{ $venta->id }})"
+                                                                    title="Ver detalles">
+                                                                    <i class="fa-solid fa-eye"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-secondary"
+                                                                    wire:click="generarPDF({{ $venta->id }})"
+                                                                    title="Generar PDF">
+                                                                    <i class="fa-solid fa-file-pdf"></i>
+                                                                </button>
+                                                            @elseif ($venta->estado === 'Completo')
+                                                                <button class="btn btn-sm btn-info"
+                                                                    wire:click="verDetalles({{ $venta->id }})"
+                                                                    title="Ver detalles">
+                                                                    <i class="fa-solid fa-eye"></i>
+                                                                </button>
+                                                                @if ($venta->credito > 0)
+                                                                    <button class="btn btn-sm btn-warning"
+                                                                        wire:click="abrirModalPago({{ $venta->id }})"
+                                                                        title="Cobrar crédito">
+                                                                        <i class="fa-solid fa-money-bill"></i>
+                                                                    </button>
+                                                                @endif
+                                                                <button class="btn btn-sm btn-secondary"
+                                                                    wire:click="generarPDF({{ $venta->id }})"
+                                                                    title="Generar PDF">
+                                                                    <i class="fa-solid fa-file-pdf"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-primary" title="Editar">
+                                                                    <i class="fa-solid fa-pen"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-danger"
+                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $venta->id }}, message: '¿Está seguro de eliminar la venta #{{ $venta->numero_folio }}?' })"
+                                                                    title="Cancelar">
+                                                                    <i class="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            @else
+                                                                @if($venta->user_id === auth()->id())
+                                                                    <a href="{{ route('venta', ['ventaId' => $venta->id]) }}"
+                                                                        class="btn btn-sm btn-success"
+                                                                        title="Continuar venta">
+                                                                        <i class="fa-solid fa-arrow-right"></i>
+                                                                    </a>
+                                                                @endif
+                                                                @if($venta->user_id === auth()->id())
+                                                                    <button class="btn btn-sm btn-danger"
+                                                                        wire:click="$dispatch('confirm-delete', { id: {{ $venta->id }}, message: '¿Está seguro de eliminar la venta #{{ $venta->numero_folio }}?' })"
+                                                                        title="Cancelar">
+                                                                        <i class="fa-solid fa-trash"></i>
+                                                                    </button>
+                                                                @endif
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Avatar Group de productos -->
+                                                    <div class="avatar-group mb-3">
+                                                        @foreach ($venta->ventaItems as $item)
+                                                            <div class="avatar" style="cursor: pointer;"
+                                                                x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
+                                                                title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
+                                                                <img src="{{ $item->producto->photo_url }}"
+                                                                    alt="{{ $item->producto->nombre }}">
+                                                                <span
+                                                                    class="quantity-badge">{{ $item->cantidad_formateada }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+
+                                                    <!-- Badges de totales -->
+                                                    <div class="d-flex gap-2 flex-wrap mb-2">
+                                                        @php
+                                                            $total = $venta->efectivo + $venta->online + $venta->credito;
+                                                        @endphp
+                                                        <span class="badge bg-primary d-none d-md-inline">Total:
+                                                            Bs. {{ number_format($total, 2) }}</span>
+                                                        @if ($venta->efectivo > 0)
+                                                            <span class="badge bg-success">
+                                                                Bs. {{ number_format($venta->efectivo, 2) }}</span>
+                                                        @endif
+                                                        @if ($venta->online > 0)
+                                                            <span class="badge bg-info">
+                                                                Bs. {{ number_format($venta->online, 2) }}</span>
+                                                        @endif
+                                                        @if ($venta->credito > 0)
+                                                            <span class="badge bg-danger">
+                                                                Bs. {{ number_format($venta->credito, 2) }}</span>
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Footer info -->
+                                                    <div
+                                                        class="d-flex justify-content-between align-items-center text-muted">
+                                                        <small class="d-none d-md-inline"><i
+                                                                class="fa-solid fa-user me-1"></i>{{ $venta->user->name ?? 'Usuario' }}</small>
+                                                        <small><i
+                                                                class="fa-solid fa-calendar me-1"></i>{{ $venta->created_at->format('d/m/Y H:i') }}</small>
+                                                        <small><i
+                                                                class="fa-solid fa-user-tie me-1"></i>{{ $venta->cliente->nombre ?? 'Sin cliente' }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="col-12">
+                                    <div class="text-center py-5 empty-state">
+                                        <i class="fa-solid fa-shopping-cart fa-5x mb-3 text-muted"></i>
+                                        <p class="h5 text-muted mb-0">No se encontraron ventas</p>
+                                    </div>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -30,6 +181,581 @@
         </div>
     </div>
 
-    <!-- Componente anidado de Kardex Modal (preparado para cuando se implemente el POS) -->
+    <!-- Footer fijo con paginado -->
+    <footer class="fixed-footer shadow-sm py-2">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com"
+                        target="_blank">DieguitoSoft.com</a></small>
+                <div class="d-flex align-items-center gap-2">
+                    <div x-data="{
+                        init() {
+                            const saved = localStorage.getItem('paginateVentas') || document.cookie.split('; ').find(row => row.startsWith('paginateVentas='))?.split('=')[1];
+                            if (saved) {
+                                $wire.set('perPage', parseInt(saved));
+                            }
+                        }
+                    }">
+                        <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
+                            wire:model.live="perPage" min="1" max="100" title="Registros por página"
+                            onfocus="this.select()"
+                            @input="
+                                   localStorage.setItem('paginateVentas', $event.target.value);
+                                   document.cookie = 'paginateVentas=' + $event.target.value + '; path=/; max-age=31536000';
+                               ">
+                    </div>
+                    {{ $ventas->links() }}
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Detalles de Venta -->
+    @if ($mostrarModal && $ventaSeleccionada)
+        <!-- Backdrop del Modal -->
+        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+
+        <!-- Modal -->
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+            style="z-index: 1050; overflow-y: auto;">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header text-white" style="background-color: var(--theme-default, #7366ff);">
+                        <h5 class="modal-title mb-0">
+                            <i class="fa-solid fa-shopping-cart me-2"></i>Venta #{{ $ventaSeleccionada->numero_folio }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
+                            aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body p-0">
+                        <!-- Tabla de productos -->
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="align-middle">Producto</th>
+                                        <th class="text-center align-middle">Cantidad</th>
+                                        <th class="text-end align-middle">Precio</th>
+                                        <th class="text-end align-middle">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($ventaSeleccionada->ventaItems as $item)
+                                        <tr style="cursor: pointer;"
+                                            x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
+                                            title="Clic para ver movimientos de Kardex">
+                                            <td class="align-middle text-truncate">
+                                                <strong>{{ $item->producto->nombre ?? 'Producto' }}</strong>
+                                            </td>
+                                            <td class="text-center align-middle text-truncate">
+                                                <span
+                                                    class="badge bg-info text-dark">{{ $item->cantidad_formateada }}</span>
+                                            </td>
+                                            <td class="text-end align-middle text-truncate">Bs.
+                                                {{ number_format($item->precio, 2) }}</td>
+                                            <td class="text-end align-middle text-truncate">
+                                                <strong>Bs. {{ number_format($item->subtotal, 2) }}</strong>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td colspan="3" class="text-end align-middle text-truncate">
+                                            <strong>Total:</strong></td>
+                                        <td class="text-end align-middle text-truncate">
+                                            <strong class="text-primary fs-5">
+                                                Bs.
+                                                {{ number_format($ventaSeleccionada->efectivo + $ventaSeleccionada->online + $ventaSeleccionada->credito, 2) }}
+                                            </strong>
+                                        </td>
+                                    </tr>
+                                    @if ($ventaSeleccionada->efectivo > 0)
+                                        <tr>
+                                            <td colspan="3" class="text-end align-middle text-truncate">Efectivo:</td>
+                                            <td class="text-end text-success align-middle text-truncate">
+                                                <strong>Bs.
+                                                    {{ number_format($ventaSeleccionada->efectivo, 2) }}</strong>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                    @if ($ventaSeleccionada->online > 0)
+                                        <tr>
+                                            <td colspan="3" class="text-end align-middle text-truncate">Online:</td>
+                                            <td class="text-end text-info align-middle text-truncate">
+                                                <strong>Bs.
+                                                    {{ number_format($ventaSeleccionada->online, 2) }}</strong>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                    @if ($ventaSeleccionada->credito > 0)
+                                        <tr>
+                                            <td colspan="3" class="text-end align-middle text-truncate">Crédito:</td>
+                                            <td class="text-end text-danger align-middle text-truncate">
+                                                <strong>Bs.
+                                                    {{ number_format($ventaSeleccionada->credito, 2) }}</strong>
+                                            </td>
+                                        </tr>
+                                    @endif
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+                            <small class="text-muted">
+                                <i
+                                    class="fa-solid fa-user me-1"></i>{{ $ventaSeleccionada->user->name ?? 'Usuario' }}
+                            </small>
+                            <small class="text-muted">
+                                <i
+                                    class="fa-solid fa-calendar me-1"></i>{{ $ventaSeleccionada->created_at->format('d/m/Y H:i') }}
+                            </small>
+                            <small class="text-muted">
+                                <i
+                                    class="fa-solid fa-user-tie me-1"></i>{{ $ventaSeleccionada->cliente->nombre ?? 'Sin cliente' }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Resumen de Eliminación -->
+    @if ($mostrarResumenEliminacion && !empty($resumenEliminacion))
+        <!-- Backdrop del Modal -->
+        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+
+        <!-- Modal -->
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
+            style="z-index: 1050; overflow-y: auto;">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-header text-white" style="background-color: var(--theme-default, #7366ff);">
+                        <h5 class="modal-title mb-0">
+                            <i class="fa-solid fa-check-circle me-2"></i>
+                            Venta Eliminada #{{ $resumenEliminacion['venta_id'] }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarResumen"
+                            aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="align-middle">Producto</th>
+                                        <th class="text-end align-middle">Anterior</th>
+                                        <th class="text-end align-middle">Cantidad</th>
+                                        <th class="text-end align-middle">Nuevo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($resumenEliminacion['productos'] as $producto)
+                                        <tr>
+                                            <td class="align-middle text-truncate">
+                                                <strong>{{ $producto['nombre'] }}</strong>
+                                            </td>
+                                            <td class="text-end align-middle text-truncate">
+                                                <span class="badge bg-warning text-dark">
+                                                    {{ $producto['stock_anterior_formateado'] }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end align-middle text-truncate">
+                                                <span class="badge bg-info text-dark">
+                                                    {{ $producto['cantidad_formateada'] }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end align-middle text-truncate">
+                                                <span class="badge bg-success">
+                                                    {{ $producto['stock_nuevo_formateado'] }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light">
+                        <div class="w-100 text-end">
+                            <strong class="text-dark">Retirado de Caja: </strong>
+                            <strong class="text-danger fs-5">Bs. {{ number_format($resumenEliminacion['devuelto_caja'] ?? 0, 2) }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @script
+        <script>
+            // Gestionar el estado del body cuando hay modales abiertos
+            $wire.on('$refresh', () => {
+                if ($wire.mostrarErrorStock || $wire.mostrarResumenEliminacion || $wire.mostrarModal) {
+                    document.body.classList.add('modal-open');
+                    document.body.style.overflow = 'hidden';
+                    document.body.style.paddingRight = '0px';
+                } else {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.overflow = '';
+                    document.body.style.paddingRight = '';
+                }
+            });
+
+            // Cerrar modal al hacer clic fuera del contenido
+            document.addEventListener('click', function(e) {
+                // Detectar clic en el backdrop
+                if (e.target.classList.contains('modal-backdrop')) {
+                    if ($wire.mostrarErrorStock) {
+                        $wire.call('cerrarErrorStock');
+                    } else if ($wire.mostrarResumenEliminacion) {
+                        $wire.call('cerrarResumen');
+                    } else if ($wire.mostrarModal) {
+                        $wire.call('cerrarModal');
+                    }
+                }
+
+                // Detectar clic en el área del modal pero fuera del modal-content
+                if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
+                    if ($wire.mostrarErrorStock) {
+                        $wire.call('cerrarErrorStock');
+                    } else if ($wire.mostrarResumenEliminacion) {
+                        $wire.call('cerrarResumen');
+                    } else if ($wire.mostrarModal) {
+                        $wire.call('cerrarModal');
+                    }
+                }
+            });
+
+            $wire.on('alert', (event) => {
+                // En Livewire 3, el evento llega como array
+                const data = event[0] || event;
+                Swal.fire({
+                    title: data.type === 'success' ? '¡Éxito!' : 'Error',
+                    text: data.message,
+                    icon: data.type,
+                    confirmButtonColor: data.type === 'success' ? '#28a745' : '#d33',
+                    confirmButtonText: 'Aceptar'
+                });
+            });
+
+            $wire.on('confirm-delete', (event) => {
+                const data = event[0] || event;
+                Swal.fire({
+                    title: '¿Está seguro?',
+                    text: data.message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $wire.call('eliminar', data.id);
+                    }
+                });
+            });
+        </script>
+    @endscript
+
+    <!-- Modal de Filtro de Fechas -->
+    <div class="modal fade" id="filterDateModal" tabindex="-1" aria-labelledby="filterDateModalLabel"
+        aria-hidden="true" wire:ignore.self>
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="filterDateModalLabel">Filtrar por Fechas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Desde</label>
+                            <input type="date" class="form-control" wire:model.live="fecha_inicio"
+                                @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Hasta</label>
+                            <input type="date" class="form-control" wire:model.live="fecha_fin"
+                                @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
+                                @if(!$fecha_inicio) disabled @endif>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay de Pago de Crédito - Paso 1: Añadir Fondos -->
+    @if ($mostrarModalPago && $ventaAPagar && $pasoPago === 1)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-money-bill me-2"></i>
+                            Paso 1: Añadir Fondos (Opcional)
+                        </h5>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Información de la Venta -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Venta:</small>
+                                    <strong class="d-block text-dark">#{{ $ventaAPagar->numero_folio }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Usuario:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->user->name ?? 'N/A' }}">{{ $ventaAPagar->user->name ?? 'N/A' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Cliente:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}">{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Deuda:</small>
+                                    <strong class="d-block text-danger">Bs. {{ number_format($ventaAPagar->credito, 2) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saldos -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Saldo en Caja</small>
+                                    <h5 class="mb-0 text-primary">Bs. {{ number_format($saldoCaja, 2) }}</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input para añadir fondos -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Añadir fondos a caja (opcional)</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">Bs.</span>
+                                <input type="number"
+                                    id="montoAñadirCaja"
+                                    class="form-control"
+                                    wire:model="montoAñadirCaja"
+                                    step="0.01"
+                                    min="0"
+                                    placeholder="0.00"
+                                    autofocus>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                Presiona Enter para continuar
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" wire:click="cerrarModalPago">
+                            <i class="fa-solid fa-times me-1"></i>
+                            Cancelar
+                        </button>
+                        <button type="button" class="btn btn-warning" wire:click="avanzarPasoPago1">
+                            <i class="fa-solid fa-arrow-right me-1"></i>
+                            Continuar <span class="badge bg-white text-dark ms-1">Enter</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Overlay de Pago de Crédito - Paso 2: Ingresar Monto -->
+    @if ($mostrarModalPago && $ventaAPagar && $pasoPago === 2)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-money-bill me-2"></i>
+                            Paso 2: Monto a Cobrar
+                        </h5>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Información de la Venta -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Venta:</small>
+                                    <strong class="d-block text-dark">#{{ $ventaAPagar->numero_folio }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Usuario:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->user->name ?? 'N/A' }}">{{ $ventaAPagar->user->name ?? 'N/A' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Cliente:</small>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}">{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Máximo a Cobrar:</small>
+                                    <strong class="d-block text-primary">Bs. {{ number_format($ventaAPagar->credito, 2) }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Saldos -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Deuda a Cobrar</small>
+                                    <h5 class="mb-0 text-danger">Bs. {{ number_format($ventaAPagar->credito, 2) }}</h5>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input para monto a cobrar -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Monto a cobrar</label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">Bs.</span>
+                                <input type="number"
+                                    id="montoPago"
+                                    class="form-control"
+                                    wire:model.defer="montoPago"
+                                    step="0.01"
+                                    min="0.01"
+                                    max="{{ $ventaAPagar->credito }}"
+                                    placeholder="0.00"
+                                    autofocus>
+                            </div>
+                            @if ($montoPago > 0 && $montoPago < $ventaAPagar->credito)
+                                <small class="text-warning d-block mt-2">
+                                    <i class="fa-solid fa-info-circle me-1"></i>
+                                    Cobro parcial. Saldo pendiente: Bs. {{ number_format($ventaAPagar->credito - $montoPago, 2) }}
+                                </small>
+                            @endif
+                            @if ($montoPago > $ventaAPagar->credito)
+                                <small class="text-danger d-block mt-2">
+                                    <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                    El monto excede la deuda pendiente
+                                </small>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" wire:click="retrocederPasoPago">
+                            <i class="fa-solid fa-arrow-left me-1"></i>
+                            Atrás
+                        </button>
+                        <button type="button"
+                            class="btn btn-success"
+                            wire:click="avanzarPasoPago2"
+                            {{ ($montoPago <= 0 || $montoPago > $ventaAPagar->credito) ? 'disabled' : '' }}>
+                            <i class="fa-solid fa-check me-1"></i>
+                            Procesar Cobro <span class="badge bg-white text-success ms-1">Enter</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Overlay de Pago de Crédito - Paso 3: Procesando -->
+    @if ($mostrarModalPago && $ventaAPagar && $pasoPago === 3)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+                <div class="modal-content shadow-lg">
+                    <div class="modal-body text-center py-5">
+                        <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Procesando...</span>
+                        </div>
+                        <h5 class="text-muted">Procesando cobro...</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @script
+        <script>
+            // Manejo de teclado para la secuencia de pago
+            document.addEventListener('keydown', function(e) {
+                // Solo si el modal de pago está abierto
+                if (!$wire.mostrarModalPago) return;
+
+                // Paso 1: Añadir fondos
+                if ($wire.pasoPago === 1) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        $wire.avanzarPasoPago1();
+                    }
+                }
+
+                // Paso 2: Monto de pago
+                if ($wire.pasoPago === 2) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const montoPago = parseFloat($wire.montoPago);
+                        const creditoPendiente = parseFloat($wire.ventaAPagar.credito);
+
+                        // Validar que el monto sea válido
+                        if (montoPago > 0 && montoPago <= creditoPendiente) {
+                            $wire.avanzarPasoPago2();
+                        }
+                    }
+                }
+
+                // Escape para cerrar (solo en pasos 1 y 2)
+                if ($wire.pasoPago < 3 && e.key === 'Escape') {
+                    e.preventDefault();
+                    $wire.cerrarModalPago();
+                }
+            });
+
+            // Auto-focus en inputs cuando cambian los pasos
+            $wire.on('paso-changed', () => {
+                setTimeout(() => {
+                    const input = document.querySelector('#montoAñadirCaja, #montoPago');
+                    if (input) {
+                        input.focus();
+                        input.select();
+                    }
+                }, 100);
+            });
+
+            // Focus inicial
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                if ($wire.mostrarModalPago) {
+                    setTimeout(() => {
+                        const input = document.querySelector('#montoAñadirCaja, #montoPago');
+                        if (input) {
+                            input.focus();
+                            input.select();
+                        }
+                    }, 100);
+                }
+            });
+        </script>
+    @endscript
+
+    <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
 </div>

@@ -11,6 +11,7 @@ use App\Livewire\Kardex;
 use App\Livewire\Movimientos;
 use App\Livewire\Productos;
 use App\Livewire\Usuarios;
+use App\Livewire\Venta;
 use App\Livewire\Ventas;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'tenant'])->group(function () {
     // Ventas - Todos los usuarios pueden acceder
     Route::livewire('ventas', Ventas::class)->name('ventas');
+
+    // Crear/Editar Venta - Todos los usuarios pueden acceder
+    Route::livewire('venta/{ventaId}', Venta::class)->name('venta');
 
     // Kardex - Todos los usuarios pueden ver
     Route::livewire('kardex', Kardex::class)->name('kardex');

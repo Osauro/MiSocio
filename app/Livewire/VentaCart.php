@@ -27,8 +27,10 @@ class VentaCart extends Component
             return;
         }
 
+        // Solo contar ventas pendientes del usuario actual
         $this->cantidadPendientes = Venta::where('tenant_id', currentTenantId())
             ->where('estado', 'Pendiente')
+            ->where('user_id', auth()->id())
             ->count();
     }
 
