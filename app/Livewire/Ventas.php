@@ -30,11 +30,51 @@ class Ventas extends Component
     // Para el pago de crédito
     public $mostrarModalPago = false;
     public $ventaAPagar = null;
-    public $montoPago = 0;
-    public $saldoCaja = 0;
-    public $pasoPago = 0;
-    public $montoAñadirCaja = 0;
+    public $montoPagoEfectivo = 0;
+    public $montoPagoOnline = 0;
     public $procesandoPago = false;
+
+    public function updatedMontoPagoEfectivo($value)
+    {
+        if (!$this->ventaAPagar) return;
+
+        $efectivo = round((float) $value, 2);
+        $creditoTotal = round($this->ventaAPagar->credito, 2);
+
+        // Si el efectivo es mayor o igual al crédito total, poner online en 0
+        if ($efectivo >= $creditoTotal) {
+            $this->montoPagoEfectivo = $creditoTotal;
+            $this->montoPagoOnline = 0;
+        }
+        // Si efectivo + online excede el crédito, ajustar online
+        else {
+            $online = round((float) $this->montoPagoOnline, 2);
+            if ($efectivo + $online > $creditoTotal) {
+                $this->montoPagoOnline = round($creditoTotal - $efectivo, 2);
+            }
+        }
+    }
+
+    public function updatedMontoPagoOnline($value)
+    {
+        if (!$this->ventaAPagar) return;
+
+        $online = round((float) $value, 2);
+        $creditoTotal = round($this->ventaAPagar->credito, 2);
+
+        // Si el online es mayor o igual al crédito total, poner efectivo en 0
+        if ($online >= $creditoTotal) {
+            $this->montoPagoOnline = $creditoTotal;
+            $this->montoPagoEfectivo = 0;
+        }
+        // Si online + efectivo excede el crédito, ajustar efectivo
+        else {
+            $efectivo = round((float) $this->montoPagoEfectivo, 2);
+            if ($online + $efectivo > $creditoTotal) {
+                $this->montoPagoEfectivo = round($creditoTotal - $online, 2);
+            }
+        }
+    }
 
     public function verDetalles($ventaId)
     {
@@ -73,10 +113,8 @@ class Ventas extends Component
         }
 
         $this->ventaAPagar = $venta;
-        $this->obtenerSaldoCaja();
-        $this->pasoPago = 1;
-        $this->montoAñadirCaja = 0;
-        $this->montoPago = 0;
+        $this->montoPagoEfectivo = $venta->credito; // Por defecto el monto total en efectivo
+        $this->montoPagoOnline = 0;
         $this->procesandoPago = false;
         $this->mostrarModalPago = true;
     }
@@ -85,104 +123,74 @@ class Ventas extends Component
     {
         $this->mostrarModalPago = false;
         $this->ventaAPagar = null;
-        $this->montoPago = 0;
-        $this->pasoPago = 0;
-        $this->montoAñadirCaja = 0;
+        $this->montoPagoEfectivo = 0;
+        $this->montoPagoOnline = 0;
         $this->procesandoPago = false;
     }
 
-    private function obtenerSaldoCaja()
-    {
-        $movimientos = Movimiento::where('tenant_id', currentTenantId())->get();
-        $this->saldoCaja = $movimientos->sum('ingreso') - $movimientos->sum('egreso');
-    }
-
-    public function avanzarPasoPago1()
-    {
-        // Si hay monto a añadir, agregarlo a la caja
-        if ($this->montoAñadirCaja > 0) {
-            Movimiento::create([
-                'tenant_id' => currentTenantId(),
-                'user_id' => auth()->id(),
-                'detalle' => 'Añadir fondos para cobro de crédito',
-                'ingreso' => $this->montoAñadirCaja,
-                'egreso' => 0
-            ]);
-
-            $this->obtenerSaldoCaja();
-        }
-
-        // Avanzar al paso 2 y determinar monto de pago
-        $this->montoPago = $this->ventaAPagar->credito;
-        $this->pasoPago = 2;
-        $this->dispatch('paso-changed');
-    }
-
-    public function avanzarPasoPago2()
+    public function pagarCredito()
     {
         // Validaciones
-        if ($this->montoPago <= 0) {
-            $this->toast('error', 'El monto debe ser mayor a 0');
+        $efectivo = round((float) $this->montoPagoEfectivo, 2);
+        $online = round((float) $this->montoPagoOnline, 2);
+        $totalPago = $efectivo + $online;
+
+        if ($totalPago <= 0) {
+            $this->toast('error', 'Debe ingresar un monto mayor a 0');
             return;
         }
 
-        if ($this->montoPago > $this->ventaAPagar->credito) {
-            $this->toast('error', 'El monto no puede ser mayor a la deuda pendiente');
+        if ($totalPago > $this->ventaAPagar->credito) {
+            $this->toast('error', 'El monto total no puede ser mayor a la deuda pendiente');
             return;
         }
 
-        // Avanzar al paso 3 y procesar
-        $this->pasoPago = 3;
-        $this->procesarPagoCredito();
-    }
-
-    public function retrocederPasoPago()
-    {
-        if ($this->pasoPago > 1) {
-            $this->pasoPago--;
-
-            // Limpiar datos según el paso
-            if ($this->pasoPago === 1) {
-                $this->montoAñadirCaja = 0;
-                $this->montoPago = 0;
-            }
-
-            $this->dispatch('paso-changed');
-        }
-    }
-
-    private function procesarPagoCredito()
-    {
         try {
             $this->procesandoPago = true;
             DB::beginTransaction();
 
-            // Actualizar la venta
-            $nuevoCredito = $this->ventaAPagar->credito - $this->montoPago;
-            $nuevoEfectivo = $this->ventaAPagar->efectivo + $this->montoPago;
+            // Calcular nuevo crédito y actualizar efectivo/online
+            $nuevoCredito = round($this->ventaAPagar->credito - $totalPago, 2);
+            $nuevoEfectivo = round($this->ventaAPagar->efectivo + $efectivo, 2);
+            $nuevoOnline = round($this->ventaAPagar->online + $online, 2);
 
             $this->ventaAPagar->update([
                 'credito' => $nuevoCredito,
-                'efectivo' => $nuevoEfectivo
+                'efectivo' => $nuevoEfectivo,
+                'online' => $nuevoOnline
             ]);
 
-            // Registrar el movimiento de ingreso (cobro de crédito)
+            // Registrar movimientos
             $nombreCliente = $this->ventaAPagar->cliente ? $this->ventaAPagar->cliente->nombre : 'Sin cliente';
-            $detalle = 'Cobro de crédito venta #' . $this->ventaAPagar->numero_folio . ' - ' . $nombreCliente;
+            $detalleBase = 'Cobro de crédito venta #' . $this->ventaAPagar->numero_folio . ' - ' . $nombreCliente;
 
             if ($nuevoCredito > 0) {
-                $detalle .= ' (Pago parcial: Bs. ' . number_format($this->montoPago, 2) . ' / Saldo pendiente: Bs. ' . number_format($nuevoCredito, 2) . ')';
+                $detalleBase .= ' (Pago parcial: Bs. ' . number_format($totalPago, 2) . ' / Saldo pendiente: Bs. ' . number_format($nuevoCredito, 2) . ')';
             } else {
-                $detalle .= ' (Pago total)';
+                $detalleBase .= ' (Pago total)';
             }
 
-            Movimiento::create([
-                'tenant_id' => currentTenantId(),
-                'user_id' => auth()->id(),
-                'detalle' => $detalle,
-                'ingreso' => $this->montoPago,
-                'egreso' => 0
-            ]);
+            // Registrar movimiento de efectivo si hay
+            if ($efectivo > 0) {
+                Movimiento::create([
+                    'tenant_id' => currentTenantId(),
+                    'user_id' => auth()->id(),
+                    'detalle' => $detalleBase,
+                    'ingreso' => $efectivo,
+                    'egreso' => 0
+                ]);
+            }
+
+            // Registrar movimiento de online si hay
+            if ($online > 0) {
+                Movimiento::create([
+                    'tenant_id' => currentTenantId(),
+                    'user_id' => auth()->id(),
+                    'detalle' => $detalleBase . ' (Online)',
+                    'ingreso' => $online,
+                    'egreso' => 0
+                ]);
+            }
 
             DB::commit();
 
@@ -194,7 +202,7 @@ class Ventas extends Component
             }
 
             $this->toast('success', $mensaje);
-
+            $this->procesandoPago = false;
             $this->cerrarModalPago();
         } catch (\Exception $e) {
             DB::rollBack();

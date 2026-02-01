@@ -497,104 +497,21 @@
     </div>
 
     <!-- Overlay de Pago de Crédito - Paso 1: Añadir Fondos -->
-    @if ($mostrarModalPago && $ventaAPagar && $pasoPago === 1)
-        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
-                <div class="modal-content shadow-lg">
-                    <div class="modal-header bg-warning text-dark">
-                        <h5 class="modal-title">
-                            <i class="fa-solid fa-money-bill me-2"></i>
-                            Paso 1: Añadir Fondos (Opcional)
-                        </h5>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Información de la Venta -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Venta:</small>
-                                    <strong class="d-block text-dark">#{{ $ventaAPagar->numero_folio }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Usuario:</small>
-                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->user->name ?? 'N/A' }}">{{ $ventaAPagar->user->name ?? 'N/A' }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Cliente:</small>
-                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}">{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Deuda:</small>
-                                    <strong class="d-block text-danger">Bs. {{ number_format($ventaAPagar->credito, 2) }}</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Saldos -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-12">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Saldo en Caja</small>
-                                    <h5 class="mb-0 text-primary">Bs. {{ number_format($saldoCaja, 2) }}</h5>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Input para añadir fondos -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Añadir fondos a caja (opcional)</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">Bs.</span>
-                                <input type="number"
-                                    id="montoAñadirCaja"
-                                    class="form-control"
-                                    wire:model="montoAñadirCaja"
-                                    step="0.01"
-                                    min="0"
-                                    placeholder="0.00"
-                                    autofocus>
-                            </div>
-                            <small class="text-muted">
-                                <i class="fa-solid fa-info-circle me-1"></i>
-                                Presiona Enter para continuar
-                            </small>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" wire:click="cerrarModalPago">
-                            <i class="fa-solid fa-times me-1"></i>
-                            Cancelar
-                        </button>
-                        <button type="button" class="btn btn-warning" wire:click="avanzarPasoPago1">
-                            <i class="fa-solid fa-arrow-right me-1"></i>
-                            Continuar <span class="badge bg-white text-dark ms-1">Enter</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Overlay de Pago de Crédito - Paso 2: Ingresar Monto -->
-    @if ($mostrarModalPago && $ventaAPagar && $pasoPago === 2)
+    {{-- Modal de Pago de Crédito --}}
+    @if ($mostrarModalPago && $ventaAPagar)
         <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
             <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
                 <div class="modal-content shadow-lg">
                     <div class="modal-header bg-success text-white">
                         <h5 class="modal-title">
                             <i class="fa-solid fa-money-bill me-2"></i>
-                            Paso 2: Monto a Cobrar
+                            Pagar Crédito
                         </h5>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModalPago" {{ $procesandoPago ? 'disabled' : '' }}></button>
                     </div>
                     <div class="modal-body">
                         <!-- Información de la Venta -->
-                        <div class="row g-2 mb-3">
+                        <div class="row g-2 mb-4">
                             <div class="col-6">
                                 <div class="p-2 bg-light rounded text-center">
                                     <small class="text-muted d-block">Venta:</small>
@@ -603,74 +520,131 @@
                             </div>
                             <div class="col-6">
                                 <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Usuario:</small>
-                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->user->name ?? 'N/A' }}">{{ $ventaAPagar->user->name ?? 'N/A' }}</strong>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded text-center">
                                     <small class="text-muted d-block">Cliente:</small>
                                     <strong class="d-block text-truncate text-dark px-2" title="{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}">{{ $ventaAPagar->cliente->nombre ?? 'Sin cliente' }}</strong>
                                 </div>
                             </div>
-                            <div class="col-6">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Máximo a Cobrar:</small>
-                                    <strong class="d-block text-primary">Bs. {{ number_format($ventaAPagar->credito, 2) }}</strong>
+                        </div>
+
+                        <!-- Inputs de Pago en formato 2x2 -->
+                        @php
+                            $totalPago = round((float)$montoPagoEfectivo + (float)$montoPagoOnline, 2);
+                            $creditoRestante = round($ventaAPagar->credito - $totalPago, 2);
+                        @endphp
+
+                        <div class="row g-3 mb-3">
+                            <!-- Total Crédito -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Total Crédito</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">Bs.</span>
+                                    <input type="number"
+                                        class="form-control bg-danger bg-opacity-10 text-danger fw-bold"
+                                        value="{{ number_format($ventaAPagar->credito, 2) }}"
+                                        disabled>
+                                </div>
+                            </div>
+
+                            <!-- Efectivo -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Efectivo</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">Bs.</span>
+                                    <input type="number"
+                                        id="montoPagoEfectivo"
+                                        class="form-control"
+                                        wire:model.live="montoPagoEfectivo"
+                                        step="0.01"
+                                        min="0"
+                                        max="{{ $ventaAPagar->credito }}"
+                                        placeholder="0.00"
+                                        onfocus="this.select()"
+                                        {{ $procesandoPago ? 'disabled' : '' }}
+                                        autofocus>
+                                </div>
+                            </div>
+
+                            <!-- Online -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Online</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">Bs.</span>
+                                    <input type="number"
+                                        id="montoPagoOnline"
+                                        class="form-control"
+                                        wire:model.live="montoPagoOnline"
+                                        step="0.01"
+                                        min="0"
+                                        max="{{ $ventaAPagar->credito }}"
+                                        placeholder="0.00"
+                                        onfocus="this.select()"
+                                        {{ $procesandoPago ? 'disabled' : '' }}>
+                                </div>
+                            </div>
+
+                            <!-- Crédito Restante -->
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Crédito Restante</label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text">Bs.</span>
+                                    <input type="number"
+                                        class="form-control {{ $creditoRestante > 0 ? 'bg-warning bg-opacity-10 text-warning' : 'bg-success bg-opacity-10 text-success' }} fw-bold"
+                                        value="{{ number_format($creditoRestante, 2) }}"
+                                        disabled>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Saldos -->
+                        <!-- Resumen en barra horizontal -->
                         <div class="row g-2 mb-3">
-                            <div class="col-12">
+                            <div class="col-4">
                                 <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Deuda a Cobrar</small>
-                                    <h5 class="mb-0 text-danger">Bs. {{ number_format($ventaAPagar->credito, 2) }}</h5>
+                                    <small class="text-muted d-block">Total a Pagar:</small>
+                                    <strong class="d-block {{ $totalPago > 0 ? 'text-success' : 'text-muted' }}">
+                                        Bs. {{ number_format($totalPago, 2) }}
+                                    </strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Efectivo:</small>
+                                    <strong class="d-block text-primary">Bs. {{ number_format($montoPagoEfectivo ?? 0, 2) }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Online:</small>
+                                    <strong class="d-block text-info">Bs. {{ number_format($montoPagoOnline ?? 0, 2) }}</strong>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Input para monto a cobrar -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Monto a cobrar</label>
-                            <div class="input-group input-group-lg">
-                                <span class="input-group-text">Bs.</span>
-                                <input type="number"
-                                    id="montoPago"
-                                    class="form-control"
-                                    wire:model.defer="montoPago"
-                                    step="0.01"
-                                    min="0.01"
-                                    max="{{ $ventaAPagar->credito }}"
-                                    placeholder="0.00"
-                                    autofocus>
+                        @if ($totalPago > $ventaAPagar->credito)
+                            <div class="alert alert-danger mb-0">
+                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                El monto total excede la deuda pendiente
                             </div>
-                            @if ($montoPago > 0 && $montoPago < $ventaAPagar->credito)
-                                <small class="text-warning d-block mt-2">
-                                    <i class="fa-solid fa-info-circle me-1"></i>
-                                    Cobro parcial. Saldo pendiente: Bs. {{ number_format($ventaAPagar->credito - $montoPago, 2) }}
-                                </small>
-                            @endif
-                            @if ($montoPago > $ventaAPagar->credito)
-                                <small class="text-danger d-block mt-2">
-                                    <i class="fa-solid fa-exclamation-triangle me-1"></i>
-                                    El monto excede la deuda pendiente
-                                </small>
-                            @endif
-                        </div>
+                        @endif
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" wire:click="retrocederPasoPago">
-                            <i class="fa-solid fa-arrow-left me-1"></i>
-                            Atrás
+                        <button type="button"
+                            class="btn btn-secondary"
+                            wire:click="cerrarModalPago"
+                            {{ $procesandoPago ? 'disabled' : '' }}>
+                            <i class="fa-solid fa-times me-1"></i>
+                            Cancelar
                         </button>
                         <button type="button"
                             class="btn btn-success"
-                            wire:click="avanzarPasoPago2"
-                            {{ ($montoPago <= 0 || $montoPago > $ventaAPagar->credito) ? 'disabled' : '' }}>
-                            <i class="fa-solid fa-check me-1"></i>
-                            Procesar Cobro <span class="badge bg-white text-success ms-1">Enter</span>
+                            wire:click="pagarCredito"
+                            {{ ($procesandoPago || $totalPago <= 0 || $totalPago > $ventaAPagar->credito) ? 'disabled' : '' }}>
+                            @if ($procesandoPago)
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                                Procesando...
+                            @else
+                                <i class="fa-solid fa-check me-1"></i>
+                                Finalizar Pago <span class="badge bg-white text-success ms-1">Enter</span>
+                            @endif
                         </button>
                     </div>
                 </div>
@@ -678,16 +652,23 @@
         </div>
     @endif
 
-    <!-- Overlay de Pago de Crédito - Paso 3: Procesando -->
-    @if ($mostrarModalPago && $ventaAPagar && $pasoPago === 3)
-        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
-                <div class="modal-content shadow-lg">
+    {{-- Modal de Procesando (Spinner Completo) --}}
+    @if ($procesandoPago && $mostrarModalPago)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.7); z-index: 1060;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content bg-transparent border-0 shadow-lg">
                     <div class="modal-body text-center py-5">
-                        <div class="spinner-border text-success mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <div class="spinner-border text-primary mb-3" role="status" style="width: 4rem; height: 4rem;">
                             <span class="visually-hidden">Procesando...</span>
                         </div>
-                        <h5 class="text-muted">Procesando cobro...</h5>
+                        <h5 class="text-white mb-2">
+                            <i class="fa-solid fa-clock me-2"></i>
+                            Procesando pago
+                        </h5>
+                        <p class="text-white-50 mb-0">Por favor espere mientras se completa la transacción</p>
+                        <div class="progress mt-3" style="height: 3px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 100%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -696,56 +677,37 @@
 
     @script
         <script>
-            // Manejo de teclado para la secuencia de pago
+            // Manejo de teclado para el modal de pago
             document.addEventListener('keydown', function(e) {
-                // Solo si el modal de pago está abierto
-                if (!$wire.mostrarModalPago) return;
+                // Solo si el modal de pago está abierto y no está procesando
+                if (!$wire.mostrarModalPago || $wire.procesandoPago) return;
 
-                // Paso 1: Añadir fondos
-                if ($wire.pasoPago === 1) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        $wire.avanzarPasoPago1();
+                // Enter para procesar pago
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const efectivo = parseFloat($wire.montoPagoEfectivo || 0);
+                    const online = parseFloat($wire.montoPagoOnline || 0);
+                    const totalPago = efectivo + online;
+                    const creditoPendiente = parseFloat($wire.ventaAPagar.credito);
+
+                    // Validar que el monto sea válido
+                    if (totalPago > 0 && totalPago <= creditoPendiente) {
+                        $wire.pagarCredito();
                     }
                 }
 
-                // Paso 2: Monto de pago
-                if ($wire.pasoPago === 2) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        const montoPago = parseFloat($wire.montoPago);
-                        const creditoPendiente = parseFloat($wire.ventaAPagar.credito);
-
-                        // Validar que el monto sea válido
-                        if (montoPago > 0 && montoPago <= creditoPendiente) {
-                            $wire.avanzarPasoPago2();
-                        }
-                    }
-                }
-
-                // Escape para cerrar (solo en pasos 1 y 2)
-                if ($wire.pasoPago < 3 && e.key === 'Escape') {
+                // Escape para cerrar
+                if (e.key === 'Escape') {
                     e.preventDefault();
                     $wire.cerrarModalPago();
                 }
             });
 
-            // Auto-focus en inputs cuando cambian los pasos
-            $wire.on('paso-changed', () => {
-                setTimeout(() => {
-                    const input = document.querySelector('#montoAñadirCaja, #montoPago');
-                    if (input) {
-                        input.focus();
-                        input.select();
-                    }
-                }, 100);
-            });
-
-            // Focus inicial
+            // Focus inicial al abrir modal
             Livewire.hook('morph.updated', ({ el, component }) => {
-                if ($wire.mostrarModalPago) {
+                if ($wire.mostrarModalPago && !$wire.procesandoPago) {
                     setTimeout(() => {
-                        const input = document.querySelector('#montoAñadirCaja, #montoPago');
+                        const input = document.querySelector('#montoPagoEfectivo');
                         if (input) {
                             input.focus();
                             input.select();

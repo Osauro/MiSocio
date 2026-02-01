@@ -29,7 +29,7 @@ class Venta extends Component
     public $mostrarBuscador = true;
 
     // Variables para el flujo de pago
-    public $pasoActual = 0; // 0: no iniciado, 1: fecha, 2: cliente, 3: añadir saldo, 4: pago
+    public $pasoActual = 0; // 0: no iniciado, 1: fecha, 2: cliente, 3: pago
     public $fechaVenta;
     public $buscarCliente = '';
     public $clientesEncontrados = [];
@@ -41,7 +41,6 @@ class Venta extends Component
         'direccion' => '',
         'nit' => '',
     ];
-    public $montoAñadirCaja = 0;
     public $montoPagoEfectivo = 0;
     public $montoPagoOnline = 0;
     public $saldoCaja = 0;
@@ -521,9 +520,11 @@ class Venta extends Component
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
 
-        // Avanzar a paso 3: añadir saldo a caja
+        // Avanzar a paso 3: pago
         $this->pasoActual = 3;
-        $this->montoAñadirCaja = 0;
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+        $this->montoPagoEfectivo = $total; // Por defecto el monto total en efectivo
+        $this->montoPagoOnline = 0;
     }
 
     public function mostrarFormAgregarCliente()
@@ -566,46 +567,17 @@ class Venta extends Component
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
 
-        // Avanzar a paso 3: añadir saldo a caja
+        // Avanzar a paso 3: pago
         $this->pasoActual = 3;
-        $this->montoAñadirCaja = 0;
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+        $this->montoPagoEfectivo = $total; // Por defecto el monto total en efectivo
+        $this->montoPagoOnline = 0;
     }
 
     public function obtenerSaldoCaja()
     {
         $ultimoMovimiento = Movimiento::latest()->first();
         $this->saldoCaja = $ultimoMovimiento ? $ultimoMovimiento->saldo : 0;
-    }
-
-    public function avanzarPaso3()
-    {
-        // Si hay monto a añadir, registrar el movimiento
-        if ($this->montoAñadirCaja > 0) {
-            try {
-                Movimiento::create([
-                    'tenant_id' => currentTenantId(),
-                    'user_id' => Auth::id(),
-                    'detalle' => 'Aporte de fondos para Venta #' . $this->venta->numero_folio,
-                    'ingreso' => $this->montoAñadirCaja,
-                    'egreso' => 0,
-                ]);
-
-                // Actualizar saldo de caja
-                $this->obtenerSaldoCaja();
-
-                $this->toast('success', 'Fondos añadidos a caja');
-            } catch (\Exception $e) {
-                Log::error('Error al añadir fondos: ' . $e->getMessage());
-                $this->toast('error', 'Error al añadir fondos a caja');
-                return;
-            }
-        }
-
-        // Avanzar a paso 4: pago
-        $this->pasoActual = 4;
-        $total = round(collect($this->items)->sum('subtotal'), 2);
-        $this->montoPagoEfectivo = $total; // Por defecto el monto total en efectivo
-        $this->montoPagoOnline = 0;
     }
 
     public function updatedMontoPagoEfectivo()
@@ -665,9 +637,6 @@ class Venta extends Component
                 $this->clienteSeleccionado = null;
                 $this->mostrarFormNuevoCliente = false;
             } elseif ($this->pasoActual === 2) {
-                // Limpiar datos de añadir saldo
-                $this->montoAñadirCaja = 0;
-            } elseif ($this->pasoActual === 3) {
                 // Limpiar datos de pago
                 $this->montoPagoEfectivo = 0;
                 $this->montoPagoOnline = 0;
@@ -732,8 +701,8 @@ class Venta extends Component
                         'tenant_id' => currentTenantId(),
                         'user_id' => Auth::id(),
                         'producto_id' => $producto->id,
-                        'entradas' => 0,
-                        'salidas' => $cantidadTotal,
+                        'entrada' => 0,
+                        'salida' => $cantidadTotal,
                         'anterior' => $stockAnterior,
                         'saldo' => $producto->stock, // Stock después de la reducción
                         'precio' => $item['precio'],

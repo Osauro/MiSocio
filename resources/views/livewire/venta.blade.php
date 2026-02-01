@@ -389,104 +389,44 @@
     </div>
     @endif
 
-    <!-- Modal Paso 3: Añadir Saldo a Caja -->
-    @if($pasoActual === 3)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
-            <div class="modal-content shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">
-                        <i class="fa-solid fa-wallet me-2"></i>
-                        Paso 3: Añadir Saldo a Caja
-                    </h5>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        @php
-                            $totalVenta = collect($items)->sum('subtotal');
-                        @endphp
-
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-6">
-                                <div class="alert alert-info mb-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span><i class="fa-solid fa-wallet me-1"></i> Saldo en caja:</span>
-                                        <strong>Bs. {{ number_format($saldoCaja, 2) }}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="alert alert-success mb-0">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span><i class="fa-solid fa-shopping-cart me-1"></i> Total venta:</span>
-                                        <strong>Bs. {{ number_format($totalVenta, 2) }}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <label for="montoAnadirCaja" class="form-label fw-bold">Monto a añadir (opcional)</label>
-                        <input type="number"
-                            id="montoAnadirCaja"
-                            class="form-control form-control-lg text-end"
-                            wire:model.live="montoAñadirCaja"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
-                            wire:keydown.enter="avanzarPaso3"
-                            x-init="$nextTick(() => { $el.focus(); $el.select(); })">
-                        <small class="text-muted">
-                            <i class="fa-solid fa-info-circle me-1"></i>
-                            Por defecto 0. Presione Enter para continuar
-                        </small>
-                    </div>
-                    @if($montoAñadirCaja > 0)
-                        <div class="alert alert-success">
-                            <i class="fa-solid fa-check-circle me-1"></i>
-                            Se añadirá Bs. {{ number_format($montoAñadirCaja, 2) }} a caja
-                        </div>
-                    @endif
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="retrocederPaso">
-                        <i class="fa-solid fa-arrow-left me-1"></i>
-                        Atrás
-                    </button>
-                    <button type="button" class="btn btn-primary" wire:click="avanzarPaso3">
-                        <i class="fa-solid fa-arrow-right me-1"></i>
-                        Continuar <span class="badge bg-white text-primary ms-1">Enter</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Modal Paso 4: Procesar Pago -->
-    @if($pasoActual === 4 && !$procesandoPago)
+    <!-- Modal Paso 3: Procesar Pago -->
+    @if($pasoActual === 3 && !$procesandoPago)
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-success text-white">
                     <h5 class="modal-title">
                         <i class="fa-solid fa-money-bill me-2"></i>
-                        Paso 4: Procesar Pago
+                        Paso 3: Procesar Pago
                     </h5>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <h5 class="text-center mb-3">
-                            Total: <span class="text-primary">Bs. {{ number_format(collect($items)->sum('subtotal'), 2) }}</span>
-                        </h5>
-                        <div class="alert alert-info mb-3">
-                            <i class="fa-solid fa-info-circle me-1"></i>
-                            Saldo en caja: <strong>Bs. {{ number_format($saldoCaja, 2) }}</strong>
-                        </div>
-                    </div>
+                    @php
+                        $total = collect($items)->sum('subtotal');
+                        $montoCredito = $total - $montoPagoEfectivo - $montoPagoOnline;
+                        $montoCredito = max(0, $montoCredito); // No puede ser negativo
+                    @endphp
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label for="montoPagoEfectivo" class="form-label fw-bold">Efectivo</label>
+                    <!-- Inputs en línea: Total, Efectivo, Online, Crédito -->
+                    <div class="row g-3 mb-4">
+                        <!-- Primera fila: Total y Efectivo -->
+                        <div class="col-6">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-shopping-cart text-primary me-1"></i>
+                                Total
+                            </label>
+                            <input type="text"
+                                class="form-control form-control-lg text-end fw-bold"
+                                value="Bs. {{ number_format($total, 2) }}"
+                                disabled
+                                readonly
+                                style="background-color: #e3f2fd; border-color: #2196f3;">
+                        </div>
+                        <div class="col-6">
+                            <label for="montoPagoEfectivo" class="form-label fw-bold">
+                                <i class="fa-solid fa-money-bill text-success me-1"></i>
+                                Efectivo
+                            </label>
                             <input type="number"
                                 id="montoPagoEfectivo"
                                 class="form-control form-control-lg text-end"
@@ -496,52 +436,73 @@
                                 placeholder="0.00"
                                 x-init="$nextTick(() => { $el.focus(); $el.select(); })">
                         </div>
-                        <div class="col-md-6">
-                            <label for="montoPagoOnline" class="form-label fw-bold">Online (QR/Transferencia)</label>
+
+                        <!-- Segunda fila: Online y Crédito -->
+                        <div class="col-6">
+                            <label for="montoPagoOnline" class="form-label fw-bold">
+                                <i class="fa-solid fa-qrcode text-info me-1"></i>
+                                Online
+                            </label>
                             <input type="number"
                                 id="montoPagoOnline"
                                 class="form-control form-control-lg text-end"
                                 wire:model.live="montoPagoOnline"
+                                wire:keydown.enter="procesarPago"
                                 min="0"
                                 step="0.01"
-                                placeholder="0.00"
-                                wire:keydown.enter="procesarPago">
+                                placeholder="0.00">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-credit-card text-danger me-1"></i>
+                                Crédito
+                                @if($clienteSeleccionado === null && $montoCredito > 0)
+                                    <i class="fa-solid fa-exclamation-triangle text-danger ms-1" title="Requiere cliente"></i>
+                                @endif
+                            </label>
+                            <input type="text"
+                                class="form-control form-control-lg text-end fw-bold"
+                                value="Bs. {{ number_format($montoCredito, 2) }}"
+                                disabled
+                                readonly
+                                style="background-color: {{ $montoCredito > 0 ? '#ffebee' : '#f8f9fa' }}; border-color: {{ $montoCredito > 0 ? '#f44336' : '#dee2e6' }};">
                         </div>
                     </div>
 
-                    @php
-                        $total = collect($items)->sum('subtotal');
-                        $totalPagado = $montoPagoEfectivo + $montoPagoOnline;
-                        $diferencia = $totalPagado - $total;
-                    @endphp
+                    <!-- Resumen en línea -->
+                    <div class="d-flex justify-content-around align-items-center p-3 bg-light rounded mb-3">
+                        <div class="text-center">
+                            <small class="text-muted d-block">Efectivo</small>
+                            <strong class="text-success fs-5">Bs. {{ number_format($montoPagoEfectivo, 2) }}</strong>
+                        </div>
+                        <div class="text-center">
+                            <small class="text-muted d-block">Online</small>
+                            <strong class="text-info fs-5">Bs. {{ number_format($montoPagoOnline, 2) }}</strong>
+                        </div>
+                        <div class="text-center">
+                            <small class="text-muted d-block">Crédito</small>
+                            <strong class="text-danger fs-5">Bs. {{ number_format($montoCredito, 2) }}</strong>
+                        </div>
+                    </div>
 
-                    @if($diferencia > 0)
-                        <div class="alert alert-warning mb-3">
-                            <i class="fa-solid fa-exchange-alt me-1"></i>
-                            Cambio: <strong>Bs. {{ number_format($diferencia, 2) }}</strong>
-                        </div>
-                    @elseif($diferencia < 0 && $clienteSeleccionado !== null)
-                        <div class="alert alert-info mb-3">
-                            <i class="fa-solid fa-credit-card me-1"></i>
-                            Pagado: Bs. {{ number_format($totalPagado, 2) }} |
-                            Crédito: <strong>Bs. {{ number_format(abs($diferencia), 2) }}</strong>
-                        </div>
-                    @elseif($diferencia < 0 && $clienteSeleccionado === null)
-                        <div class="alert alert-danger mb-3">
+                    <!-- Alertas según el estado del pago -->
+                    @if($montoCredito > 0 && $clienteSeleccionado === null)
+                        <div class="alert alert-danger mb-0">
                             <i class="fa-solid fa-exclamation-triangle me-1"></i>
-                            Debe seleccionar un cliente para vender a crédito o completar el pago
+                            <strong>No se puede vender a crédito sin cliente.</strong><br>
+                            Complete el pago en efectivo/online o vuelva al Paso 2 para seleccionar un cliente.
                         </div>
-                    @else
-                        <div class="alert alert-success mb-3">
+                    @elseif($montoCredito > 0 && $clienteSeleccionado !== null)
+                        <div class="alert alert-warning mb-0">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Se registrará un crédito de <strong>Bs. {{ number_format($montoCredito, 2) }}</strong>
+                        </div>
+                    @elseif($montoPagoEfectivo + $montoPagoOnline == $total)
+                        <div class="alert alert-success mb-0">
                             <i class="fa-solid fa-check-circle me-1"></i>
                             Pago completo
                         </div>
                     @endif
-
-                    <small class="text-muted d-block">
-                        <i class="fa-solid fa-info-circle me-1"></i>
-                        Presione Enter para procesar el pago
-                    </small>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" wire:click="retrocederPaso">
@@ -730,16 +691,8 @@
                     }
                 }
 
-                // Paso 3: Añadir saldo a caja (Enter para continuar)
-                if ($wire.pasoActual === 3) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        $wire.call('avanzarPaso3');
-                    }
-                }
-
-                // Paso 4: Procesar pago (Enter para procesar)
-                if ($wire.pasoActual === 4 && !$wire.procesandoPago) {
+                // Paso 3: Procesar pago (Enter para procesar)
+                if ($wire.pasoActual === 3 && !$wire.procesandoPago) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         $wire.call('procesarPago');

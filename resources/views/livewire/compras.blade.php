@@ -749,12 +749,25 @@
     @if ($mostrarModalPago && $compraAPagar && $pasoPago === 3)
         <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
             <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
-                <div class="modal-content shadow-lg">
-                    <div class="modal-body text-center py-5">
-                        <div class="spinner-border text-warning mb-3" role="status" style="width: 3rem; height: 3rem;">
-                            <span class="visually-hidden">Procesando...</span>
+                <div class="modal-content shadow-lg border-0">
+                    <div class="modal-body py-5">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary mb-4" role="status" style="width: 4rem; height: 4rem;">
+                                <span class="visually-hidden">Procesando...</span>
+                            </div>
+                            <h4 class="text-primary mb-3">
+                                <i class="fa-solid fa-clock me-2"></i>
+                                Procesando pago...
+                            </h4>
+                            <p class="text-muted mb-0">
+                                Por favor espere mientras se completa la transacción
+                            </p>
+                            <div class="progress mt-4" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                     role="progressbar"
+                                     style="width: 100%"></div>
+                            </div>
                         </div>
-                        <h5 class="text-muted">Procesando pago...</h5>
                     </div>
                 </div>
             </div>
