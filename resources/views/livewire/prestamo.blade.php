@@ -185,8 +185,7 @@
 
                                         <!-- Resultados -->
                                         <div class="search-results" style="max-height: calc(100vh - 300px); overflow-y: auto;">
-                                            @if(strlen($buscar) >= 2)
-                                                @forelse($productosEncontrados as $producto)
+                                            @forelse($productosEncontrados as $producto)
                                                     @php
                                                         $yaAgregado = collect($items)->firstWhere('producto_id', $producto['id']);
                                                         $sinStock = $producto['stock'] <= 0;
@@ -230,15 +229,9 @@
                                                 @empty
                                                     <div class="text-center text-muted py-3">
                                                         <i class="fa-solid fa-search fa-2x mb-2"></i>
-                                                        <p class="mb-0 small">No se encontraron productos</p>
+                                                        <p class="mb-0 small">No se encontraron envases</p>
                                                     </div>
                                                 @endforelse
-                                            @else
-                                                <div class="text-center text-muted py-3">
-                                                    <i class="fa-solid fa-keyboard fa-2x mb-2"></i>
-                                                    <p class="mb-0 small">Escribe al menos 2 caracteres</p>
-                                                </div>
-                                            @endif
                                         </div>
                                     </div>
                                 </div>

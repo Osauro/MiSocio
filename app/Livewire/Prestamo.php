@@ -64,6 +64,9 @@ class Prestamo extends Component
         $this->prestamoId = $this->prestamo->id;
         $this->fechaPrestamo = now()->format('Y-m-d');
         $this->cargarItems();
+        
+        // Cargar productos de envases inicialmente
+        $this->updatedBuscar();
     }
 
     public function cargarItems()
@@ -157,51 +160,54 @@ class Prestamo extends Component
 
     public function updatedBuscar()
     {
+        $query = Producto::where('tenant_id', currentTenantId())
+            ->whereHas('categoria', function ($q) {
+                $q->where('nombre', 'like', '%Envase%');
+            });
+
         if (strlen($this->buscar) >= 2) {
-            $this->productosEncontrados = Producto::where('tenant_id', currentTenantId())
-                ->where(function ($query) {
-                    $query->where('nombre', 'like', '%' . $this->buscar . '%')
-                        ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
-                        ->orWhereHas('tags', function ($subQuery) {
-                            $subQuery->where('nombre', 'like', '%' . $this->buscar . '%');
-                        });
-                })
-                ->limit(10)
-                ->get()
-                ->map(function ($producto) {
-                    $cantidadPorMedida = $producto->cantidad ?? 1;
-
-                    // Calcular stock real disponible (stock - comprometido)
-                    $stockComprometido = $this->calcularStockComprometido($producto->id);
-                    $stockDisponible = $producto->stock - $stockComprometido;
-
-                    // Formatear stock disponible
-                    if ($cantidadPorMedida > 1) {
-                        $enteros = intdiv($stockDisponible, $cantidadPorMedida);
-                        $unidades = $stockDisponible % $cantidadPorMedida;
-                        $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
-                        $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
-                    } else {
-                        $stockFormateado = $stockDisponible . 'u';
-                    }
-
-                    return [
-                        'id' => $producto->id,
-                        'nombre' => $producto->nombre,
-                        'codigo' => $producto->codigo,
-                        'imagen' => $producto->photo_url,
-                        'stock' => $stockDisponible,
-                        'stock_formateado' => $stockFormateado,
-                        'precio_por_menor' => $producto->precio_por_menor,
-                        'precio_por_mayor' => $producto->precio_por_mayor,
-                        'medida' => $producto->medida ?? 'u',
-                        'cantidad' => $cantidadPorMedida,
-                    ];
-                })
-                ->toArray();
-        } else {
-            $this->productosEncontrados = [];
+            $query->where(function ($q) {
+                $q->where('nombre', 'like', '%' . $this->buscar . '%')
+                    ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
+                    ->orWhereHas('tags', function ($subQuery) {
+                        $subQuery->where('nombre', 'like', '%' . $this->buscar . '%');
+                    });
+            });
         }
+
+        $this->productosEncontrados = $query->limit(20)
+            ->get()
+            ->map(function ($producto) {
+                $cantidadPorMedida = $producto->cantidad ?? 1;
+
+                // Calcular stock real disponible (stock - comprometido)
+                $stockComprometido = $this->calcularStockComprometido($producto->id);
+                $stockDisponible = $producto->stock - $stockComprometido;
+
+                // Formatear stock disponible
+                if ($cantidadPorMedida > 1) {
+                    $enteros = intdiv($stockDisponible, $cantidadPorMedida);
+                    $unidades = $stockDisponible % $cantidadPorMedida;
+                    $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
+                    $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
+                } else {
+                    $stockFormateado = $stockDisponible . 'u';
+                }
+
+                return [
+                    'id' => $producto->id,
+                    'nombre' => $producto->nombre,
+                    'codigo' => $producto->codigo,
+                    'imagen' => $producto->photo_url,
+                    'stock' => $stockDisponible,
+                    'stock_formateado' => $stockFormateado,
+                    'precio_por_menor' => $producto->precio_por_menor,
+                    'precio_por_mayor' => $producto->precio_por_mayor,
+                    'medida' => $producto->medida ?? 'u',
+                    'cantidad' => $cantidadPorMedida,
+                ];
+            })
+            ->toArray();
     }
 
     public function agregarProducto($productoId)
