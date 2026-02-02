@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Prestamo;
 use Livewire\Component;
 use App\Traits\RequiresTenant;
 
@@ -20,9 +21,17 @@ class PrestamoCart extends Component
 
     public function actualizarContador()
     {
-        // TODO: Implementar cuando exista el modelo Prestamo
-        // $this->cantidadPendientes = Prestamo::where('estado', 'Pendiente')->count();
-        $this->cantidadPendientes = 0;
+        // Verificar que exista un tenant activo
+        if (!currentTenantId()) {
+            $this->cantidadPendientes = 0;
+            return;
+        }
+
+        // Solo contar préstamos pendientes del usuario actual
+        $this->cantidadPendientes = Prestamo::where('tenant_id', currentTenantId())
+            ->where('estado', 'Pendiente')
+            ->where('user_id', auth()->id())
+            ->count();
     }
 
     public function render()

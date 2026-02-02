@@ -9,6 +9,8 @@ use App\Livewire\HomeLandlord;
 use App\Livewire\HomeTenant;
 use App\Livewire\Kardex;
 use App\Livewire\Movimientos;
+use App\Livewire\Prestamo;
+use App\Livewire\Prestamos;
 use App\Livewire\Productos;
 use App\Livewire\Usuarios;
 use App\Livewire\Venta;
@@ -36,6 +38,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     // Crear/Editar Venta - Todos los usuarios pueden acceder
     Route::livewire('venta/{ventaId}', Venta::class)->name('venta');
+
+    // Préstamos - Todos los usuarios pueden acceder
+    Route::livewire('prestamos', Prestamos::class)->name('prestamos');
+
+    // Crear/Editar Préstamo - Todos los usuarios pueden acceder
+    Route::livewire('prestamo/{prestamoId}', Prestamo::class)->name('prestamo');
 
     // Kardex - Todos los usuarios pueden ver
     Route::livewire('kardex', Kardex::class)->name('kardex');
