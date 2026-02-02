@@ -64,7 +64,7 @@ class Prestamo extends Component
         $this->prestamoId = $this->prestamo->id;
         $this->fechaPrestamo = now()->format('Y-m-d');
         $this->cargarItems();
-        
+
         // Cargar productos de envases inicialmente
         $this->updatedBuscar();
     }
