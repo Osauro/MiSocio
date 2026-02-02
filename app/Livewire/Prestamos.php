@@ -25,7 +25,7 @@ class Prestamos extends Component
     public $mostrarResumenEliminacion = false;
     public $resumenEliminacion = [];
     public $mostrarModalFiltro = false;
-    
+
     // Para devolución parcial de envases
     public $mostrarModalDevolucion = false;
     public $prestamoADevolver = null;
@@ -87,7 +87,7 @@ class Prestamos extends Component
         $this->itemsDevolucion = [];
         foreach ($this->prestamoADevolver->prestamoItems as $item) {
             $cantidadPendiente = $item->cantidad - $item->cantidad_devuelta;
-            
+
             if ($cantidadPendiente > 0) {
                 $this->itemsDevolucion[] = [
                     'prestamo_item_id' => $item->id,
@@ -125,15 +125,15 @@ class Prestamos extends Component
     {
         // Calcular el monto total a devolver basado en las cantidades
         $this->montoDevolucionTotal = 0;
-        
+
         foreach ($this->itemsDevolucion as $item) {
             $cantidadADevolver = $item['cantidad_a_devolver'] ?? 0;
-            
+
             // Validar que no exceda la cantidad pendiente
             if ($cantidadADevolver > $item['cantidad_pendiente']) {
                 $cantidadADevolver = $item['cantidad_pendiente'];
             }
-            
+
             $this->montoDevolucionTotal += $cantidadADevolver * $item['precio_deposito'];
         }
     }
@@ -153,14 +153,14 @@ class Prestamos extends Component
 
             foreach ($this->itemsDevolucion as $itemData) {
                 $cantidadADevolver = floatval($itemData['cantidad_a_devolver'] ?? 0);
-                
+
                 if ($cantidadADevolver <= 0) {
                     continue; // No devuelve nada de este item
                 }
 
                 // Buscar el PrestamoItem
                 $prestamoItem = $prestamo->prestamoItems->firstWhere('id', $itemData['prestamo_item_id']);
-                
+
                 if (!$prestamoItem) {
                     continue;
                 }

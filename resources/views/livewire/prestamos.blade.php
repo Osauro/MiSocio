@@ -5,7 +5,7 @@
                 <div class="card" style="margin-top: 0 !important;">
                     <div class="card-header card-no-border pb-0 d-none d-md-block">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h3 class="d-none d-md-block mb-0">PrÃ©stamos de Envases</h3>
+                            <h3 class="d-none d-md-block mb-0">Préstamos de Envases</h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
                                     @if($fecha_inicio && $fecha_fin)
@@ -25,7 +25,7 @@
                         </div>
                     </div>
 
-                    <!-- Buscador fijo para mÃ³vil -->
+                    <!-- Buscador fijo para móvil -->
                     <div class="card-header card-no-border d-md-none" style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
                         <div class="input-group">
                             @if($fecha_inicio && $fecha_fin)
@@ -54,7 +54,7 @@
                                                     <!-- Header -->
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <h4 class="mb-0 fw-bold">
-                                                            PrÃ©stamo #{{ $prestamo->numero_folio }}
+                                                            Préstamo #{{ $prestamo->numero_folio }}
                                                             @if($prestamo->estado === 'Eliminado')
                                                                 <span class="badge bg-danger ms-2">Cancelado</span>
                                                             @elseif($prestamo->estado === 'Devuelto')
@@ -115,7 +115,7 @@
                                                                 @endif
                                                                 @if($prestamo->user_id === auth()->id())
                                                                     <button class="btn btn-sm btn-danger"
-                                                                        wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: '¿Está seguro de eliminar la Prï¿½stamo #{{ $prestamo->numero_folio }}?' })"
+                                                                        wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: '¿Está seguro de eliminar el Préstamo #{{ $prestamo->numero_folio }}?' })"
                                                                         title="Cancelar">
                                                                         <i class="fa-solid fa-trash"></i>
                                                                     </button>
@@ -142,7 +142,7 @@
                                                     <div class="d-flex gap-2 flex-wrap mb-2">
                                                         @if ($prestamo->deposito > 0)
                                                             <span class="badge bg-warning text-dark">
-                                                                DepÃ³sito: Bs. {{ number_format($prestamo->deposito, 2) }}</span>
+                                                                Depósito: Bs. {{ number_format($prestamo->deposito, 2) }}</span>
                                                         @endif
                                                         @if ($prestamo->estado === 'Completo')
                                                             <span class="badge bg-info">Prestado</span>
@@ -170,7 +170,7 @@
                                 <div class="col-12">
                                     <div class="text-center py-5 empty-state">
                                                         <i class="fa-solid fa-box-open fa-5x mb-3 text-muted"></i>
-                                        <p class="h5 text-muted mb-0">No se encontraron prÃ©stamos</p>
+                                        <p class="h5 text-muted mb-0">No se encontraron préstamos</p>
                                     </div>
                                 </div>
                             @endforelse
@@ -190,7 +190,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <div x-data="{
                         init() {
-                            const saved = localStorage.getItem('paginateprï¿½stamos') || document.cookie.split('; ').find(row => row.startsWith('paginateprï¿½stamos='))?.split('=')[1];
+                            const saved = localStorage.getItem('paginatePrestamos') || document.cookie.split('; ').find(row => row.startsWith('paginatePrestamos='))?.split('=')[1];
                             if (saved) {
                                 $wire.set('perPage', parseInt(saved));
                             }
@@ -211,7 +211,7 @@
     </footer>
 
     <!-- Modal de Detalles de prestamo -->
-    @if ($mostrarModal && $prï¿½stamoseleccionada)
+    @if ($mostrarModal && $prestamoSeleccionado)
         <!-- Backdrop del Modal -->
         <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
 
@@ -222,7 +222,7 @@
                 <div class="modal-content shadow-lg border-0">
                     <div class="modal-header text-white" style="background-color: var(--theme-default, #7366ff);">
                         <h5 class="modal-title mb-0">
-                            <i class="fa-solid fa-box-open me-2"></i>Prï¿½stamo #{{ $prï¿½stamoseleccionada->numero_folio }}
+                            <i class="fa-solid fa-box-open me-2"></i>Préstamo #{{ $prestamoSeleccionado->numero_folio }}
                         </h5>
                         <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
                             aria-label="Cerrar"></button>
@@ -241,7 +241,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($prï¿½stamoseleccionada->prestamoItems as $item)
+                                    @foreach ($prestamoSeleccionado->prestamoItems as $item)
                                         <tr style="cursor: pointer;"
                                             x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                             title="Clic para ver movimientos de Kardex">
@@ -267,34 +267,34 @@
                                         <td class="text-end align-middle text-truncate">
                                             <strong class="text-primary fs-5">
                                                 Bs.
-                                                {{ number_format($prï¿½stamoseleccionada->efectivo + $prï¿½stamoseleccionada->online + $prï¿½stamoseleccionada->credito, 2) }}
+                                                {{ number_format($prestamoSeleccionado->efectivo + $prestamoSeleccionado->online + $prestamoSeleccionado->credito, 2) }}
                                             </strong>
                                         </td>
                                     </tr>
-                                    @if ($prï¿½stamoseleccionada->efectivo > 0)
+                                    @if ($prestamoSeleccionado->efectivo > 0)
                                         <tr>
                                             <td colspan="3" class="text-end align-middle text-truncate">Efectivo:</td>
                                             <td class="text-end text-success align-middle text-truncate">
                                                 <strong>Bs.
-                                                    {{ number_format($prï¿½stamoseleccionada->efectivo, 2) }}</strong>
+                                                    {{ number_format($prestamoSeleccionado->efectivo, 2) }}</strong>
                                             </td>
                                         </tr>
                                     @endif
-                                    @if ($prï¿½stamoseleccionada->online > 0)
+                                    @if ($prestamoSeleccionado->online > 0)
                                         <tr>
                                             <td colspan="3" class="text-end align-middle text-truncate">Online:</td>
                                             <td class="text-end text-info align-middle text-truncate">
                                                 <strong>Bs.
-                                                    {{ number_format($prï¿½stamoseleccionada->online, 2) }}</strong>
+                                                    {{ number_format($prestamoSeleccionado->online, 2) }}</strong>
                                             </td>
                                         </tr>
                                     @endif
-                                    @if ($prï¿½stamoseleccionada->credito > 0)
+                                    @if ($prestamoSeleccionado->credito > 0)
                                         <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">CrÃ©dito:</td>
+                                            <td colspan="3" class="text-end align-middle text-truncate">Crédito:</td>
                                             <td class="text-end text-danger align-middle text-truncate">
                                                 <strong>Bs.
-                                                    {{ number_format($prï¿½stamoseleccionada->credito, 2) }}</strong>
+                                                    {{ number_format($prestamoSeleccionado->credito, 2) }}</strong>
                                             </td>
                                         </tr>
                                     @endif
@@ -307,15 +307,15 @@
                         <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
                             <small class="text-muted">
                                 <i
-                                    class="fa-solid fa-user me-1"></i>{{ $prï¿½stamoseleccionada->user->name ?? 'Usuario' }}
+                                    class="fa-solid fa-user me-1"></i>{{ $prestamoSeleccionado->user->name ?? 'Usuario' }}
                             </small>
                             <small class="text-muted">
                                 <i
-                                    class="fa-solid fa-calendar me-1"></i>{{ $prï¿½stamoseleccionada->created_at->format('d/m/Y H:i') }}
+                                    class="fa-solid fa-calendar me-1"></i>{{ $prestamoSeleccionado->created_at->format('d/m/Y H:i') }}
                             </small>
                             <small class="text-muted">
                                 <i
-                                    class="fa-solid fa-user-tie me-1"></i>{{ $prï¿½stamoseleccionada->cliente->nombre ?? 'Sin cliente' }}
+                                    class="fa-solid fa-user-tie me-1"></i>{{ $prestamoSeleccionado->cliente->nombre ?? 'Sin cliente' }}
                             </small>
                         </div>
                     </div>
@@ -324,7 +324,7 @@
         </div>
     @endif
 
-    <!-- Modal de Resumen de EliminaciÃ³n -->
+    <!-- Modal de Resumen de Eliminación -->
     @if ($mostrarResumenEliminacion && !empty($resumenEliminacion))
         <!-- Backdrop del Modal -->
         <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
@@ -421,7 +421,7 @@
                     }
                 }
 
-                // Detectar clic en el Ã¡rea del modal pero fuera del modal-content
+                // Detectar clic en el área del modal pero fuera del modal-content
                 if (e.target.classList.contains('modal') && e.target.classList.contains('show')) {
                     if ($wire.mostrarErrorStock) {
                         $wire.call('cerrarErrorStock');
@@ -437,7 +437,7 @@
                 // En Livewire 3, el evento llega como array
                 const data = event[0] || event;
                 Swal.fire({
-                    title: data.type === 'success' ? 'Â¡Ã‰xito!' : 'Error',
+                    title: data.type === 'success' ? '¡Éxito!' : 'Error',
                     text: data.message,
                     icon: data.type,
                     confirmButtonColor: data.type === 'success' ? '#28a745' : '#d33',
@@ -454,7 +454,7 @@
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
                     cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'SÃ­, eliminar',
+                    confirmButtonText: 'Sí, eliminar',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -556,7 +556,7 @@
                                                     $medidaAbrev = strtolower(substr($item['medida'], 0, 1));
                                                     $cantidadPorMedida = $item['cantidad_por_medida'];
                                                     $cantidad = $item['cantidad_total'];
-                                                    
+
                                                     if ($cantidadPorMedida <= 1) {
                                                         echo intval($cantidad) . $medidaAbrev;
                                                     } else {
@@ -575,7 +575,7 @@
                                             <td class="text-center text-muted">
                                                 @php
                                                     $cantidadDev = $item['cantidad_devuelta'];
-                                                    
+
                                                     if ($cantidadPorMedida <= 1) {
                                                         echo intval($cantidadDev) . $medidaAbrev;
                                                     } else {
@@ -595,7 +595,7 @@
                                                 <span class="badge bg-warning">
                                                     @php
                                                         $cantidadPend = $item['cantidad_pendiente'];
-                                                        
+
                                                         if ($cantidadPorMedida <= 1) {
                                                             echo intval($cantidadPend) . $medidaAbrev;
                                                         } else {
@@ -664,126 +664,6 @@
                             <i class="fa-solid fa-check me-1"></i>
                             Registrar Devolución
                         </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-                                    <input type="number"
-                                        id="montoPagoEfectivo"
-                                        class="form-control text-end"
-                                        x-model.number="efectivo"
-                                        step="0.01"
-                                        min="0"
-                                        :max="creditoTotal"
-                                        placeholder="0.00"
-                                        {{ $procesandoPago ? 'disabled' : '' }}>
-                                </div>
-                            </div>
-
-                            <!-- Online -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Online</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">Bs.</span>
-                                    <input type="number"
-                                        id="montoPagoOnline"
-                                        class="form-control text-end"
-                                        x-model.number="online"
-                                        step="0.01"
-                                        min="0"
-                                        :max="creditoTotal"
-                                        placeholder="0.00"
-                                        {{ $procesandoPago ? 'disabled' : '' }}>
-                                </div>
-                            </div>
-
-                            <!-- CrÃ©dito Restante -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">CrÃ©dito Restante</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">Bs.</span>
-                                    <input type="number"
-                                        class="form-control fw-bold text-end"
-                                        :class="creditoRestante > 0 ? 'bg-warning bg-opacity-10 text-warning' : 'bg-success bg-opacity-10 text-success'"
-                                        :value="creditoRestante.toFixed(2)"
-                                        disabled>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Resumen en barra horizontal -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-4">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Total a Pagar:</small>
-                                    <strong class="d-block" :class="totalPago > 0 ? 'text-success' : 'text-muted'">
-                                        Bs. <span x-text="totalPago.toFixed(2)">0.00</span>
-                                    </strong>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Efectivo:</small>
-                                    <strong class="d-block text-primary">Bs. <span x-text="(efectivo || 0).toFixed(2)">0.00</span></strong>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">Online:</small>
-                                    <strong class="d-block text-info">Bs. <span x-text="(online || 0).toFixed(2)">0.00</span></strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div x-show="totalPago > creditoTotal" class="alert alert-danger mb-0">
-                            <i class="fa-solid fa-exclamation-triangle me-1"></i>
-                            El monto total excede la deuda pendiente
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button"
-                            class="btn btn-secondary"
-                            wire:click="cerrarModalPago"
-                            {{ $procesandoPago ? 'disabled' : '' }}>
-                            <i class="fa-solid fa-times me-1"></i>
-                            Cancelar
-                        </button>
-                        <button type="button"
-                            class="btn btn-success"
-                            @click="finalizarPago()"
-                            :disabled="{{ $procesandoPago ? 'true' : 'false' }} || totalPago <= 0 || totalPago > creditoTotal">
-                            @if ($procesandoPago)
-                                <span class="spinner-border spinner-border-sm me-1"></span>
-                                Procesando...
-                            @else
-                                <i class="fa-solid fa-check me-1"></i>
-                                Finalizar Pago <span class="badge bg-white text-success ms-1">Enter</span>
-                            @endif
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    {{-- Modal de Procesando (Spinner Completo) --}}
-    @if ($procesandoPago && $mostrarModalPago)
-        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.7); z-index: 1060;">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content bg-transparent border-0 shadow-lg">
-                    <div class="modal-body text-center py-5">
-                        <div class="spinner-border text-primary mb-3" role="status" style="width: 4rem; height: 4rem;">
-                            <span class="visually-hidden">Procesando...</span>
-                        </div>
-                        <h5 class="text-white mb-2">
-                            <i class="fa-solid fa-clock me-2"></i>
-                            Procesando pago
-                        </h5>
-                        <p class="text-white-50 mb-0">Por favor espere mientras se completa la transacciÃ³n</p>
-                        <div class="progress mt-3" style="height: 3px;">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 100%"></div>
-                        </div>
                     </div>
                 </div>
             </div>
