@@ -28,14 +28,14 @@
                 <div class="card">
                     <div class="card-header card-no-border pb-0 d-none d-md-block" style="position: sticky; top: 0; z-index: 1050; background-color: white;">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h3 class="d-none d-md-block mb-0">Préstamo #{{ $Préstamo->numero_folio }}</h3>
+                            <h3 class="d-none d-md-block mb-0">Préstamo #{{ $prestamo->numero_folio }}</h3>
                             <div class="d-flex gap-2">
-                                <button wire:click="cancelarPréstamo" class="btn btn-secondary">
+                                <button wire:click="cancelarVenta" class="btn btn-secondary">
                                     <i class="fa-solid fa-times me-1"></i>
                                     <span class="d-none d-md-inline">Cancelar</span>
                                 </button>
                                 @if(count($items) > 0)
-                                    <button type="button" wire:click="iniciarCompletarPréstamo" class="btn btn-success">
+                                    <button type="button" wire:click="iniciarCompletarVenta" class="btn btn-success">
                                         <i class="fa-solid fa-check me-1"></i>
                                         <span class="d-none d-md-inline">Completar</span>
                                     </button>
@@ -176,7 +176,7 @@
                                                 <i class="fa-solid fa-search"></i>
                                             </span>
                                             <input type="text"
-                                                id="buscadorPréstamo"
+                                                id="buscadorPrestamo"
                                                 class="form-control"
                                                 wire:model.live.debounce.300ms="buscar"
                                                 placeholder="Nombre o código..."
@@ -263,11 +263,11 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="fechaPréstamo" class="form-label fw-bold">Fecha de la Préstamo</label>
+                        <label for="fechaPrestamo" class="form-label fw-bold">Fecha del Préstamo</label>
                         <input type="date"
-                            id="fechaPréstamo"
+                            id="fechaPrestamo"
                             class="form-control form-control-lg text-end"
-                            wire:model="fechaPréstamo"
+                            wire:model="fechaPrestamo"
                             max="{{ date('Y-m-d') }}">
                         <small class="text-muted">
                             <i class="fa-solid fa-info-circle me-1"></i>
@@ -570,7 +570,7 @@
     <div class="mobile-bottom-bar d-md-none fixed-bottom bg-white shadow-lg" style="z-index: 1040; border-top: 1px solid rgba(0,0,0,0.1); padding: 8px;">
         <div class="d-flex justify-content-between align-items-center gap-2" style="height: 50px;">
             <!-- Botón Cancelar -->
-            <button wire:click="cancelarPréstamo" class="btn btn-outline-danger h-100" style="flex: 0 0 60px; padding: 4px;">
+            <button wire:click="cancelarVenta" class="btn btn-outline-danger h-100" style="flex: 0 0 60px; padding: 4px;">
                 <i class="fa-solid fa-times d-block" style="font-size: 0.9rem;"></i>
                 <small style="font-size: 0.65rem;">Cancelar</small>
             </button>
@@ -588,7 +588,7 @@
 
             <!-- Botón Pagar -->
             @if(count($items) > 0)
-                <button wire:click="iniciarCompletarPréstamo" class="btn btn-success flex-fill h-100 d-flex align-items-center justify-content-center" style="padding: 4px;">
+                <button wire:click="iniciarCompletarVenta" class="btn btn-success flex-fill h-100 d-flex align-items-center justify-content-center" style="padding: 4px;">
                     <i class="fa-solid fa-check me-2" style="font-size: 1.2rem;"></i>
                     <strong style="font-size: 1.2rem;">Bs {{ number_format($this->total(), 2) }}</strong>
                 </button>
@@ -619,7 +619,7 @@
             // Devolver foco al buscador después de agregar producto
             $wire.on('focusBuscador', () => {
                 setTimeout(() => {
-                    const buscador = document.getElementById('buscadorPréstamo');
+                    const buscador = document.getElementById('buscadorPrestamo');
                     if (buscador) {
                         buscador.focus();
                     }
@@ -702,7 +702,7 @@
                 // Atajo global Ctrl+Enter para iniciar la secuencia de Depósito
                 if (e.key === 'Enter' && e.ctrlKey && $wire.pasoActual === 0) {
                     e.preventDefault();
-                    $wire.call('iniciarCompletarPréstamo');
+                    $wire.call('iniciarCompletarVenta');
                 }
             });
 

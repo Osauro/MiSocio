@@ -17,7 +17,7 @@
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
-                                    <input type="text" class="form-control text-start" placeholder="Buscar prÃ©stamo..."
+                                    <input type="text" class="form-control text-start" placeholder="Buscar préstamo..."
                                         wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
                                     <button class="btn btn-primary" wire:click="crearPrestamo"><i class="fa-solid fa-plus"></i></button>
                                 </div>
@@ -37,7 +37,7 @@
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
-                            <input type="text" class="form-control text-start" placeholder="Buscar prÃ©stamo..."
+                            <input type="text" class="form-control text-start" placeholder="Buscar préstamo..."
                                 wire:model.live="search" id="searchInput" autofocus>
                             <button class="btn btn-primary" wire:click="crearPrestamo"><i class="fa-solid fa-plus"></i></button>
                         </div>
