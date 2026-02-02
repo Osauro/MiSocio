@@ -85,7 +85,7 @@
                                                                     <i class="fa-solid fa-file-pdf"></i>
                                                                 </button>
                                                                 <button class="btn btn-sm btn-danger"
-                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: 'Â¿EstÃ¡ seguro de eliminar la Prï¿½stamo #{{ $prestamo->numero_folio }}?' })"
+                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: '¿Está seguro de eliminar la Prï¿½stamo #{{ $prestamo->numero_folio }}?' })"
                                                                     title="Cancelar">
                                                                     <i class="fa-solid fa-trash"></i>
                                                                 </button>
@@ -99,7 +99,7 @@
                                                                 @endif
                                                                 @if($prestamo->user_id === auth()->id())
                                                                     <button class="btn btn-sm btn-danger"
-                                                                        wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: 'Â¿EstÃ¡ seguro de eliminar la Prï¿½stamo #{{ $prestamo->numero_folio }}?' })"
+                                                                        wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: '¿Está seguro de eliminar la Prï¿½stamo #{{ $prestamo->numero_folio }}?' })"
                                                                         title="Cancelar">
                                                                         <i class="fa-solid fa-trash"></i>
                                                                     </button>
@@ -184,11 +184,11 @@
                             wire:model.live="perPage" min="1" max="100" title="Registros por página"
                             onfocus="this.select()"
                             @input="
-                                   localStorage.setItem('paginateprï¿½stamos', $event.target.value);
-                                   document.cookie = 'paginateprï¿½stamos=' + $event.target.value + '; path=/; max-age=31536000';
+                                   localStorage.setItem('paginatePrestamos', $event.target.value);
+                                   document.cookie = 'paginatePrestamos=' + $event.target.value + '; path=/; max-age=31536000';
                                ">
                     </div>
-                    {{ $prï¿½stamos->links() }}
+                    {{ $prestamos->links() }}
                 </div>
             </div>
         </div>
@@ -237,9 +237,9 @@
                                                     class="badge bg-info text-dark">{{ $item->cantidad_formateada }}</span>
                                             </td>
                                             <td class="text-end align-middle text-truncate">Bs.
-                                                {{ number_format($item->precio, 2) }}</td>
+                                                {{ number_format($item->precio_deposito, 2) }}</td>
                                             <td class="text-end align-middle text-truncate">
-                                                <strong>Bs. {{ number_format($item->subtotal, 2) }}</strong>
+                                                <strong>Bs. {{ number_format($item->subtotal_deposito, 2) }}</strong>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -432,7 +432,7 @@
             $wire.on('confirm-delete', (event) => {
                 const data = event[0] || event;
                 Swal.fire({
-                    title: 'Â¿EstÃ¡ seguro?',
+                    title: '¿Está seguro?',
                     text: data.message,
                     icon: 'warning',
                     showCancelButton: true,
@@ -716,6 +716,8 @@
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
 </div>
+
+
 
 
 

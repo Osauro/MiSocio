@@ -701,7 +701,7 @@ class Prestamo extends Component
             // Registrar INGRESO del depósito en Movimientos
             if ($deposito > 0) {
                 $detalle = 'Depósito préstamo #' . $this->prestamo->numero_folio;
-                
+
                 if ($nombreCliente) {
                     $detalle .= ' - ' . $nombreCliente;
                 }
