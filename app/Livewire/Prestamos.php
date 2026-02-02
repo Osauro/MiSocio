@@ -25,6 +25,12 @@ class Prestamos extends Component
     public $mostrarResumenEliminacion = false;
     public $resumenEliminacion = [];
     public $mostrarModalFiltro = false;
+    
+    // Para devolución parcial de envases
+    public $mostrarModalDevolucion = false;
+    public $prestamoADevolver = null;
+    public $itemsDevolucion = [];
+    public $montoDevolucionTotal = 0;
 
     public function verDetalles($prestamoId)
     {
@@ -62,6 +68,185 @@ class Prestamos extends Component
     public function cerrarModalFiltro()
     {
         $this->mostrarModalFiltro = false;
+    }
+
+    public function abrirModalDevolucion($prestamoId)
+    {
+        $this->prestamoADevolver = Prestamo::with(['cliente', 'prestamoItems.producto' => function ($query) {
+            $query->withTrashed();
+        }])
+            ->findOrFail($prestamoId);
+
+        // Solo se puede devolver si está Completo
+        if ($this->prestamoADevolver->estado !== 'Completo') {
+            $this->toast('warning', 'Solo se pueden registrar devoluciones de préstamos completos');
+            return;
+        }
+
+        // Preparar los items con sus cantidades pendientes
+        $this->itemsDevolucion = [];
+        foreach ($this->prestamoADevolver->prestamoItems as $item) {
+            $cantidadPendiente = $item->cantidad - $item->cantidad_devuelta;
+            
+            if ($cantidadPendiente > 0) {
+                $this->itemsDevolucion[] = [
+                    'prestamo_item_id' => $item->id,
+                    'producto_id' => $item->producto_id,
+                    'producto_nombre' => $item->producto->nombre ?? 'Producto eliminado',
+                    'cantidad_total' => $item->cantidad,
+                    'cantidad_devuelta' => $item->cantidad_devuelta,
+                    'cantidad_pendiente' => $cantidadPendiente,
+                    'cantidad_a_devolver' => 0, // Lo ingresa el usuario
+                    'precio_deposito' => $item->precio_deposito,
+                    'medida' => $item->producto->medida ?? 'u',
+                    'cantidad_por_medida' => $item->producto->cantidad ?? 1,
+                ];
+            }
+        }
+
+        if (empty($this->itemsDevolucion)) {
+            $this->toast('info', 'Este préstamo ya está totalmente devuelto');
+            return;
+        }
+
+        $this->mostrarModalDevolucion = true;
+        $this->montoDevolucionTotal = 0;
+    }
+
+    public function cerrarModalDevolucion()
+    {
+        $this->mostrarModalDevolucion = false;
+        $this->prestamoADevolver = null;
+        $this->itemsDevolucion = [];
+        $this->montoDevolucionTotal = 0;
+    }
+
+    public function updatedItemsDevolucion()
+    {
+        // Calcular el monto total a devolver basado en las cantidades
+        $this->montoDevolucionTotal = 0;
+        
+        foreach ($this->itemsDevolucion as $item) {
+            $cantidadADevolver = $item['cantidad_a_devolver'] ?? 0;
+            
+            // Validar que no exceda la cantidad pendiente
+            if ($cantidadADevolver > $item['cantidad_pendiente']) {
+                $cantidadADevolver = $item['cantidad_pendiente'];
+            }
+            
+            $this->montoDevolucionTotal += $cantidadADevolver * $item['precio_deposito'];
+        }
+    }
+
+    public function registrarDevolucion()
+    {
+        try {
+            DB::beginTransaction();
+
+            $prestamo = Prestamo::with(['prestamoItems.producto' => function ($query) {
+                $query->withTrashed();
+            }])->findOrFail($this->prestamoADevolver->id);
+
+            $totalDevuelto = 0;
+            $montoDevuelto = 0;
+            $todosItemsCompletos = true;
+
+            foreach ($this->itemsDevolucion as $itemData) {
+                $cantidadADevolver = floatval($itemData['cantidad_a_devolver'] ?? 0);
+                
+                if ($cantidadADevolver <= 0) {
+                    continue; // No devuelve nada de este item
+                }
+
+                // Buscar el PrestamoItem
+                $prestamoItem = $prestamo->prestamoItems->firstWhere('id', $itemData['prestamo_item_id']);
+                
+                if (!$prestamoItem) {
+                    continue;
+                }
+
+                $cantidadPendiente = $prestamoItem->cantidad - $prestamoItem->cantidad_devuelta;
+
+                // Validar que no exceda la cantidad pendiente
+                if ($cantidadADevolver > $cantidadPendiente) {
+                    $cantidadADevolver = $cantidadPendiente;
+                }
+
+                // Actualizar cantidad devuelta
+                $prestamoItem->cantidad_devuelta += $cantidadADevolver;
+                $prestamoItem->save();
+
+                // Actualizar stock del producto (devuelven envases)
+                $producto = $prestamoItem->producto;
+                if ($producto) {
+                    $stockAnterior = $producto->stock;
+                    $producto->stock += $cantidadADevolver;
+                    $producto->save();
+
+                    // Registrar en Kardex (ENTRADA - devuelven envases)
+                    Kardex::create([
+                        'tenant_id' => currentTenantId(),
+                        'user_id' => auth()->id(),
+                        'producto_id' => $producto->id,
+                        'entrada' => $cantidadADevolver,
+                        'salida' => 0,
+                        'anterior' => $stockAnterior,
+                        'saldo' => $producto->stock,
+                        'precio' => $prestamoItem->precio_deposito,
+                        'total' => $cantidadADevolver * $prestamoItem->precio_deposito,
+                        'obs' => "Devolución de préstamo #{$prestamo->numero_folio}"
+                    ]);
+                }
+
+                // Calcular monto a devolver
+                $montoItem = $cantidadADevolver * $prestamoItem->precio_deposito;
+                $montoDevuelto += $montoItem;
+                $totalDevuelto += $cantidadADevolver;
+
+                // Verificar si este item está completo
+                if ($prestamoItem->cantidad_devuelta < $prestamoItem->cantidad) {
+                    $todosItemsCompletos = false;
+                }
+            }
+
+            if ($totalDevuelto <= 0) {
+                DB::rollBack();
+                $this->toast('warning', 'Debe ingresar al menos una cantidad a devolver');
+                return;
+            }
+
+            // Registrar en Movimientos (EGRESO - devolvemos depósito)
+            if ($montoDevuelto > 0) {
+                Movimiento::create([
+                    'tenant_id' => currentTenantId(),
+                    'user_id' => auth()->id(),
+                    'detalle' => "Devolución de depósito préstamo #{$prestamo->numero_folio} ({$totalDevuelto} unidades)",
+                    'ingreso' => 0,
+                    'egreso' => $montoDevuelto
+                ]);
+            }
+
+            // Si todos los items están completamente devueltos, cambiar estado a Devuelto
+            if ($todosItemsCompletos) {
+                $prestamo->estado = 'Devuelto';
+                $prestamo->fecha_devolucion = now();
+                $prestamo->save();
+            }
+
+            DB::commit();
+
+            $this->cerrarModalDevolucion();
+
+            if ($todosItemsCompletos) {
+                $this->toast('success', 'Devolución completa registrada. Depósito devuelto: $' . number_format($montoDevuelto, 2));
+            } else {
+                $this->toast('success', 'Devolución parcial registrada. Depósito devuelto: $' . number_format($montoDevuelto, 2));
+            }
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->toast('error', 'Error al registrar la devolución:<br>' . $e->getMessage());
+        }
     }
 
     public function updatedFechaInicio()

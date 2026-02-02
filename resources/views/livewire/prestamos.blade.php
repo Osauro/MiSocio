@@ -74,6 +74,11 @@
                                                                     <i class="fa-solid fa-file-pdf"></i>
                                                                 </button>
                                                             @elseif ($prestamo->estado === 'Completo')
+                                                                <button class="btn btn-sm btn-primary"
+                                                                    wire:click="abrirModalDevolucion({{ $prestamo->id }})"
+                                                                    title="Registrar devolución">
+                                                                    <i class="fa-solid fa-box-open"></i>
+                                                                </button>
                                                                 <button class="btn btn-sm btn-info"
                                                                     wire:click="verDetalles({{ $prestamo->id }})"
                                                                     title="Ver detalles">
@@ -88,6 +93,17 @@
                                                                     wire:click="$dispatch('confirm-delete', { id: {{ $prestamo->id }}, message: '¿Está seguro de eliminar la Prï¿½stamo #{{ $prestamo->numero_folio }}?' })"
                                                                     title="Cancelar">
                                                                     <i class="fa-solid fa-trash"></i>
+                                                                </button>
+                                                            @elseif ($prestamo->estado === 'Devuelto')
+                                                                <button class="btn btn-sm btn-info"
+                                                                    wire:click="verDetalles({{ $prestamo->id }})"
+                                                                    title="Ver detalles">
+                                                                    <i class="fa-solid fa-eye"></i>
+                                                                </button>
+                                                                <button class="btn btn-sm btn-secondary"
+                                                                    wire:click="generarPDF({{ $prestamo->id }})"
+                                                                    title="Generar PDF">
+                                                                    <i class="fa-solid fa-file-pdf"></i>
                                                                 </button>
                                                             @else
                                                                 @if($prestamo->user_id === auth()->id())
@@ -481,74 +497,178 @@
         </div>
     @endif
 
-    <!-- Overlay de Pago de CrÃ©dito - Paso 1: AÃ±adir Fondos -->
-    {{-- Modal de Pago de CrÃ©dito --}}
-    @if ($mostrarModalPago && $prestamoAPagar)
-        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;"
-            x-data="{
-                efectivo: {{ $montoPagoEfectivo ?? 0 }},
-                online: {{ $montoPagoOnline ?? 0 }},
-                creditoTotal: {{ $prestamoAPagar->credito }},
-                get totalPago() {
-                    return parseFloat(this.efectivo || 0) + parseFloat(this.online || 0);
-                },
-                get creditoRestante() {
-                    return Math.max(0, this.creditoTotal - this.totalPago);
-                },
-                finalizarPago() {
-                    if ({{ $procesandoPago ? 'true' : 'false' }} || this.totalPago <= 0 || this.totalPago > this.creditoTotal) {
-                        return;
-                    }
-                    $wire.set('montoPagoEfectivo', this.efectivo);
-                    $wire.set('montoPagoOnline', this.online);
-                    $wire.pagarCredito();
-                }
-            }"
-            @keydown.enter="finalizarPago()">
-            <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
+    <!-- Modal de Devolución Parcial de Envases -->
+    @if ($mostrarModalDevolucion && $prestamoADevolver)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content shadow-lg">
-                    <div class="modal-header bg-success text-white">
+                    <div class="modal-header bg-primary text-white">
                         <h5 class="modal-title">
-                            <i class="fa-solid fa-money-bill me-2"></i>
-                            Pagar CrÃ©dito
+                            <i class="fa-solid fa-box-open me-2"></i>
+                            Registrar Devolución de Envases
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModalPago" {{ $procesandoPago ? 'disabled' : '' }}></button>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModalDevolucion"></button>
                     </div>
                     <div class="modal-body">
-                        <!-- InformaciÃ³n de la prestamo -->
+                        <!-- Información del préstamo -->
                         <div class="row g-2 mb-4">
-                            <div class="col-6">
+                            <div class="col-4">
                                 <div class="p-2 bg-light rounded text-center">
-                                    <small class="text-muted d-block">prestamo:</small>
-                                    <strong class="d-block text-dark">#{{ $prestamoAPagar->numero_folio }}</strong>
+                                    <small class="text-muted d-block">Préstamo:</small>
+                                    <strong class="d-block text-dark">#{{ $prestamoADevolver->numero_folio }}</strong>
                                 </div>
                             </div>
-                            <div class="col-6">
+                            <div class="col-4">
                                 <div class="p-2 bg-light rounded text-center">
                                     <small class="text-muted d-block">Cliente:</small>
-                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $prestamoAPagar->cliente->nombre ?? 'Sin cliente' }}">{{ $prestamoAPagar->cliente->nombre ?? 'Sin cliente' }}</strong>
+                                    <strong class="d-block text-truncate text-dark px-2" title="{{ $prestamoADevolver->cliente->nombre ?? 'Sin cliente' }}">{{ $prestamoADevolver->cliente->nombre ?? 'Sin cliente' }}</strong>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-2 bg-light rounded text-center">
+                                    <small class="text-muted d-block">Depósito Total:</small>
+                                    <strong class="d-block text-success">Bs. {{ number_format($prestamoADevolver->deposito, 2) }}</strong>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row g-3 mb-3">
-                            <!-- Total CrÃ©dito -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Total CrÃ©dito</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">Bs.</span>
-                                    <input type="number"
-                                        class="form-control bg-danger bg-opacity-10 text-danger fw-bold text-end"
-                                        :value="creditoTotal"
-                                        disabled>
+                        <!-- Tabla de items a devolver -->
+                        <div class="table-responsive mb-3" style="max-height: 400px;">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light sticky-top">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Total</th>
+                                        <th class="text-center">Devuelto</th>
+                                        <th class="text-center">Pendiente</th>
+                                        <th class="text-center">A Devolver</th>
+                                        <th class="text-end">Depósito</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($itemsDevolucion as $index => $item)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $item['producto_nombre'] }}</strong>
+                                            </td>
+                                            <td class="text-center">
+                                                @php
+                                                    $medidaAbrev = strtolower(substr($item['medida'], 0, 1));
+                                                    $cantidadPorMedida = $item['cantidad_por_medida'];
+                                                    $cantidad = $item['cantidad_total'];
+                                                    
+                                                    if ($cantidadPorMedida <= 1) {
+                                                        echo intval($cantidad) . $medidaAbrev;
+                                                    } else {
+                                                        $cajas = floor($cantidad / $cantidadPorMedida);
+                                                        $unidades = $cantidad % $cantidadPorMedida;
+                                                        if ($cajas > 0 && $unidades > 0) {
+                                                            echo "{$cajas}{$medidaAbrev} - {$unidades}u";
+                                                        } elseif ($cajas > 0) {
+                                                            echo "{$cajas}{$medidaAbrev}";
+                                                        } else {
+                                                            echo "{$unidades}u";
+                                                        }
+                                                    }
+                                                @endphp
+                                            </td>
+                                            <td class="text-center text-muted">
+                                                @php
+                                                    $cantidadDev = $item['cantidad_devuelta'];
+                                                    
+                                                    if ($cantidadPorMedida <= 1) {
+                                                        echo intval($cantidadDev) . $medidaAbrev;
+                                                    } else {
+                                                        $cajas = floor($cantidadDev / $cantidadPorMedida);
+                                                        $unidades = $cantidadDev % $cantidadPorMedida;
+                                                        if ($cajas > 0 && $unidades > 0) {
+                                                            echo "{$cajas}{$medidaAbrev} - {$unidades}u";
+                                                        } elseif ($cajas > 0) {
+                                                            echo "{$cajas}{$medidaAbrev}";
+                                                        } else {
+                                                            echo "{$unidades}u";
+                                                        }
+                                                    }
+                                                @endphp
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-warning">
+                                                    @php
+                                                        $cantidadPend = $item['cantidad_pendiente'];
+                                                        
+                                                        if ($cantidadPorMedida <= 1) {
+                                                            echo intval($cantidadPend) . $medidaAbrev;
+                                                        } else {
+                                                            $cajas = floor($cantidadPend / $cantidadPorMedida);
+                                                            $unidades = $cantidadPend % $cantidadPorMedida;
+                                                            if ($cajas > 0 && $unidades > 0) {
+                                                                echo "{$cajas}{$medidaAbrev} - {$unidades}u";
+                                                            } elseif ($cajas > 0) {
+                                                                echo "{$cajas}{$medidaAbrev}";
+                                                            } else {
+                                                                echo "{$unidades}u";
+                                                            }
+                                                        }
+                                                    @endphp
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <input type="number"
+                                                    class="form-control form-control-sm text-center"
+                                                    wire:model.live="itemsDevolucion.{{ $index }}.cantidad_a_devolver"
+                                                    min="0"
+                                                    max="{{ $item['cantidad_pendiente'] }}"
+                                                    step="1"
+                                                    placeholder="0"
+                                                    style="max-width: 100px; margin: 0 auto;">
+                                            </td>
+                                            <td class="text-end">
+                                                <small class="text-muted">Bs. {{ number_format($item['precio_deposito'], 2) }}</small>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Resumen de devolución -->
+                        <div class="row g-2">
+                            <div class="col-12">
+                                <div class="p-3 bg-success bg-opacity-10 rounded text-center border border-success">
+                                    <small class="text-muted d-block mb-1">Depósito a Devolver:</small>
+                                    <h4 class="mb-0 text-success fw-bold">
+                                        Bs. {{ number_format($montoDevolucionTotal, 2) }}
+                                    </h4>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Efectivo -->
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Efectivo</label>
-                                <div class="input-group input-group-lg">
-                                    <span class="input-group-text">Bs.</span>
+                        @if ($montoDevolucionTotal <= 0)
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                Debe ingresar al menos una cantidad a devolver
+                            </div>
+                        @endif
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button"
+                            class="btn btn-secondary"
+                            wire:click="cerrarModalDevolucion">
+                            <i class="fa-solid fa-times me-1"></i>
+                            Cancelar
+                        </button>
+                        <button type="button"
+                            class="btn btn-success"
+                            wire:click="registrarDevolucion"
+                            @disabled($montoDevolucionTotal <= 0)>
+                            <i class="fa-solid fa-check me-1"></i>
+                            Registrar Devolución
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
                                     <input type="number"
                                         id="montoPagoEfectivo"
                                         class="form-control text-end"
@@ -669,49 +789,6 @@
             </div>
         </div>
     @endif
-
-    @script
-        <script>
-            // Manejo de teclado para el modal de pago
-            document.addEventListener('keydown', function(e) {
-                // Solo si el modal de pago estÃ¡ abierto y no estÃ¡ procesando
-                if (!$wire.mostrarModalPago || $wire.procesandoPago) return;
-
-                // Enter para procesar pago
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const efectivo = parseFloat($wire.montoPagoEfectivo || 0);
-                    const online = parseFloat($wire.montoPagoOnline || 0);
-                    const totalPago = efectivo + online;
-                    const creditoPendiente = parseFloat($wire.prestamoAPagar.credito);
-
-                    // Validar que el monto sea vÃ¡lido
-                    if (totalPago > 0 && totalPago <= creditoPendiente) {
-                        $wire.pagarCredito();
-                    }
-                }
-
-                // Escape para cerrar
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    $wire.cerrarModalPago();
-                }
-            });
-
-            // Focus inicial al abrir modal
-            Livewire.hook('morph.updated', ({ el, component }) => {
-                if ($wire.mostrarModalPago && !$wire.procesandoPago) {
-                    setTimeout(() => {
-                        const input = document.querySelector('#montoPagoEfectivo');
-                        if (input) {
-                            input.focus();
-                            input.select();
-                        }
-                    }, 100);
-                }
-            });
-        </script>
-    @endscript
 
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
