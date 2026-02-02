@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Livewire;
 
@@ -158,10 +158,13 @@ class Prestamo extends Component
     public function updatedBuscar()
     {
         if (strlen($this->buscar) >= 2) {
-            $this->productosEncontrados = Producto::where('nombre', 'like', '%' . $this->buscar . '%')
-                ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
-                ->orWhereHas('tags', function ($query) {
-                    $query->where('nombre', 'like', '%' . $this->buscar . '%');
+            $this->productosEncontrados = Producto::where('tenant_id', currentTenantId())
+                ->where(function ($query) {
+                    $query->where('nombre', 'like', '%' . $this->buscar . '%')
+                        ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
+                        ->orWhereHas('tags', function ($subQuery) {
+                            $subQuery->where('nombre', 'like', '%' . $this->buscar . '%');
+                        });
                 })
                 ->limit(10)
                 ->get()
