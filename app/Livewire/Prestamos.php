@@ -26,7 +26,7 @@ class Prestamos extends Component
     public $resumenEliminacion = [];
     public $mostrarModalFiltro = false;
 
-    // Para devolución parcial de envases
+    // Para devoluciÃ³n parcial de envases
     public $mostrarModalDevolucion = false;
     public $prestamoADevolver = null;
     public $itemsDevolucion = [];
@@ -77,9 +77,9 @@ class Prestamos extends Component
         }])
             ->findOrFail($prestamoId);
 
-        // Solo se puede devolver si está Completo
+        // Solo se puede devolver si estÃ¡ Completo
         if ($this->prestamoADevolver->estado !== 'Completo') {
-            $this->toast('warning', 'Solo se pueden registrar devoluciones de préstamos completos');
+            $this->toast('warning', 'Solo se pueden registrar devoluciones de prÃ©stamos completos');
             return;
         }
 
@@ -105,7 +105,7 @@ class Prestamos extends Component
         }
 
         if (empty($this->itemsDevolucion)) {
-            $this->toast('info', 'Este préstamo ya está totalmente devuelto');
+            $this->toast('info', 'Este prÃ©stamo ya estÃ¡ totalmente devuelto');
             return;
         }
 
@@ -194,7 +194,7 @@ class Prestamos extends Component
                         'saldo' => $producto->stock,
                         'precio' => $prestamoItem->precio_deposito,
                         'total' => $cantidadADevolver * $prestamoItem->precio_deposito,
-                        'obs' => "Devolución de préstamo #{$prestamo->numero_folio}"
+                        'obs' => "DevoluciÃ³n de prÃ©stamo #{$prestamo->numero_folio}"
                     ]);
                 }
 
@@ -203,7 +203,7 @@ class Prestamos extends Component
                 $montoDevuelto += $montoItem;
                 $totalDevuelto += $cantidadADevolver;
 
-                // Verificar si este item está completo
+                // Verificar si este item estÃ¡ completo
                 if ($prestamoItem->cantidad_devuelta < $prestamoItem->cantidad) {
                     $todosItemsCompletos = false;
                 }
@@ -215,18 +215,18 @@ class Prestamos extends Component
                 return;
             }
 
-            // Registrar en Movimientos (EGRESO - devolvemos depósito)
+            // Registrar en Movimientos (EGRESO - devolvemos depÃ³sito)
             if ($montoDevuelto > 0) {
                 Movimiento::create([
                     'tenant_id' => currentTenantId(),
                     'user_id' => auth()->id(),
-                    'detalle' => "Devolución de depósito préstamo #{$prestamo->numero_folio} ({$totalDevuelto} unidades)",
+                    'detalle' => "DevoluciÃ³n de depÃ³sito prÃ©stamo #{$prestamo->numero_folio} ({$totalDevuelto} unidades)",
                     'ingreso' => 0,
                     'egreso' => $montoDevuelto
                 ]);
             }
 
-            // Si todos los items están completamente devueltos, cambiar estado a Devuelto
+            // Si todos los items estÃ¡n completamente devueltos, cambiar estado a Devuelto
             if ($todosItemsCompletos) {
                 $prestamo->estado = 'Devuelto';
                 $prestamo->fecha_devolucion = now();
@@ -238,14 +238,14 @@ class Prestamos extends Component
             $this->cerrarModalDevolucion();
 
             if ($todosItemsCompletos) {
-                $this->toast('success', 'Devolución completa registrada. Depósito devuelto: $' . number_format($montoDevuelto, 2));
+                $this->toast('success', 'DevoluciÃ³n completa registrada. DepÃ³sito devuelto: $' . number_format($montoDevuelto, 2));
             } else {
-                $this->toast('success', 'Devolución parcial registrada. Depósito devuelto: $' . number_format($montoDevuelto, 2));
+                $this->toast('success', 'DevoluciÃ³n parcial registrada. DepÃ³sito devuelto: $' . number_format($montoDevuelto, 2));
             }
 
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->toast('error', 'Error al registrar la devolución:<br>' . $e->getMessage());
+            $this->toast('error', 'Error al registrar la devoluciÃ³n:<br>' . $e->getMessage());
         }
     }
 
@@ -264,13 +264,13 @@ class Prestamos extends Component
 
     public function crearPrestamo()
     {
-        // Verificar si el usuario ya tiene un préstamo pendiente
+        // Verificar si el usuario ya tiene un prÃ©stamo pendiente
         $prestamoPendiente = Prestamo::where('user_id', auth()->id())
             ->where('estado', 'Pendiente')
             ->first();
 
         if ($prestamoPendiente) {
-            // Redirigir al préstamo pendiente
+            // Redirigir al prÃ©stamo pendiente
             return redirect()->route('prestamo', ['prestamoId' => $prestamoPendiente->id]);
         }
 
@@ -283,7 +283,7 @@ class Prestamos extends Component
             'fecha_prestamo' => now(),
         ]);
 
-        // Redirigir al nuevo préstamo
+        // Redirigir al nuevo prÃ©stamo
         return redirect()->route('prestamo', ['prestamoId' => $nuevoPrestamo->id]);
     }
 
@@ -296,18 +296,18 @@ class Prestamos extends Component
                 $query->withTrashed();
             }])->findOrFail($prestamoId);
 
-            // Si el préstamo está PENDIENTE, eliminar físicamente
+            // Si el prÃ©stamo estÃ¡ PENDIENTE, eliminar fÃ­sicamente
             if ($prestamo->estado === 'Pendiente') {
                 $prestamo->delete();
                 DB::commit();
 
-                $this->toast('success', 'Préstamo pendiente eliminado exitosamente');
+                $this->toast('success', 'PrÃ©stamo pendiente eliminado exitosamente');
                 return;
             }
 
-            // Si el préstamo está COMPLETO, marcar como Eliminado y devolver productos/dinero
+            // Si el prÃ©stamo estÃ¡ COMPLETO, marcar como Eliminado y devolver productos/dinero
             if ($prestamo->estado !== 'Completo') {
-                $this->toast('error', 'Solo se pueden eliminar préstamos pendientes o completos');
+                $this->toast('error', 'Solo se pueden eliminar prÃ©stamos pendientes o completos');
                 return;
             }
 
@@ -370,7 +370,7 @@ class Prestamos extends Component
                     'stock_nuevo_formateado' => $stockNuevoFormateado
                 ];
 
-                // Registrar entrada en Kardex (reversión del préstamo)
+                // Registrar entrada en Kardex (reversiÃ³n del prÃ©stamo)
                 Kardex::create([
                     'tenant_id' => currentTenantId(),
                     'user_id' => auth()->id(),
@@ -381,22 +381,22 @@ class Prestamos extends Component
                     'saldo' => $producto->stock,
                     'precio' => $item->precio_deposito,
                     'total' => $item->subtotal_deposito,
-                    'obs' => "Eliminación de préstamo #{$prestamo->numero_folio}"
+                    'obs' => "EliminaciÃ³n de prÃ©stamo #{$prestamo->numero_folio}"
                 ]);
             }
 
-            // Devolver el depósito a caja
+            // Devolver el depÃ³sito a caja
             if ($prestamo->deposito > 0) {
                 Movimiento::create([
                     'tenant_id' => currentTenantId(),
                     'user_id' => auth()->id(),
-                    'detalle' => "Devolución de depósito por eliminación de préstamo #{$prestamo->numero_folio}",
+                    'detalle' => "DevoluciÃ³n de depÃ³sito por eliminaciÃ³n de prÃ©stamo #{$prestamo->numero_folio}",
                     'ingreso' => 0,
                     'egreso' => $prestamo->deposito
                 ]);
             }
 
-            // Marcar el préstamo como eliminado (no borrar físicamente)
+            // Marcar el prÃ©stamo como eliminado (no borrar fÃ­sicamente)
             $prestamo->estado = 'Eliminado';
             $prestamo->save();
 
@@ -415,7 +415,7 @@ class Prestamos extends Component
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $this->toast('error', 'Error al eliminar el préstamo:<br>' . $e->getMessage());
+            $this->toast('error', 'Error al eliminar el prÃ©stamo:<br>' . $e->getMessage());
         }
     }
 
