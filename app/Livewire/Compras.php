@@ -26,6 +26,7 @@ class Compras extends Component
     public $resumenEliminacion = [];
     public $mostrarErrorStock = false;
     public $productosInsuficientes = [];
+    public $mostrarModalFiltro = false;
 
     // Para el pago de crédito
     public $mostrarModalPago = false;
@@ -218,6 +219,16 @@ class Compras extends Component
         $this->fecha_inicio = null;
         $this->fecha_fin = null;
         $this->resetPage();
+    }
+
+    public function abrirModalFiltro()
+    {
+        $this->mostrarModalFiltro = true;
+    }
+
+    public function cerrarModalFiltro()
+    {
+        $this->mostrarModalFiltro = false;
     }
 
     public function updatedFechaInicio()

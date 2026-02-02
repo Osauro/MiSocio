@@ -16,6 +16,7 @@ class Clientes extends Component
     public $search = '';
     public $perPage;
     public $editMode = false;
+    public $mostrarModal = false;
     public $clienteId;
     public $nombre = '';
     public $celular = '';
@@ -67,7 +68,7 @@ class Clientes extends Component
     {
         $this->resetForm();
         $this->editMode = false;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     public function edit($id)
@@ -82,7 +83,7 @@ class Clientes extends Component
         $this->correo = $cliente->correo;
 
         $this->editMode = true;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     public function save()
@@ -106,7 +107,7 @@ class Clientes extends Component
             $this->toast('success', 'Cliente creado exitosamente.');
         }
 
-        $this->dispatch('closemodal');
+        $this->mostrarModal = false;
         $this->resetForm();
     }
 
@@ -133,7 +134,7 @@ class Clientes extends Component
 
     public function closeModal()
     {
-        $this->dispatch('closemodal');
+        $this->mostrarModal = false;
         $this->resetForm();
     }
 

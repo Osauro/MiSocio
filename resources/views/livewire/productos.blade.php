@@ -196,14 +196,15 @@
     </footer>
 
     <!-- Modal para Crear/Editar Producto -->
-    <div wire:ignore.self class="modal fade" id="crudModal" tabindex="-1" role="dialog" aria-labelledby="modalcrud">
-        <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{{ $editMode ? 'Editar Producto' : 'Nuevo Producto' }}</h5>
-                    <button type="button" class="btn-close" wire:click="closeModal"></button>
-                </div>
-                <div class="modal-body">
+    @if ($mostrarModal)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+                <div class="modal-content" wire:ignore.self>
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ $editMode ? 'Editar Producto' : 'Nuevo Producto' }}</h5>
+                        <button type="button" class="btn-close" wire:click="closeModal"></button>
+                    </div>
+                    <div class="modal-body">
                     <form wire:submit.prevent="save">
                         <div class="row">
                             <!-- Columna Izquierda: Imagen -->
@@ -457,7 +458,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
@@ -465,19 +466,6 @@
 
 <script>
     document.addEventListener('livewire:init', () => {
-        // Eventos de modal
-        Livewire.on('showmodal', event => {
-            $('#crudModal').modal('show')
-            setTimeout(() => {
-                document.getElementById('nombre').select()
-            }, 500)
-        })
-
-        Livewire.on('closemodal', event => {
-            $('#crudModal').modal('hide')
-            document.getElementById('searchInput').focus()
-        })
-
         Livewire.on('reset-tags', event => {
             // Disparar evento para limpiar tags en Alpine
             window.dispatchEvent(new CustomEvent('reset-tags-alpine'))

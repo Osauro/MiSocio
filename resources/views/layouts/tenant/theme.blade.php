@@ -48,6 +48,29 @@
             --theme-default: {{ $themeColor }};
             --primary-color: {{ $themeColor }};
         }
+
+        /* Fix para backdrop y modales de Bootstrap */
+        .modal-backdrop {
+            z-index: 1055 !important;
+        }
+        .modal {
+            z-index: 1056 !important;
+        }
+
+        /* Asegurar que los modales personalizados de Livewire también funcionen */
+        .modal.fade.show.d-block {
+            z-index: 1056 !important;
+        }
+
+        /* Asegurar que los modales abiertos con Bootstrap JS también funcionen */
+        .modal.show {
+            z-index: 1056 !important;
+        }
+
+        /* Asegurar que el backdrop esté siempre debajo del modal */
+        body > .modal-backdrop {
+            z-index: 1055 !important;
+        }
     </style>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />

@@ -13,7 +13,7 @@
                                             <i class="fa-solid fa-times"></i>
                                         </button>
                                     @else
-                                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                        <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro" title="Filtrar por fechas">
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
@@ -35,7 +35,7 @@
                                     <i class="fa-solid fa-times"></i>
                                 </button>
                             @else
-                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro" title="Filtrar por fechas">
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
@@ -189,105 +189,98 @@
     </footer>
 
     <!-- Modal para Registrar Movimiento -->
-    <div wire:ignore.self class="modal fade" id="crudModal" tabindex="-1" role="dialog"
-        aria-labelledby="modalcrud">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Registrar Movimiento</h5>
-                    <button type="button" class="btn-close" wire:click="closeModal"></button>
-                </div>
-                <div class="modal-body">
-                    <form wire:submit.prevent="save">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tipo de Movimiento</label>
-                            <div class="d-flex gap-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" wire:model="tipo" value="ingreso"
-                                        id="tipoIngreso">
-                                    <label class="form-check-label" for="tipoIngreso">
-                                        <i class="fa-solid fa-arrow-up text-success"></i> Ingreso
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" wire:model="tipo" value="egreso"
-                                        id="tipoEgreso">
-                                    <label class="form-check-label" for="tipoEgreso">
-                                        <i class="fa-solid fa-arrow-down text-danger"></i> Egreso
-                                    </label>
+    @if ($mostrarModal)
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-labelledby="modalcrud"
+            style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Registrar Movimiento</h5>
+                        <button type="button" class="btn-close" wire:click="closeModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form wire:submit.prevent="save">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tipo de Movimiento</label>
+                                <div class="d-flex gap-3">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" wire:model="tipo" value="ingreso"
+                                            id="tipoIngreso">
+                                        <label class="form-check-label" for="tipoIngreso">
+                                            <i class="fa-solid fa-arrow-up text-success"></i> Ingreso
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" wire:model="tipo" value="egreso"
+                                            id="tipoEgreso">
+                                        <label class="form-check-label" for="tipoEgreso">
+                                            <i class="fa-solid fa-arrow-down text-danger"></i> Egreso
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Detalle</label>
-                            <input type="text" class="form-control @error('detalle') is-invalid @enderror"
-                                wire:model="detalle" placeholder="Descripción del movimiento">
-                            @error('detalle')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Detalle</label>
+                                <input type="text" class="form-control @error('detalle') is-invalid @enderror"
+                                    wire:model="detalle" placeholder="Descripción del movimiento">
+                                @error('detalle')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Monto (Bs.)</label>
-                            <input type="number" step="0.01"
-                                class="form-control @error('monto') is-invalid @enderror" wire:model="monto"
-                                placeholder="0.00">
-                            @error('monto')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Monto (Bs.)</label>
+                                <input type="number" step="0.01"
+                                    class="form-control @error('monto') is-invalid @enderror" wire:model="monto"
+                                    placeholder="0.00">
+                                @error('monto')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
 
-                        <div class="d-flex gap-2 justify-content-end">
-                            <button type="button" class="btn btn-secondary"
-                                wire:click="closeModal">Cancelar</button>
-                            <button type="submit" class="btn btn-primary">Guardar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Filtro de Fechas -->
-    <div class="modal fade" id="filterDateModal" tabindex="-1" aria-labelledby="filterDateModalLabel" aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterDateModalLabel">Filtrar por Fechas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Desde</label>
-                            <input type="date" class="form-control" wire:model.live="fecha_inicio"
-                                @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Hasta</label>
-                            <input type="date" class="form-control" wire:model.live="fecha_fin"
-                                @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
-                                @if(!$fecha_inicio) disabled @endif>
-                        </div>
+                            <div class="d-flex gap-2 justify-content-end">
+                                <button type="button" class="btn btn-secondary"
+                                    wire:click="closeModal">Cancelar</button>
+                                <button type="submit" class="btn btn-primary">Guardar</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Filtro de Fechas -->
+    @if ($mostrarModalFiltro)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Filtrar por Fechas</h5>
+                        <button type="button" class="btn-close" wire:click="cerrarModalFiltro"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Desde</label>
+                                <input type="date" class="form-control" wire:model.live="fecha_inicio"
+                                    @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hasta</label>
+                                <input type="date" class="form-control" wire:model.live="fecha_fin"
+                                    @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
+                                    @if(!$fecha_inicio) disabled @endif>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" wire:click="cerrarModalFiltro">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 </div>
 
-@script
-    <script>
-        $wire.on('showmodal', () => {
-            $('#crudModal').modal('show');
-        });
-
-        $wire.on('closemodal', () => {
-            $('#crudModal').modal('hide');
-        });
-    </script>
-@endscript

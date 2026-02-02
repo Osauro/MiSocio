@@ -16,6 +16,8 @@ class Movimientos extends Component
     public $perPage;
     public $fecha_inicio = null;
     public $fecha_fin = null;
+    public $mostrarModalFiltro = false;
+    public $mostrarModal = false;
 
     // Modal
     public $detalle = '';
@@ -43,6 +45,16 @@ class Movimientos extends Component
         $this->fecha_inicio = null;
         $this->fecha_fin = null;
         $this->resetPage();
+    }
+
+    public function abrirModalFiltro()
+    {
+        $this->mostrarModalFiltro = true;
+    }
+
+    public function cerrarModalFiltro()
+    {
+        $this->mostrarModalFiltro = false;
     }
 
     public function updatingSearch()
@@ -109,7 +121,7 @@ class Movimientos extends Component
     public function create()
     {
         $this->resetForm();
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     public function save()
@@ -132,7 +144,7 @@ class Movimientos extends Component
     public function closeModal()
     {
         $this->resetForm();
-        $this->dispatch('closemodal');
+        $this->mostrarModal = false;
     }
 
     private function resetForm()

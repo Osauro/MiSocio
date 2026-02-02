@@ -243,7 +243,7 @@ body,
     right: 0;
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 998;
+    z-index: 1039; /* Por debajo del sidebar pero por encima del contenido */
     animation: fadeIn 0.3s ease;
 }
 
@@ -254,13 +254,13 @@ body,
 
 .profile-sidebar {
     position: fixed;
-    top: 0;
+    top: 70px; /* Ajuste para que no quede detrás del header */
     right: -400px;
     width: 400px;
-    height: 100vh;
+    height: calc(100vh - 70px); /* Ajustar altura considerando el top */
     background-color: #fff;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-    z-index: 999;
+    z-index: 1040; /* Por debajo de los modales pero por encima del contenido */
     display: flex;
     flex-direction: column;
     transition: right 0.3s ease;
@@ -404,6 +404,8 @@ body,
     .profile-sidebar {
         width: 100%;
         right: -100%;
+        top: 70px; /* Mantener el margen superior en móvil también */
+        height: calc(100vh - 70px);
     }
 }
 

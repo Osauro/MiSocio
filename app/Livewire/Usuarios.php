@@ -20,6 +20,7 @@ class Usuarios extends Component
     public $search = '';
     public $perPage;
     public $editMode = false;
+    public $mostrarModal = false;
 
     // Campos del usuario
     public $usuarioId;
@@ -88,7 +89,7 @@ class Usuarios extends Component
     {
         $this->resetForm();
         $this->editMode = false;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     public function edit($id)
@@ -105,7 +106,7 @@ class Usuarios extends Component
         $this->usuario_actual_imagen = $usuario->imagen;
 
         $this->editMode = true;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     public function save()
@@ -191,7 +192,7 @@ class Usuarios extends Component
 
     public function closeModal()
     {
-        $this->dispatch('closemodal');
+        $this->mostrarModal = false;
         $this->resetForm();
     }
 

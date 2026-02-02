@@ -13,7 +13,7 @@
                                             <i class="fa-solid fa-times"></i>
                                         </button>
                                     @else
-                                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                        <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro" title="Filtrar por fechas">
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
@@ -33,7 +33,7 @@
                                     <i class="fa-solid fa-times"></i>
                                 </button>
                             @else
-                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro" title="Filtrar por fechas">
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
@@ -88,9 +88,6 @@
                                                                     wire:click="generarPDF({{ $venta->id }})"
                                                                     title="Generar PDF">
                                                                     <i class="fa-solid fa-file-pdf"></i>
-                                                                </button>
-                                                                <button class="btn btn-sm btn-primary" title="Editar">
-                                                                    <i class="fa-solid fa-pen"></i>
                                                                 </button>
                                                                 <button class="btn btn-sm btn-danger"
                                                                     wire:click="$dispatch('confirm-delete', { id: {{ $venta->id }}, message: '¿Está seguro de eliminar la venta #{{ $venta->numero_folio }}?' })"
@@ -466,40 +463,61 @@
     @endscript
 
     <!-- Modal de Filtro de Fechas -->
-    <div class="modal fade" id="filterDateModal" tabindex="-1" aria-labelledby="filterDateModalLabel"
-        aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterDateModalLabel">Filtrar por Fechas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Desde</label>
-                            <input type="date" class="form-control" wire:model.live="fecha_inicio"
-                                @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Hasta</label>
-                            <input type="date" class="form-control" wire:model.live="fecha_fin"
-                                @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
-                                @if(!$fecha_inicio) disabled @endif>
+    @if ($mostrarModalFiltro)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Filtrar por Fechas</h5>
+                        <button type="button" class="btn-close" wire:click="cerrarModalFiltro"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Desde</label>
+                                <input type="date" class="form-control" wire:model.live="fecha_inicio"
+                                    @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hasta</label>
+                                <input type="date" class="form-control" wire:model.live="fecha_fin"
+                                    @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
+                                    @if(!$fecha_inicio) disabled @endif>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" wire:click="cerrarModalFiltro">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Overlay de Pago de Crédito - Paso 1: Añadir Fondos -->
     {{-- Modal de Pago de Crédito --}}
     @if ($mostrarModalPago && $ventaAPagar)
-        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;"
+            x-data="{
+                efectivo: {{ $montoPagoEfectivo ?? 0 }},
+                online: {{ $montoPagoOnline ?? 0 }},
+                creditoTotal: {{ $ventaAPagar->credito }},
+                get totalPago() {
+                    return parseFloat(this.efectivo || 0) + parseFloat(this.online || 0);
+                },
+                get creditoRestante() {
+                    return Math.max(0, this.creditoTotal - this.totalPago);
+                },
+                finalizarPago() {
+                    if ({{ $procesandoPago ? 'true' : 'false' }} || this.totalPago <= 0 || this.totalPago > this.creditoTotal) {
+                        return;
+                    }
+                    $wire.set('montoPagoEfectivo', this.efectivo);
+                    $wire.set('montoPagoOnline', this.online);
+                    $wire.pagarCredito();
+                }
+            }"
+            @keydown.enter="finalizarPago()">
             <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
                 <div class="modal-content shadow-lg">
                     <div class="modal-header bg-success text-white">
@@ -526,12 +544,6 @@
                             </div>
                         </div>
 
-                        <!-- Inputs de Pago en formato 2x2 -->
-                        @php
-                            $totalPago = round((float)$montoPagoEfectivo + (float)$montoPagoOnline, 2);
-                            $creditoRestante = round($ventaAPagar->credito - $totalPago, 2);
-                        @endphp
-
                         <div class="row g-3 mb-3">
                             <!-- Total Crédito -->
                             <div class="col-md-6">
@@ -539,8 +551,8 @@
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text">Bs.</span>
                                     <input type="number"
-                                        class="form-control bg-danger bg-opacity-10 text-danger fw-bold"
-                                        value="{{ number_format($ventaAPagar->credito, 2) }}"
+                                        class="form-control bg-danger bg-opacity-10 text-danger fw-bold text-end"
+                                        :value="creditoTotal"
                                         disabled>
                                 </div>
                             </div>
@@ -552,15 +564,13 @@
                                     <span class="input-group-text">Bs.</span>
                                     <input type="number"
                                         id="montoPagoEfectivo"
-                                        class="form-control"
-                                        wire:model.live="montoPagoEfectivo"
+                                        class="form-control text-end"
+                                        x-model.number="efectivo"
                                         step="0.01"
                                         min="0"
-                                        max="{{ $ventaAPagar->credito }}"
+                                        :max="creditoTotal"
                                         placeholder="0.00"
-                                        onfocus="this.select()"
-                                        {{ $procesandoPago ? 'disabled' : '' }}
-                                        autofocus>
+                                        {{ $procesandoPago ? 'disabled' : '' }}>
                                 </div>
                             </div>
 
@@ -571,13 +581,12 @@
                                     <span class="input-group-text">Bs.</span>
                                     <input type="number"
                                         id="montoPagoOnline"
-                                        class="form-control"
-                                        wire:model.live="montoPagoOnline"
+                                        class="form-control text-end"
+                                        x-model.number="online"
                                         step="0.01"
                                         min="0"
-                                        max="{{ $ventaAPagar->credito }}"
+                                        :max="creditoTotal"
                                         placeholder="0.00"
-                                        onfocus="this.select()"
                                         {{ $procesandoPago ? 'disabled' : '' }}>
                                 </div>
                             </div>
@@ -588,8 +597,9 @@
                                 <div class="input-group input-group-lg">
                                     <span class="input-group-text">Bs.</span>
                                     <input type="number"
-                                        class="form-control {{ $creditoRestante > 0 ? 'bg-warning bg-opacity-10 text-warning' : 'bg-success bg-opacity-10 text-success' }} fw-bold"
-                                        value="{{ number_format($creditoRestante, 2) }}"
+                                        class="form-control fw-bold text-end"
+                                        :class="creditoRestante > 0 ? 'bg-warning bg-opacity-10 text-warning' : 'bg-success bg-opacity-10 text-success'"
+                                        :value="creditoRestante.toFixed(2)"
                                         disabled>
                                 </div>
                             </div>
@@ -600,31 +610,29 @@
                             <div class="col-4">
                                 <div class="p-2 bg-light rounded text-center">
                                     <small class="text-muted d-block">Total a Pagar:</small>
-                                    <strong class="d-block {{ $totalPago > 0 ? 'text-success' : 'text-muted' }}">
-                                        Bs. {{ number_format($totalPago, 2) }}
+                                    <strong class="d-block" :class="totalPago > 0 ? 'text-success' : 'text-muted'">
+                                        Bs. <span x-text="totalPago.toFixed(2)">0.00</span>
                                     </strong>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-2 bg-light rounded text-center">
                                     <small class="text-muted d-block">Efectivo:</small>
-                                    <strong class="d-block text-primary">Bs. {{ number_format($montoPagoEfectivo ?? 0, 2) }}</strong>
+                                    <strong class="d-block text-primary">Bs. <span x-text="(efectivo || 0).toFixed(2)">0.00</span></strong>
                                 </div>
                             </div>
                             <div class="col-4">
                                 <div class="p-2 bg-light rounded text-center">
                                     <small class="text-muted d-block">Online:</small>
-                                    <strong class="d-block text-info">Bs. {{ number_format($montoPagoOnline ?? 0, 2) }}</strong>
+                                    <strong class="d-block text-info">Bs. <span x-text="(online || 0).toFixed(2)">0.00</span></strong>
                                 </div>
                             </div>
                         </div>
 
-                        @if ($totalPago > $ventaAPagar->credito)
-                            <div class="alert alert-danger mb-0">
-                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
-                                El monto total excede la deuda pendiente
-                            </div>
-                        @endif
+                        <div x-show="totalPago > creditoTotal" class="alert alert-danger mb-0">
+                            <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                            El monto total excede la deuda pendiente
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button"
@@ -636,8 +644,8 @@
                         </button>
                         <button type="button"
                             class="btn btn-success"
-                            wire:click="pagarCredito"
-                            {{ ($procesandoPago || $totalPago <= 0 || $totalPago > $ventaAPagar->credito) ? 'disabled' : '' }}>
+                            @click="finalizarPago()"
+                            :disabled="{{ $procesandoPago ? 'true' : 'false' }} || totalPago <= 0 || totalPago > creditoTotal">
                             @if ($procesandoPago)
                                 <span class="spinner-border spinner-border-sm me-1"></span>
                                 Procesando...

@@ -16,6 +16,7 @@ class Kardex extends Component
     public $perPage;
     public $fecha_inicio = null;
     public $fecha_fin = null;
+    public $mostrarModalFiltro = false;
 
     public function mount()
     {
@@ -27,6 +28,16 @@ class Kardex extends Component
         $this->fecha_inicio = null;
         $this->fecha_fin = null;
         $this->resetPage();
+    }
+
+    public function abrirModalFiltro()
+    {
+        $this->mostrarModalFiltro = true;
+    }
+
+    public function cerrarModalFiltro()
+    {
+        $this->mostrarModalFiltro = false;
     }
 
     public function updatingSearch()

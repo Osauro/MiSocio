@@ -117,7 +117,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Celular</label>
                             <input type="text" class="form-control @error('celular') is-invalid @enderror"
-                                wire:model="celular" placeholder="Número de celular">
+                                wire:model="celular" placeholder="Número de celular" autocomplete="tel">
                             @error('celular')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -126,7 +126,7 @@
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Nuevo PIN (4 dígitos, opcional)</label>
                             <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                wire:model="password" placeholder="••••" maxlength="4">
+                                wire:model="password" placeholder="••••" maxlength="4" autocomplete="new-password">
                             @error('password')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -135,7 +135,7 @@
                         <div class="mb-4">
                             <label class="form-label fw-semibold">Confirmar PIN</label>
                             <input type="password" class="form-control" wire:model="password_confirmation"
-                                placeholder="••••" maxlength="4">
+                                placeholder="••••" maxlength="4" autocomplete="new-password">
                         </div>
 
                         <div class="d-flex gap-2">

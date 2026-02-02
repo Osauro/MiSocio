@@ -26,6 +26,7 @@ class Ventas extends Component
     public $resumenEliminacion = [];
     public $mostrarErrorStock = false;
     public $productosInsuficientes = [];
+    public $mostrarModalFiltro = false;
 
     // Para el pago de crédito
     public $mostrarModalPago = false;
@@ -218,6 +219,16 @@ class Ventas extends Component
         $this->resetPage();
     }
 
+    public function abrirModalFiltro()
+    {
+        $this->mostrarModalFiltro = true;
+    }
+
+    public function cerrarModalFiltro()
+    {
+        $this->mostrarModalFiltro = false;
+    }
+
     public function updatedFechaInicio()
     {
         if ($this->fecha_inicio && !$this->fecha_fin) {
@@ -347,8 +358,8 @@ class Ventas extends Component
                     'tenant_id' => currentTenantId(),
                     'user_id' => auth()->id(),
                     'producto_id' => $producto->id,
-                    'entradas' => $item->cantidad,
-                    'salidas' => 0,
+                    'entrada' => $item->cantidad,
+                    'salida' => 0,
                     'anterior' => $stockAnterior,
                     'saldo' => $producto->stock,
                     'precio' => $item->precio,

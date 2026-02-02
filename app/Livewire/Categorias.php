@@ -19,6 +19,7 @@ class Categorias extends Component
     public $search = '';
     public $perPage;
     public $editMode = false;
+    public $mostrarModal = false;
 
     // Campos de la categoría
     public $categoriaId;
@@ -72,7 +73,7 @@ class Categorias extends Component
     {
         $this->resetForm();
         $this->editMode = false;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     /**
@@ -88,7 +89,7 @@ class Categorias extends Component
         $this->categoria_actual_imagen = $categoria->imagen;
 
         $this->editMode = true;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     /**
@@ -198,7 +199,7 @@ class Categorias extends Component
      */
     public function closeModal()
     {
-        $this->dispatch('closemodal');
+        $this->mostrarModal = false;
         $this->resetForm();
     }
 

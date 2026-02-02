@@ -144,155 +144,142 @@
     </footer>
 
     <!-- Modal para Crear/Editar Usuario -->
-    <div wire:ignore.self class="modal fade" id="crudModal" tabindex="-1" role="dialog" aria-labelledby="modalcrud">
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">{{ $editMode ? 'Editar Usuario' : 'Nuevo Usuario' }}</h5>
-                    <button type="button" class="btn-close" wire:click="closeModal"></button>
-                </div>
-                <div class="modal-body">
-                    <form wire:submit.prevent="save">
-                        <div class="row">
-                            <!-- Columna Izquierda: Imagen -->
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Foto de Perfil</label>
-                                    <div class="image-upload-area" onclick="document.getElementById('imagen').click()"
-                                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
-                                        ondragleave="handleDragLeave(event)"
-                                        style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; height: 100%; min-height: 300px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                                        @if ($imagen)
-                                            <img src="{{ $imagen->temporaryUrl() }}" alt="Preview"
-                                                style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px;">
-                                        @elseif ($editMode && isset($usuario_actual_imagen))
-                                            <img src="{{ Storage::url($usuario_actual_imagen) }}" alt="Usuario"
-                                                style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px;">
-                                        @else
-                                            <div class="text-muted">
-                                                <i class="fa-solid fa-user-circle fa-4x mb-2"></i>
-                                                <p class="mb-0 small">Arrastra una imagen aquí</p>
-                                                <p class="mb-0 small">o haz clic para seleccionar</p>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <input type="file" class="d-none @error('imagen') is-invalid @enderror"
-                                        wire:model="imagen" id="imagen" accept="image/*">
-                                    @error('imagen')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Columna Derecha: Formulario -->
-                            <div class="col-md-8">
-                                <!-- Nombre -->
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
-                                        wire:model="name" id="name" placeholder="Ej: Juan Pérez García">
-                                    @error('name')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Celular -->
-                                <div class="mb-3">
-                                    <label for="celular" class="form-label">Celular (8 dígitos) <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control @error('celular') is-invalid @enderror"
-                                        wire:model="celular" id="celular" placeholder="Ej: 71234567" maxlength="8">
-                                    @error('celular')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-
-                                <!-- Rol -->
-                                <div class="mb-3">
-                                    <label for="role" class="form-label">Rol <span class="text-danger">*</span></label>
-                                    <select class="form-select @error('role') is-invalid @enderror" wire:model="role" id="role">
-                                        <option value="">Seleccione un rol</option>
-                                        <option value="user">Usuario (Operador)</option>
-                                        <option value="tenant">Admin (Administrador)</option>
-                                    </select>
-                                    @error('role')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="form-text text-muted">
-                                        <strong>Usuario:</strong> Solo puede gestionar ventas y préstamos.<br>
-                                        <strong>Admin:</strong> Control total del tenant (productos, usuarios, ventas, etc.).
-                                    </small>
-                                </div>
-
-                                <div class="row">
-                                    <!-- PIN -->
-                                    <div class="col-md-6 mb-3">
-                                        <label for="password" class="form-label">
-                                            PIN (4 dígitos)
-                                            @if(!$editMode)<span class="text-danger">*</span>@endif
-                                        </label>
-                                        <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                            wire:model="password" id="password" placeholder="****" maxlength="4" inputmode="numeric">
-                                        @if($editMode)
-                                            <small class="form-text text-muted">Dejar en blanco para mantener el PIN actual</small>
-                                        @endif
-                                        @error('password')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Confirmar PIN -->
-                                    <div class="col-md-6 mb-3">
-                                        <label for="password_confirmation" class="form-label">
-                                            Confirmar PIN
-                                            @if(!$editMode)<span class="text-danger">*</span>@endif
-                                        </label>
-                                        <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
-                                            wire:model="password_confirmation" id="password_confirmation" placeholder="****" maxlength="4" inputmode="numeric">
-                                        @error('password_confirmation')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <!-- Botones normales (ocultar durante procesamiento) -->
-                    <div wire:loading.remove>
-                        <button type="button" class="btn btn-secondary" wire:click="closeModal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" wire:click="save">
-                            {{ $editMode ? 'Actualizar' : 'Guardar' }}
-                        </button>
+    @if ($mostrarModal)
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-labelledby="modalcrud"
+            style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">{{ $editMode ? 'Editar Usuario' : 'Nuevo Usuario' }}</h5>
+                        <button type="button" class="btn-close" wire:click="closeModal"></button>
                     </div>
+                    <div class="modal-body">
+                        <form wire:submit.prevent="save">
+                            <div class="row">
+                                <!-- Columna Izquierda: Imagen -->
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Foto de Perfil</label>
+                                        <div class="image-upload-area" onclick="document.getElementById('imagen').click()"
+                                            ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
+                                            ondragleave="handleDragLeave(event)"
+                                            style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; height: 100%; min-height: 300px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                                            @if ($imagen)
+                                                <img src="{{ $imagen->temporaryUrl() }}" alt="Preview"
+                                                    style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px;">
+                                            @elseif ($editMode && isset($usuario_actual_imagen))
+                                                <img src="{{ Storage::url($usuario_actual_imagen) }}" alt="Usuario"
+                                                    style="max-width: 100%; max-height: 280px; object-fit: contain; border-radius: 8px;">
+                                            @else
+                                                <div class="text-muted">
+                                                    <i class="fa-solid fa-user-circle fa-4x mb-2"></i>
+                                                    <p class="mb-0 small">Arrastra una imagen aquí</p>
+                                                    <p class="mb-0 small">o haz clic para seleccionar</p>
+                                                </div>
+                                            @endif
+                                        </div>
+                                        <input type="file" class="d-none @error('imagen') is-invalid @enderror"
+                                            wire:model="imagen" id="imagen" accept="image/*">
+                                        @error('imagen')
+                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
 
-                    <!-- Botón de procesando (mostrar solo durante procesamiento) -->
-                    <div wire:loading>
-                        <button type="button" class="btn btn-primary" disabled>
-                            <span class="spinner-border spinner-border-sm me-2" role="status"
-                                aria-hidden="true"></span>
-                            Procesando...
-                        </button>
+                                <!-- Columna Derecha: Formulario -->
+                                <div class="col-md-8">
+                                    <!-- Nombre -->
+                                    <div class="mb-3">
+                                        <label for="name" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                            wire:model="name" id="name" placeholder="Ej: Juan Pérez García">
+                                        @error('name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Celular -->
+                                    <div class="mb-3">
+                                        <label for="celular" class="form-label">Celular (8 dígitos) <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control @error('celular') is-invalid @enderror"
+                                            wire:model="celular" id="celular" placeholder="Ej: 71234567" maxlength="8">
+                                        @error('celular')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Rol -->
+                                    <div class="mb-3">
+                                        <label for="role" class="form-label">Rol <span class="text-danger">*</span></label>
+                                        <select class="form-select @error('role') is-invalid @enderror" wire:model="role" id="role">
+                                            <option value="">Seleccione un rol</option>
+                                            <option value="user">Usuario (Operador)</option>
+                                            <option value="tenant">Admin (Administrador)</option>
+                                        </select>
+                                        @error('role')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                        <small class="form-text text-muted">
+                                            <strong>Usuario:</strong> Solo puede gestionar ventas y préstamos.<br>
+                                            <strong>Admin:</strong> Control total del tenant (productos, usuarios, ventas, etc.).
+                                        </small>
+                                    </div>
+
+                                    <div class="row">
+                                        <!-- PIN -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="password" class="form-label">
+                                                PIN (4 dígitos)
+                                                @if(!$editMode)<span class="text-danger">*</span>@endif
+                                            </label>
+                                            <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                                wire:model="password" id="password" placeholder="****" maxlength="4" inputmode="numeric" autocomplete="new-password">
+                                            @if($editMode)
+                                                <small class="form-text text-muted">Dejar en blanco para mantener el PIN actual</small>
+                                            @endif
+                                            @error('password')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <!-- Confirmar PIN -->
+                                        <div class="col-md-6 mb-3">
+                                            <label for="password_confirmation" class="form-label">
+                                                Confirmar PIN
+                                                @if(!$editMode)<span class="text-danger">*</span>@endif
+                                            </label>
+                                            <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
+                                                wire:model="password_confirmation" id="password_confirmation" placeholder="****" maxlength="4" inputmode="numeric" autocomplete="new-password">
+                                            @error('password_confirmation')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- Botones normales (ocultar durante procesamiento) -->
+                        <div wire:loading.remove>
+                            <button type="button" class="btn btn-secondary" wire:click="closeModal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" wire:click="save">
+                                {{ $editMode ? 'Actualizar' : 'Guardar' }}
+                            </button>
+                        </div>
+
+                        <!-- Botón de procesando (mostrar solo durante procesamiento) -->
+                        <div wire:loading>
+                            <button type="button" class="btn btn-primary" disabled>
+                                <span class="spinner-border spinner-border-sm me-2" role="status"
+                                    aria-hidden="true"></span>
+                                Procesando...
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 </div>
 
-<script>
-    document.addEventListener('livewire:init', () => {
-        // Eventos de modal
-        Livewire.on('showmodal', event => {
-            $('#crudModal').modal('show')
-            setTimeout(() => {
-                document.getElementById('name').select()
-            }, 500)
-        })
-
-        Livewire.on('closemodal', event => {
-            $('#crudModal').modal('hide')
-            document.getElementById('searchInput').focus()
-        })
-    })
-</script>

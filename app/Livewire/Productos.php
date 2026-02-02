@@ -24,6 +24,7 @@ class Productos extends Component
     public $editMode = false;
     public $addingNewCategoria = false;
     public $addingNewMedida = false;
+    public $mostrarModal = false;
 
     // Campos del producto
     public $productoId;
@@ -161,7 +162,7 @@ class Productos extends Component
     {
         $this->resetForm();
         $this->editMode = false;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
     }
 
     /**
@@ -190,7 +191,7 @@ class Productos extends Component
         $this->producto_actual_imagen = $producto->imagen; // Guardar la imagen actual
 
         $this->editMode = true;
-        $this->dispatch('showmodal');
+        $this->mostrarModal = true;
         $this->dispatch('load-tags'); // Evento para cargar tags en Alpine
     }
 
@@ -383,7 +384,7 @@ class Productos extends Component
      */
     public function closeModal()
     {
-        $this->dispatch('closemodal');
+        $this->mostrarModal = false;
         $this->dispatch('reset-tags'); // Evento para limpiar tags en Alpine
         $this->resetForm();
     }

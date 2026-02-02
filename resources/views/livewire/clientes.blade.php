@@ -108,101 +108,89 @@
     </footer>
 
     <!-- Modal para Crear/Editar Cliente -->
-    <div wire:ignore.self class="modal fade" id="crudModal" tabindex="-1" role="dialog" aria-labelledby="modalcrud">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ $editMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h5>
-                        <button type="button" class="btn-close" wire:click="closeModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form wire:submit.prevent="save">
-                            <!-- Nombre -->
-                            <div class="mb-3">
-                                <label for="nombre" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control @error('nombre') is-invalid @enderror"
-                                    wire:model="nombre" id="nombre"
-                                    placeholder="Ej: Juan Pérez García" autofocus>
-                                @error('nombre')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
+    @if ($mostrarModal)
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-labelledby="modalcrud"
+            style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">{{ $editMode ? 'Editar Cliente' : 'Nuevo Cliente' }}</h5>
+                            <button type="button" class="btn-close" wire:click="closeModal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form wire:submit.prevent="save">
+                                <!-- Nombre -->
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control @error('nombre') is-invalid @enderror"
+                                        wire:model="nombre" id="nombre"
+                                        placeholder="Ej: Juan Pérez García" autofocus>
+                                    @error('nombre')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
 
-                            <div class="row">
-                                <!-- Celular -->
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="celular" class="form-label">Celular <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control @error('celular') is-invalid @enderror"
-                                            wire:model="celular" id="celular"
-                                            placeholder="Ej: 71234567">
-                                        @error('celular')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                <div class="row">
+                                    <!-- Celular -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="celular" class="form-label">Celular <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control @error('celular') is-invalid @enderror"
+                                                wire:model="celular" id="celular"
+                                                placeholder="Ej: 71234567">
+                                            @error('celular')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
+
+                                    <!-- NIT -->
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="nit" class="form-label">NIT / CI</label>
+                                            <input type="text" class="form-control @error('nit') is-invalid @enderror"
+                                                wire:model="nit" id="nit"
+                                                placeholder="Ej: 1234567-1A">
+                                            @error('nit')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                     </div>
                                 </div>
 
-                                <!-- NIT -->
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="nit" class="form-label">NIT / CI</label>
-                                        <input type="text" class="form-control @error('nit') is-invalid @enderror"
-                                            wire:model="nit" id="nit"
-                                            placeholder="Ej: 1234567-1A">
-                                        @error('nit')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
+                                <!-- Correo -->
+                                <div class="mb-3">
+                                    <label for="correo" class="form-label">Correo Electrónico</label>
+                                    <input type="email" class="form-control @error('correo') is-invalid @enderror"
+                                        wire:model="correo" id="correo"
+                                        placeholder="Ej: cliente@ejemplo.com">
+                                    @error('correo')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
-                            </div>
-
-                            <!-- Correo -->
-                            <div class="mb-3">
-                                <label for="correo" class="form-label">Correo Electrónico</label>
-                                <input type="email" class="form-control @error('correo') is-invalid @enderror"
-                                    wire:model="correo" id="correo"
-                                    placeholder="Ej: cliente@ejemplo.com">
-                                @error('correo')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </form>
-                </div>
-                <div class="modal-footer">
-                    <!-- Botones normales (ocultar durante procesamiento) -->
-                    <div wire:loading.remove>
-                        <button type="button" class="btn btn-secondary" wire:click="closeModal">Cancelar</button>
-                        <button type="button" class="btn btn-primary" wire:click="save">
-                            {{ $editMode ? 'Actualizar' : 'Guardar' }}
-                        </button>
+                            </form>
                     </div>
+                    <div class="modal-footer">
+                        <!-- Botones normales (ocultar durante procesamiento) -->
+                        <div wire:loading.remove>
+                            <button type="button" class="btn btn-secondary" wire:click="closeModal">Cancelar</button>
+                            <button type="button" class="btn btn-primary" wire:click="save">
+                                {{ $editMode ? 'Actualizar' : 'Guardar' }}
+                            </button>
+                        </div>
 
-                    <!-- Botón de procesando (mostrar solo durante procesamiento) -->
-                    <div wire:loading>
-                        <button type="button" class="btn btn-primary" disabled>
-                            <span class="spinner-border spinner-border-sm me-2" role="status"
-                                aria-hidden="true"></span>
-                            Procesando...
-                        </button>
+                        <!-- Botón de procesando (mostrar solo durante procesamiento) -->
+                        <div wire:loading>
+                            <button type="button" class="btn btn-primary" disabled>
+                                <span class="spinner-border spinner-border-sm me-2" role="status"
+                                    aria-hidden="true"></span>
+                                Procesando...
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 </div>
 
-<script>
-    document.addEventListener('livewire:init', () => {
-        Livewire.on('showmodal', event => {
-            $('#crudModal').modal('show')
-            setTimeout(() => {
-                document.getElementById('nombre').select()
-            }, 500)
-        })
-
-        Livewire.on('closemodal', event => {
-            $('#crudModal').modal('hide')
-            document.getElementById('searchInput').focus()
-        })
-    })
-</script>

@@ -13,7 +13,7 @@
                                             <i class="fa-solid fa-times"></i>
                                         </button>
                                     @else
-                                        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                        <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro" title="Filtrar por fechas">
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
@@ -33,7 +33,7 @@
                                     <i class="fa-solid fa-times"></i>
                                 </button>
                             @else
-                                <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterDateModal" title="Filtrar por fechas">
+                                <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro" title="Filtrar por fechas">
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
@@ -88,9 +88,6 @@
                                                                     wire:click="generarPDF({{ $compra->id }})"
                                                                     title="Generar PDF">
                                                                     <i class="fa-solid fa-file-pdf"></i>
-                                                                </button>
-                                                                <button class="btn btn-sm btn-primary" title="Editar">
-                                                                    <i class="fa-solid fa-pen"></i>
                                                                 </button>
                                                                 <button class="btn btn-sm btn-danger"
                                                                     wire:click="$dispatch('confirm-delete', { id: {{ $compra->id }}, message: '¿Está seguro de eliminar la compra #{{ $compra->numero_folio }}?' })"
@@ -521,35 +518,36 @@
     @endscript
 
     <!-- Modal de Filtro de Fechas -->
-    <div class="modal fade" id="filterDateModal" tabindex="-1" aria-labelledby="filterDateModalLabel"
-        aria-hidden="true" wire:ignore.self>
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="filterDateModalLabel">Filtrar por Fechas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Desde</label>
-                            <input type="date" class="form-control" wire:model.live="fecha_inicio"
-                                @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Hasta</label>
-                            <input type="date" class="form-control" wire:model.live="fecha_fin"
-                                @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
-                                @if(!$fecha_inicio) disabled @endif>
+    @if ($mostrarModalFiltro)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Filtrar por Fechas</h5>
+                        <button type="button" class="btn-close" wire:click="cerrarModalFiltro"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Desde</label>
+                                <input type="date" class="form-control" wire:model.live="fecha_inicio"
+                                    @if($fecha_fin) max="{{ $fecha_fin }}" @endif>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hasta</label>
+                                <input type="date" class="form-control" wire:model.live="fecha_fin"
+                                    @if($fecha_inicio) min="{{ $fecha_inicio }}" @endif
+                                    @if(!$fecha_inicio) disabled @endif>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" wire:click="cerrarModalFiltro">Cerrar</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    @endif
 
     <!-- Overlay de Pago de Crédito - Paso 1: Añadir Fondos -->
     @if ($mostrarModalPago && $compraAPagar && $pasoPago === 1)
