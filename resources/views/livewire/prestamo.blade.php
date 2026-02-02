@@ -390,7 +390,7 @@
     @endif
 
     <!-- Modal Paso 3: Procesar Depósito -->
-    @if($pasoActual === 3 && !$procesandoDepósito)
+    @if($pasoActual === 3 && !$procesandoPago)
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
@@ -520,7 +520,7 @@
     @endif
 
     <!-- Modal: Procesando Depósito -->
-    @if($procesandoDepósito)
+    @if($procesandoPago)
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg border-0">
@@ -692,7 +692,7 @@
                 }
 
                 // Paso 3: Procesar Depósito (Enter para procesar)
-                if ($wire.pasoActual === 3 && !$wire.procesandoDepósito) {
+                if ($wire.pasoActual === 3 && !$wire.procesandoPago) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
                         $wire.call('procesarDepósito');
