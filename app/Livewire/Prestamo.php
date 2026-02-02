@@ -117,10 +117,10 @@ class Prestamo extends Component
      */
     private function calcularStockComprometido($productoId)
     {
-        // Sumar cantidades del producto en todas las ventas pendientes excepto la actual
-        return PrestamoItem::whereHas('venta', function($query) {
+        // Sumar cantidades del producto en todos los préstamos pendientes excepto el actual
+        return PrestamoItem::whereHas('prestamo', function($query) {
             $query->where('estado', 'Pendiente')
-                  ->where('id', '!=', $this->ventaId);
+                  ->where('id', '!=', $this->prestamoId);
         })
         ->where('producto_id', $productoId)
         ->sum('cantidad');
