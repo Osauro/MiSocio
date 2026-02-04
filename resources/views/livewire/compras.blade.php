@@ -205,7 +205,7 @@
         <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
 
         <!-- Modal -->
-        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"numero_folio
+        <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
             style="z-index: 1050; overflow-y: auto;">
             <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                 <div class="modal-content shadow-lg border-0">

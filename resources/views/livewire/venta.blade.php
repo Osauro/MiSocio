@@ -252,7 +252,7 @@
 
     <!-- Modal Paso 1: Fecha de Venta -->
     @if($pasoActual === 1)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
@@ -292,7 +292,7 @@
 
     <!-- Modal Paso 2: Selección de Cliente -->
     @if($pasoActual === 2)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
@@ -391,7 +391,7 @@
 
     <!-- Modal Paso 3: Procesar Pago -->
     @if($pasoActual === 3 && !$procesandoPago)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-success text-white">
@@ -521,7 +521,7 @@
 
     <!-- Modal: Procesando Pago -->
     @if($procesandoPago)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg border-0">
                 <div class="modal-body py-5">

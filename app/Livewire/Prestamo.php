@@ -64,9 +64,6 @@ class Prestamo extends Component
         $this->prestamoId = $this->prestamo->id;
         $this->fechaPrestamo = now()->format('Y-m-d');
         $this->cargarItems();
-
-        // Cargar productos de envases inicialmente
-        $this->updatedBuscar();
     }
 
     public function cargarItems()
@@ -76,21 +73,18 @@ class Prestamo extends Component
             ->get();
 
         $this->items = $prestamoItems->map(function ($item) {
-            $cantidadPorMedida = $item->producto->cantidad ?? 1;
-            $enteros = intdiv($item->cantidad, $cantidadPorMedida);
-            $unidades = $item->cantidad % $cantidadPorMedida;
-
+            // En préstamos siempre usamos solo unidades (sin enteros/cajas)
             return [
                 'id' => $item->id,
                 'producto_id' => $item->producto_id,
                 'nombre' => $item->producto->nombre ?? 'Producto',
                 'imagen' => $item->producto->photo_url ?? null,
                 'medida' => $item->producto->medida ?? 'u',
-                'cantidad_por_medida' => $cantidadPorMedida,
-                'enteros' => $enteros,
-                'unidades' => $unidades,
-                'precio' => $item->precio_deposito,
-                'subtotal' => $item->subtotal_deposito,
+                'cantidad_por_medida' => 1,
+                'enteros' => 0,
+                'unidades' => $item->cantidad,
+                'precio' => $item->precio,
+                'subtotal' => $item->subtotal,
             ];
         })->toArray();
     }
@@ -160,38 +154,48 @@ class Prestamo extends Component
 
     public function updatedBuscar()
     {
+        // Solo buscar si hay al menos 2 caracteres
+        if (strlen($this->buscar) < 2) {
+            $this->productosEncontrados = [];
+            return;
+        }
+
         $query = Producto::where('tenant_id', currentTenantId())
             ->whereHas('categoria', function ($q) {
                 $q->where('nombre', 'like', '%Envase%');
-            });
-
-        if (strlen($this->buscar) >= 2) {
-            $query->where(function ($q) {
+            })
+            ->where(function ($q) {
                 $q->where('nombre', 'like', '%' . $this->buscar . '%')
                     ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
                     ->orWhereHas('tags', function ($subQuery) {
                         $subQuery->where('nombre', 'like', '%' . $this->buscar . '%');
                     });
             });
-        }
 
         $this->productosEncontrados = $query->limit(20)
             ->get()
             ->map(function ($producto) {
                 $cantidadPorMedida = $producto->cantidad ?? 1;
+                $tieneControl = $producto->control ?? true;
 
-                // Calcular stock real disponible (stock - comprometido)
-                $stockComprometido = $this->calcularStockComprometido($producto->id);
-                $stockDisponible = $producto->stock - $stockComprometido;
-
-                // Formatear stock disponible
-                if ($cantidadPorMedida > 1) {
-                    $enteros = intdiv($stockDisponible, $cantidadPorMedida);
-                    $unidades = $stockDisponible % $cantidadPorMedida;
-                    $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
-                    $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
+                // Si el producto NO tiene control de stock, stock siempre es 999999
+                if (!$tieneControl) {
+                    $stockDisponible = 999999;
+                    $stockFormateado = 'Sin control';
                 } else {
-                    $stockFormateado = $stockDisponible . 'u';
+                    // Calcular stock real disponible (stock - comprometido)
+                    $stockComprometido = $this->calcularStockComprometido($producto->id);
+                    $stockDisponible = $producto->stock - $stockComprometido;
+
+                    // Formatear stock disponible
+                    if ($cantidadPorMedida > 1) {
+                        $enteros = intdiv($stockDisponible, $cantidadPorMedida);
+                        $unidades = $stockDisponible % $cantidadPorMedida;
+                        $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
+                        $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
+                    } else {
+                        $stockFormateado = $stockDisponible . 'u';
+                    }
                 }
 
                 return [
@@ -205,6 +209,7 @@ class Prestamo extends Component
                     'precio_por_mayor' => $producto->precio_por_mayor,
                     'medida' => $producto->medida ?? 'u',
                     'cantidad' => $cantidadPorMedida,
+                    'control' => $tieneControl,
                 ];
             })
             ->toArray();
@@ -222,24 +227,24 @@ class Prestamo extends Component
             return;
         }
 
-        // Precio de venta del producto (por mayor por defecto)
-        $precioVenta = $producto->precio_por_mayor ?? 0;
-        $cantidadPorMedida = $producto->cantidad ?? 1;
+        // Precio de venta del producto (por menor por defecto)
+        $precioVenta = $producto->precio_por_menor ?? 0;
 
-        // Validar stock disponible considerando stock comprometido
-        $stockComprometido = $this->calcularStockComprometido($productoId);
-        $stockDisponible = $producto->stock - $stockComprometido;
+        // Validar stock disponible solo si el producto tiene control de stock
+        if ($producto->control) {
+            $stockComprometido = $this->calcularStockComprometido($productoId);
+            $stockDisponible = $producto->stock - $stockComprometido;
 
-        if ($cantidadPorMedida > $stockDisponible) {
-            $stockDisponibleFormateado = $this->formatearCantidad($stockDisponible, $producto);
-            $stockComprometidoFormateado = $this->formatearCantidad($stockComprometido, $producto);
-            $this->toast('error', 'Stock insuficiente. Disponible: ' . $stockDisponibleFormateado . ' (Comprometido: ' . $stockComprometidoFormateado . ')');
-            return;
+            if (1 > $stockDisponible) {
+                $stockDisponibleFormateado = $this->formatearCantidad($stockDisponible, $producto);
+                $stockComprometidoFormateado = $this->formatearCantidad($stockComprometido, $producto);
+                $this->toast('error', 'Stock insuficiente. Disponible: ' . $stockDisponibleFormateado . ' (Comprometido: ' . $stockComprometidoFormateado . ')');
+                return;
+            }
         }
 
-        // Cantidad inicial: 1 entero (1 caja/paquete)
-        // El subtotal inicial es el precio_por_mayor (precio de 1 caja)
-        $cantidadInicial = $cantidadPorMedida;
+        // Cantidad inicial: 1 unidad
+        $cantidadInicial = 1;
         $subtotalInicial = $this->redondearSubtotal($precioVenta);
 
         // Recalcular precio basado en el subtotal redondeado
@@ -250,9 +255,8 @@ class Prestamo extends Component
             'prestamo_id' => $this->prestamoId,
             'producto_id' => $productoId,
             'cantidad' => $cantidadInicial,
-            'cantidad_devuelta' => 0,
-            'precio_deposito' => $precioVenta,
-            'subtotal_deposito' => $subtotalInicial,
+            'precio' => $precioVenta,
+            'subtotal' => $subtotalInicial,
         ]);
 
         // Agregar al array de items
@@ -262,9 +266,9 @@ class Prestamo extends Component
             'nombre' => $producto->nombre,
             'imagen' => $producto->photo_url,
             'medida' => $producto->medida ?? 'u',
-            'cantidad_por_medida' => $cantidadPorMedida,
-            'enteros' => 1,
-            'unidades' => 0,
+            'cantidad_por_medida' => 1,
+            'enteros' => 0,
+            'unidades' => 1,
             'precio' => $precioVenta,
             'subtotal' => $subtotalInicial,
         ];
@@ -283,56 +287,34 @@ class Prestamo extends Component
     {
         $item = $this->items[$index];
 
-        // Validar que enteros y unidades no sean negativos
-        $this->items[$index]['enteros'] = max(0, intval($item['enteros']));
+        // Validar que unidades no sean negativas
         $this->items[$index]['unidades'] = max(0, intval($item['unidades']));
+        $cantidadTotal = $this->items[$index]['unidades'];
 
-        // Convertir automáticamente unidades a enteros si es necesario
-        if ($this->items[$index]['unidades'] >= $item['cantidad_por_medida']) {
-            $enterosAdicionales = intdiv($this->items[$index]['unidades'], $item['cantidad_por_medida']);
-            $this->items[$index]['enteros'] += $enterosAdicionales;
-            $this->items[$index]['unidades'] = $this->items[$index]['unidades'] % $item['cantidad_por_medida'];
-        }
-
-        // Validar stock disponible
+        // Validar stock disponible solo si el producto tiene control de stock
         $producto = Producto::find($item['producto_id']);
 
-        // Calcular stock comprometido en otras ventas pendientes
-        $stockComprometido = $this->calcularStockComprometido($item['producto_id']);
-        $stockDisponible = $producto->stock - $stockComprometido;
+        if ($producto->control) {
+            // Calcular stock comprometido en otros préstamos pendientes
+            $stockComprometido = $this->calcularStockComprometido($item['producto_id']);
+            $stockDisponible = $producto->stock - $stockComprometido;
 
-        // cantidad = (enteros * producto.cantidad) + unidades
-        $cantidadTotal = ($this->items[$index]['enteros'] * $item['cantidad_por_medida']) + $this->items[$index]['unidades'];
-
-        if ($cantidadTotal > $stockDisponible) {
-            $stockDisponibleFormateado = $this->formatearCantidad($stockDisponible, $producto);
-            $stockComprometidoFormateado = $this->formatearCantidad($stockComprometido, $producto);
-            $this->toast('error', 'Stock insuficiente. Disponible: ' . $stockDisponibleFormateado . ' (Comprometido: ' . $stockComprometidoFormateado . ')');
-            // Ajustar a stock disponible
-            $this->items[$index]['enteros'] = intdiv($stockDisponible, $item['cantidad_por_medida']);
-            $this->items[$index]['unidades'] = $stockDisponible % $item['cantidad_por_medida'];
-            $cantidadTotal = $stockDisponible;
+            if ($cantidadTotal > $stockDisponible) {
+                $stockDisponibleFormateado = $this->formatearCantidad($stockDisponible, $producto);
+                $stockComprometidoFormateado = $this->formatearCantidad($stockComprometido, $producto);
+                $this->toast('error', 'Stock insuficiente. Disponible: ' . $stockDisponibleFormateado . ' (Comprometido: ' . $stockComprometidoFormateado . ')');
+                // Ajustar a stock disponible
+                $this->items[$index]['unidades'] = $stockDisponible;
+                $cantidadTotal = $stockDisponible;
+            }
         }
 
-        // Determinar qué precio usar según si hay enteros o solo unidades
-        $enteros = $this->items[$index]['enteros'];
-        $unidades = $this->items[$index]['unidades'];
-
-        // Calcular subtotal basado en enteros y unidades
+        // Calcular subtotal: siempre usar precio por menor (precio unitario)
         $subtotalCalculado = 0;
 
-        if ($enteros > 0) {
-            // Hay enteros (cajas/paquetes), usar precio_por_mayor
-            $subtotalCalculado = $enteros * $producto->precio_por_mayor;
-            $this->items[$index]['precio'] = $producto->precio_por_mayor;
-
-            // Si también hay unidades sueltas, agregarlas al precio por menor
-            if ($unidades > 0) {
-                $subtotalCalculado += $unidades * $producto->precio_por_menor;
-            }
-        } else if ($unidades > 0) {
-            // Solo hay unidades sueltas, usar precio_por_menor
-            $subtotalCalculado = $unidades * $producto->precio_por_menor;
+        if ($cantidadTotal > 0) {
+            // Usar precio_por_menor (precio unitario)
+            $subtotalCalculado = $cantidadTotal * $producto->precio_por_menor;
             $this->items[$index]['precio'] = $producto->precio_por_menor;
         }
 
@@ -341,10 +323,12 @@ class Prestamo extends Component
         // Actualizar en base de datos
         PrestamoItem::find($item['id'])->update([
             'cantidad' => $cantidadTotal,
-            'precio_deposito' => $this->items[$index]['precio'],
-            'subtotal_deposito' => $this->items[$index]['subtotal'],
+            'precio' => $this->items[$index]['precio'],
+            'subtotal' => $this->items[$index]['subtotal'],
         ]);
 
+        // Recargar items para mantener sincronización
+        $this->cargarItems();
         $this->actualizarTotales();
 
         // Devolver el foco al buscador
@@ -358,32 +342,26 @@ class Prestamo extends Component
         // Obtener producto de la base de datos
         $producto = Producto::find($item['producto_id']);
 
-        // cantidad = (enteros * producto.cantidad) + unidades
-        $enteros = $item['enteros'];
-        $unidades = $item['unidades'];
-        $cantidadTotal = ($enteros * $item['cantidad_por_medida']) + $unidades;
+        // Cantidad total = solo unidades
+        $cantidadTotal = $item['unidades'];
 
         if ($cantidadTotal > 0) {
             // Aplicar redondeo al subtotal modificado manualmente
             $this->items[$index]['subtotal'] = $this->redondearSubtotal($item['subtotal']);
 
-            // Recalcular precio basado en si hay enteros o solo unidades
-            if ($enteros > 0) {
-                // Usar precio_por_mayor
-                $this->items[$index]['precio'] = $producto->precio_por_mayor;
-            } else if ($unidades > 0) {
-                // Usar precio_por_menor
-                $this->items[$index]['precio'] = $producto->precio_por_menor;
-            }
+            // Siempre usar precio_por_menor (precio unitario)
+            $this->items[$index]['precio'] = $producto->precio_por_menor;
         } else {
             $this->items[$index]['subtotal'] = 0;
         }
 
-        PrestamoItem::find($item['id'])->update([
-            'precio_deposito' => $this->items[$index]['precio'],
-            'subtotal_deposito' => $this->items[$index]['subtotal'],
+                PrestamoItem::find($item['id'])->update([
+            'precio' => $this->items[$index]['precio'],
+            'subtotal' => $this->items[$index]['subtotal'],
         ]);
 
+        // Recargar items para mantener sincronización
+        $this->cargarItems();
         $this->actualizarTotales();
 
         // Devolver el foco al buscador
@@ -571,9 +549,6 @@ class Prestamo extends Component
 
     public function avanzarPaso2SinCliente()
     {
-        // Continuar sin cliente
-        $this->clienteSeleccionado = null;
-
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
 
@@ -600,24 +575,22 @@ class Prestamo extends Component
     {
         // Redondear a 2 decimales
         $this->montoPagoOnline = round(floatval($this->montoPagoOnline), 2);
+
+        // Recalcular efectivo automáticamente
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+        $efectivoRestante = $total - $this->montoPagoOnline;
+        $this->montoPagoEfectivo = max(0, round($efectivoRestante, 2));
     }
 
-    public function procesarPago()
+    public function procesarDepósito()
     {
         $total = round(collect($this->items)->sum('subtotal'), 2);
         $totalPagado = round($this->montoPagoEfectivo + $this->montoPagoOnline, 2);
 
-        // Validar monto
-        if ($totalPagado > $total) {
-            // Si se paga de más en efectivo, hay cambio
-            $cambio = $totalPagado - $total;
-        } elseif ($totalPagado < $total) {
-            // Si se paga menos, debe tener cliente para crédito
-            if ($this->clienteSeleccionado === null) {
-                $this->toast('error', 'Debe seleccionar un cliente para vender a crédito');
-                $this->pasoActual = 2;
-                return;
-            }
+        // Validar que el pago cubra el total
+        if ($totalPagado < $total) {
+            $this->toast('error', 'El monto pagado debe cubrir el total. Falta: Bs. ' . number_format($total - $totalPagado, 2));
+            return;
         }
 
         // Verificar fondos en caja si hay pago en efectivo
@@ -672,12 +645,16 @@ class Prestamo extends Component
             // El depósito es el total calculado
             $deposito = round($totalDeposito, 2);
 
+            // Calcular fecha de vencimiento (+7 días desde fecha de préstamo)
+            $fechaVencimiento = \Carbon\Carbon::parse($this->fechaPrestamo)->addDays(7)->format('Y-m-d');
+
             // Actualizar el préstamo
             $this->prestamo->update([
                 'cliente_id' => $this->clienteSeleccionado,
-                'estado' => 'Completo',
+                'estado' => 'Prestado',
                 'deposito' => $deposito,
                 'fecha_prestamo' => $this->fechaPrestamo,
+                'fecha_vencimiento' => $fechaVencimiento,
             ]);
 
             // Actualizar productos en Kardex y reducir stock
@@ -685,25 +662,43 @@ class Prestamo extends Component
                 $producto = Producto::lockForUpdate()->find($item['producto_id']);
                 $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
-                // Reducir stock (SALIDA - los envases salen del inventario)
-                $stockAnterior = $producto->stock;
-                $producto->stock -= $cantidadTotal;
-                $producto->save();
+                if ($producto->control) {
+                    // PRODUCTOS CON CONTROL: Reducir stock normalmente
+                    $stockAnterior = $producto->stock;
+                    $producto->stock -= $cantidadTotal;
+                    $producto->save();
 
-                // Registrar SALIDA en Kardex (solo si hay cantidad)
-                if ($cantidadTotal > 0) {
-                    Kardex::create([
-                        'tenant_id' => currentTenantId(),
-                        'user_id' => Auth::id(),
-                        'producto_id' => $producto->id,
-                        'entrada' => 0,
-                        'salida' => $cantidadTotal,
-                        'anterior' => $stockAnterior,
-                        'saldo' => $producto->stock,
-                        'precio' => $item['precio'],
-                        'total' => $item['subtotal'],
-                        'obs' => 'Préstamo #' . $this->prestamo->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
-                    ]);
+                    // Registrar SALIDA en Kardex
+                    if ($cantidadTotal > 0) {
+                        Kardex::create([
+                            'tenant_id' => currentTenantId(),
+                            'user_id' => Auth::id(),
+                            'producto_id' => $producto->id,
+                            'entrada' => 0,
+                            'salida' => $cantidadTotal,
+                            'anterior' => $stockAnterior,
+                            'saldo' => $producto->stock,
+                            'precio' => $item['precio'],
+                            'total' => $item['subtotal'],
+                            'obs' => 'Préstamo #' . $this->prestamo->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
+                        ]);
+                    }
+                } else {
+                    // PRODUCTOS SIN CONTROL: No modificar stock, pero registrar movimiento
+                    if ($cantidadTotal > 0) {
+                        Kardex::create([
+                            'tenant_id' => currentTenantId(),
+                            'user_id' => Auth::id(),
+                            'producto_id' => $producto->id,
+                            'entrada' => 0,
+                            'salida' => $cantidadTotal, // Registrar salida normalmente
+                            'anterior' => 0,
+                            'saldo' => 0,
+                            'precio' => $item['precio'],
+                            'total' => $item['subtotal'],
+                            'obs' => 'Préstamo #' . $this->prestamo->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
+                        ]);
+                    }
                 }
             }
 

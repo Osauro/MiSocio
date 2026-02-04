@@ -18,12 +18,14 @@ class Prestamo extends Model
         'estado',
         'deposito',
         'fecha_prestamo',
+        'fecha_vencimiento',
         'fecha_devolucion',
     ];
 
     protected $casts = [
         'deposito' => 'decimal:2',
         'fecha_prestamo' => 'date',
+        'fecha_vencimiento' => 'date',
         'fecha_devolucion' => 'date',
     ];
 
@@ -133,5 +135,33 @@ class Prestamo extends Model
     public function prestamoItems(): HasMany
     {
         return $this->hasMany(PrestamoItem::class);
+    }
+
+    /**
+     * Verificar si el préstamo está vencido.
+     */
+    public function estaVencido(): bool
+    {
+        if ($this->estado === 'Devuelto') {
+            return false;
+        }
+
+        if ($this->fecha_vencimiento && $this->fecha_vencimiento->isPast()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Obtener el estado real (considerando vencimiento).
+     */
+    public function getEstadoRealAttribute(): string
+    {
+        if ($this->estado === 'Prestado' && $this->estaVencido()) {
+            return 'Vencido';
+        }
+
+        return $this->estado;
     }
 }

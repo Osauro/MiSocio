@@ -1,4 +1,4 @@
-﻿<div x-data="{ mostrarCarritoMovil: false }">
+<div x-data="{ mostrarCarritoMovil: false }">
     <style>
         /* Control de visibilidad en móvil - Cargado inmediatamente */
         @media (max-width: 767.98px) {
@@ -178,8 +178,8 @@
                                             <input type="text"
                                                 id="buscadorPrestamo"
                                                 class="form-control"
-                                                wire:model.live.debounce.300ms="buscar"
-                                                placeholder="Nombre o código..."
+                                                wire:model.live.debounce.150ms="buscar"
+                                                placeholder="Buscar envases..."
                                                 autofocus>
                                         </div>
 
@@ -189,16 +189,17 @@
                                                     @php
                                                         $yaAgregado = collect($items)->firstWhere('producto_id', $producto['id']);
                                                         $sinStock = $producto['stock'] <= 0;
-                                                        $deshabilitado = $yaAgregado || $sinStock;
+                                                        // En préstamos solo deshabilitar si ya está agregado
+                                                        $deshabilitado = $yaAgregado;
                                                     @endphp
-                                                    <div class="card mb-2 border-0 shadow-sm producto-result {{ $deshabilitado ? 'disabled' : '' }}"
+                                                    <div
+                                                        class="card mb-2 border-0 shadow-sm producto-result {{ $deshabilitado ? 'disabled' : '' }}"
                                                         wire:key="producto-{{ $producto['id'] }}"
                                                         @if(!$deshabilitado)
-                                                            wire:click="agregarProducto({{ $producto['id'] }})"
-                                                            style="cursor: pointer;"
-                                                        @else
-                                                            style="cursor: not-allowed; opacity: 0.5; background-color: #f8f9fa;"
-                                                        @endif>
+                                                            @click="$wire.agregarProducto({{ $producto['id'] }})"
+                                                        @endif
+                                                        style="cursor: {{ $deshabilitado ? 'not-allowed' : 'pointer' }}; {{ $deshabilitado ? 'opacity: 0.5; background-color: #f8f9fa;' : '' }}"
+                                                    >
                                                         <div class="card-body p-2">
                                                             <div class="d-flex align-items-center gap-2">
                                                                 <img src="{{ $producto['imagen'] }}"
@@ -208,8 +209,12 @@
                                                                 <div class="flex-grow-1">
                                                                     <div class="fw-bold small">{{ $producto['nombre'] }}</div>
                                                                     <div class="d-flex gap-1 mt-1">
-                                                                        <span class="badge {{ $sinStock ? 'bg-danger' : 'bg-info text-dark' }}">
-                                                                            Stock: {{ $producto['stock_formateado'] }}
+                                                                        <span class="badge {{ $sinStock ? 'bg-warning text-dark' : 'bg-info text-dark' }}">
+                                                                            @if($producto['control'])
+                                                                                Stock actual: {{ $producto['stock_formateado'] }}
+                                                                            @else
+                                                                                {{ $producto['stock_formateado'] }}
+                                                                            @endif
                                                                         </span>
                                                                         <span class="badge bg-secondary">
                                                                             {{ $producto['medida'] }} ({{ $producto['cantidad'] }}u)
@@ -218,8 +223,6 @@
                                                                 </div>
                                                                 @if($yaAgregado)
                                                                     <i class="fa-solid fa-check text-success"></i>
-                                                                @elseif($sinStock)
-                                                                    <i class="fa-solid fa-ban text-danger"></i>
                                                                 @else
                                                                     <i class="fa-solid fa-plus text-primary"></i>
                                                                 @endif
@@ -245,7 +248,7 @@
 
     <!-- Modal Paso 1: Fecha de Préstamo -->
     @if($pasoActual === 1)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
@@ -269,9 +272,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="cancelarDepósitoEnProceso">
+                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
                         <i class="fa-solid fa-times me-1"></i>
-                        Cancelar
+                        Cancelar <span class="badge bg-white text-secondary ms-1">Esc</span>
                     </button>
                     <button type="button" class="btn btn-primary" wire:click="avanzarPaso1">
                         <i class="fa-solid fa-arrow-right me-1"></i>
@@ -285,7 +288,7 @@
 
     <!-- Modal Paso 2: Selección de Cliente -->
     @if($pasoActual === 2)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-primary text-white">
@@ -331,50 +334,42 @@
 
                     <!-- Formulario para nuevo cliente -->
                     @if($mostrarFormNuevoCliente)
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Nombre</label>
-                                <input type="text"
-                                    id="nuevoClienteNombre"
-                                    class="form-control text-end"
-                                    wire:model="nuevoCliente.nombre"
-                                    x-init="$nextTick(() => $el.focus())"
-                                    @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
-                                @error('nuevoCliente.nombre') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Celular</label>
-                                <input type="text"
-                                    class="form-control text-end"
-                                    wire:model="nuevoCliente.celular"
-                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
-                                @error('nuevoCliente.celular') <span class="text-danger small">{{ $message }}</span> @enderror
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">Dirección</label>
-                                <input type="text"
-                                    class="form-control text-end"
-                                    wire:model="nuevoCliente.direccion"
-                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">NIT</label>
-                                <input type="text"
-                                    class="form-control text-end"
-                                    wire:model="nuevoCliente.nit"
-                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
-                            </div>
+                        <div class="alert alert-info">
+                            <i class="fa-solid fa-user-plus me-1"></i>
+                            <strong>Crear nuevo cliente</strong>
+                            <p class="mb-0 small">Ingresa el nombre y presiona Enter para continuar</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Nombre del Cliente
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                id="nuevoClienteNombre"
+                                class="form-control form-control-lg text-end"
+                                wire:model="nuevoCliente.nombre"
+                                placeholder="Ingresa el nombre y presiona Enter..."
+                                x-init="$nextTick(() => $el.focus())"
+                                @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarCliente') }">
+                            @error('nuevoCliente.nombre') <span class="text-danger small">{{ $message }}</span> @enderror
+                            <small class="text-muted">
+                                <i class="fa-solid fa-keyboard me-1"></i>
+                                Presiona Enter para crear y continuar
+                            </small>
                         </div>
                     @endif
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="cancelarDepósitoEnProceso">
+                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
                         <i class="fa-solid fa-times me-1"></i>
-                        Cancelar
+                        Cancelar <span class="badge bg-white text-secondary ms-1">Esc</span>
                     </button>
-                    <button type="button" class="btn btn-warning" wire:click="avanzarPaso2SinCliente">
+                    <button type="button"
+                        class="btn btn-primary"
+                        wire:click="avanzarPaso2SinCliente"
+                        :disabled="!$wire.clienteSeleccionado">
                         <i class="fa-solid fa-forward me-1"></i>
-                        Continuar sin Cliente
+                        Continuar al Pago
                     </button>
                 </div>
             </div>
@@ -384,7 +379,7 @@
 
     <!-- Modal Paso 3: Procesar Depósito -->
     @if($pasoActual === 3 && !$procesandoPago)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-success text-white">
@@ -396,14 +391,14 @@
                 <div class="modal-body">
                     @php
                         $total = collect($items)->sum('subtotal');
-                        $montoCredito = $total - $montoDepósitoDepósito - $montoDepósitoDepósito;
-                        $montoCredito = max(0, $montoCredito); // No puede ser negativo
+                        $totalPagado = $montoPagoEfectivo + $montoPagoOnline;
+                        $faltante = max(0, $total - $totalPagado);
                     @endphp
 
-                    <!-- Inputs en línea: Total, Depósito, Depósito, Crédito -->
+                    <!-- Inputs en línea: Total, Efectivo, Online -->
                     <div class="row g-3 mb-4">
-                        <!-- Primera fila: Total y Depósito -->
-                        <div class="col-6">
+                        <!-- Primera fila: Total y Efectivo -->
+                        <div class="col-4">
                             <label class="form-label fw-bold">
                                 <i class="fa-solid fa-shopping-cart text-primary me-1"></i>
                                 Total
@@ -415,92 +410,76 @@
                                 readonly
                                 style="background-color: #e3f2fd; border-color: #2196f3;">
                         </div>
-                        <div class="col-6">
-                            <label for="montoDepósitoDepósito" class="form-label fw-bold">
+                        <div class="col-4">
+                            <label for="montoPagoEfectivo" class="form-label fw-bold">
                                 <i class="fa-solid fa-money-bill text-success me-1"></i>
-                                Depósito
+                                Efectivo
                             </label>
                             <input type="number"
-                                id="montoDepósitoDepósito"
+                                id="montoPagoEfectivo"
                                 class="form-control form-control-lg text-end"
-                                wire:model.live="montoDepósitoDepósito"
+                                wire:model.live="montoPagoEfectivo"
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
                                 x-init="$nextTick(() => { $el.focus(); $el.select(); })">
                         </div>
-
-                        <!-- Segunda fila: Depósito y Crédito -->
-                        <div class="col-6">
-                            <label for="montoDepósitoDepósito" class="form-label fw-bold">
+                        <div class="col-4">
+                            <label for="montoPagoOnline" class="form-label fw-bold">
                                 <i class="fa-solid fa-qrcode text-info me-1"></i>
-                                Depósito
+                                Online
                             </label>
                             <input type="number"
-                                id="montoDepósitoDepósito"
+                                id="montoPagoOnline"
                                 class="form-control form-control-lg text-end"
-                                wire:model.live="montoDepósitoDepósito"
+                                wire:model.live="montoPagoOnline"
                                 wire:keydown.enter="procesarDepósito"
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-bold">
-                                <i class="fa-solid fa-credit-card text-danger me-1"></i>
-                                Crédito
-                                @if($clienteSeleccionado === null && $montoCredito > 0)
-                                    <i class="fa-solid fa-exclamation-triangle text-danger ms-1" title="Requiere cliente"></i>
-                                @endif
-                            </label>
-                            <input type="text"
-                                class="form-control form-control-lg text-end fw-bold"
-                                value="Bs. {{ number_format($montoCredito, 2) }}"
-                                disabled
-                                readonly
-                                style="background-color: {{ $montoCredito > 0 ? '#ffebee' : '#f8f9fa' }}; border-color: {{ $montoCredito > 0 ? '#f44336' : '#dee2e6' }};">
                         </div>
                     </div>
 
                     <!-- Resumen en línea -->
                     <div class="d-flex justify-content-around align-items-center p-3 bg-light rounded mb-3">
                         <div class="text-center">
-                            <small class="text-muted d-block">Depósito</small>
-                            <strong class="text-success fs-5">Bs. {{ number_format($montoDepósitoDepósito, 2) }}</strong>
+                            <small class="text-muted d-block">Efectivo</small>
+                            <strong class="text-success fs-5">Bs. {{ number_format($montoPagoEfectivo, 2) }}</strong>
                         </div>
                         <div class="text-center">
-                            <small class="text-muted d-block">Depósito</small>
-                            <strong class="text-info fs-5">Bs. {{ number_format($montoDepósitoDepósito, 2) }}</strong>
+                            <small class="text-muted d-block">Online</small>
+                            <strong class="text-info fs-5">Bs. {{ number_format($montoPagoOnline, 2) }}</strong>
                         </div>
                         <div class="text-center">
-                            <small class="text-muted d-block">Crédito</small>
-                            <strong class="text-danger fs-5">Bs. {{ number_format($montoCredito, 2) }}</strong>
+                            <small class="text-muted d-block">Total Pagado</small>
+                            <strong class="fs-5 {{ $totalPagado >= $total ? 'text-success' : 'text-danger' }}">
+                                Bs. {{ number_format($totalPagado, 2) }}
+                            </strong>
                         </div>
                     </div>
 
-                    <!-- Alertas según el estado del Depósito -->
-                    @if($montoCredito > 0 && $clienteSeleccionado === null)
+                    <!-- Alertas según el estado del pago -->
+                    @if($faltante > 0)
                         <div class="alert alert-danger mb-0">
                             <i class="fa-solid fa-exclamation-triangle me-1"></i>
-                            <strong>No se puede vender a crédito sin cliente.</strong><br>
-                            Complete el Depósito en Depósito/Depósito o vuelva al Paso 2 para seleccionar un cliente.
+                            <strong>Falta por pagar: Bs. {{ number_format($faltante, 2) }}</strong>
                         </div>
-                    @elseif($montoCredito > 0 && $clienteSeleccionado !== null)
-                        <div class="alert alert-warning mb-0">
-                            <i class="fa-solid fa-info-circle me-1"></i>
-                            Se registrará un crédito de <strong>Bs. {{ number_format($montoCredito, 2) }}</strong>
-                        </div>
-                    @elseif($montoDepósitoDepósito + $montoDepósitoDepósito == $total)
+                    @elseif($totalPagado == $total)
                         <div class="alert alert-success mb-0">
                             <i class="fa-solid fa-check-circle me-1"></i>
-                            Depósito completo
+                            Pago completo
+                        </div>
+                    @elseif($totalPagado > $total)
+                        <div class="alert alert-warning mb-0">
+                            <i class="fa-solid fa-info-circle me-1"></i>
+                            Cambio: <strong>Bs. {{ number_format($totalPagado - $total, 2) }}</strong>
                         </div>
                     @endif
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="retrocederPaso">
-                        <i class="fa-solid fa-arrow-left me-1"></i>
-                        Atrás
+                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
+                        <i class="fa-solid fa-times me-1"></i>
+                        Cancelar <span class="badge bg-white text-secondary ms-1">Esc</span>
                     </button>
                     <button type="button" class="btn btn-success" wire:click="procesarDepósito">
                         <i class="fa-solid fa-check me-1"></i>
@@ -514,7 +493,7 @@
 
     <!-- Modal: Procesando Depósito -->
     @if($procesandoPago)
-    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(255,255,255,0.95); overflow-y: auto;">
+    <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg border-0">
                 <div class="modal-body py-5">
@@ -660,10 +639,10 @@
 
             // Manejar atajos de teclado en modales
             document.addEventListener('keydown', function(e) {
-                // ESC para retroceder en cualquier paso
+                // ESC para cancelar la secuencia completa
                 if (e.key === 'Escape' && $wire.pasoActual > 0) {
                     e.preventDefault();
-                    $wire.call('retrocederPaso');
+                    $wire.call('cancelarPagoEnProceso');
                     return;
                 }
 
@@ -699,14 +678,37 @@
                 }
             });
 
+            // Debug: Interceptar clicks en productos
+            document.addEventListener('click', function(e) {
+                const productoCard = e.target.closest('.producto-result');
+                if (productoCard && !productoCard.classList.contains('disabled')) {
+                    console.log('Click detectado en producto:', {
+                        target: e.target,
+                        card: productoCard,
+                        wireClick: productoCard.getAttribute('wire:click')
+                    });
+                }
+            });
+
+            // Debug: Interceptar eventos de Livewire
+            if (typeof Livewire !== 'undefined') {
+                Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
+                    console.log('Livewire commit:', component.name);
+                });
+
+                Livewire.hook('request', ({ uri, options, payload, respond, succeed, fail }) => {
+                    console.log('Livewire request:', payload);
+                });
+            }
+
             // Observador de Cambios para mantener el foco en los inputs correctos
             Livewire.hook('morph.updated', ({ el, component }) => {
                 setTimeout(() => {
-                    // Enfocar input de monto Depósito cuando aparece
-                    const montoDepósitoDepósitoInput = document.getElementById('montoDepósitoDepósito');
-                    if (montoDepósitoDepósitoInput && document.activeElement !== montoDepósitoDepósitoInput && document.activeElement.id !== 'montoDepósitoDepósito') {
-                        montoDepósitoDepósitoInput.focus();
-                        montoDepósitoDepósitoInput.select();
+                    // Enfocar input de monto efectivo cuando aparece
+                    const montoPagoEfectivoInput = document.getElementById('montoPagoEfectivo');
+                    if (montoPagoEfectivoInput && document.activeElement !== montoPagoEfectivoInput && document.activeElement.id !== 'montoPagoOnline') {
+                        montoPagoEfectivoInput.focus();
+                        montoPagoEfectivoInput.select();
                     }
 
                     // Enfocar campo nombre cuando aparece formulario nuevo cliente

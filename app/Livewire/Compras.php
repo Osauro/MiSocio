@@ -246,8 +246,9 @@ class Compras extends Component
 
     public function crearCompra()
     {
-        // Verificar si el usuario ya tiene una compra pendiente
+        // Verificar si el usuario ya tiene una compra pendiente en este tenant
         $compraPendiente = Compra::where('user_id', auth()->id())
+            ->where('tenant_id', currentTenantId())
             ->where('estado', 'Pendiente')
             ->first();
 
@@ -505,7 +506,7 @@ class Compras extends Component
             })
             ->when($this->fecha_inicio && $this->fecha_fin, function ($query) {
                 $query->whereDate('created_at', '>=', $this->fecha_inicio)
-                      ->whereDate('created_at', '<=', $this->fecha_fin);
+                    ->whereDate('created_at', '<=', $this->fecha_fin);
             })
             ->orderBy('id', 'desc')
             ->paginate($this->perPage);

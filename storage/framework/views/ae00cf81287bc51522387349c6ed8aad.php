@@ -8,17 +8,17 @@
                             <h3 class="d-none d-md-block mb-0">Préstamos de Envases</h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
-                                    @if ($fecha_inicio && $fecha_fin)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($fecha_inicio && $fecha_fin): ?>
                                         <button type="button" class="btn btn-outline-danger"
                                             wire:click="limpiarFiltroFechas" title="Limpiar filtro de fechas">
                                             <i class="fa-solid fa-times"></i>
                                         </button>
-                                    @else
+                                    <?php else: ?>
                                         <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro"
                                             title="Filtrar por fechas">
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
-                                    @endif
+                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                     <input type="text" class="form-control text-start"
                                         placeholder="Buscar préstamo..." wire:model.live="search"
                                         style="min-width: 200px;" id="searchInput" autofocus>
@@ -33,17 +33,17 @@
                     <div class="card-header card-no-border d-md-none"
                         style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
                         <div class="input-group">
-                            @if ($fecha_inicio && $fecha_fin)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($fecha_inicio && $fecha_fin): ?>
                                 <button type="button" class="btn btn-outline-danger" wire:click="limpiarFiltroFechas"
                                     title="Limpiar filtro de fechas">
                                     <i class="fa-solid fa-times"></i>
                                 </button>
-                            @else
+                            <?php else: ?>
                                 <button class="btn btn-outline-secondary" wire:click="abrirModalFiltro"
                                     title="Filtrar por fechas">
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                             <input type="text" class="form-control text-start" placeholder="Buscar préstamo..."
                                 wire:model.live="search" id="searchInputMobile" autofocus>
                             <button class="btn btn-primary" wire:click="crearPrestamo"><i
@@ -53,70 +53,74 @@
 
                     <div class="card-body transaction-history pt-0 mt-3 pb-2">
                         <div class="row g-3">
-                            @forelse($prestamos as $prestamo)
-                                @php
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $prestamos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $prestamo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                                <?php
                                     $estadoReal = $prestamo->estado_real;
-                                @endphp
-                                <div class="col-md-4 col-12" wire:key="prestamo-{{ $prestamo->id }}">
+                                ?>
+                                <div class="col-md-4 col-12" <?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::processElementKey('prestamo-{{ $prestamo->id }}', get_defined_vars()); ?>wire:key="prestamo-<?php echo e($prestamo->id); ?>">
                                     <div
-                                        class="card mb-0 shadow-sm {{ $estadoReal === 'Devuelto' ? 'opacity-75' : ($estadoReal === 'Vencido' ? 'border-danger' : '') }}">
+                                        class="card mb-0 shadow-sm <?php echo e($estadoReal === 'Devuelto' ? 'opacity-75' : ($estadoReal === 'Vencido' ? 'border-danger' : '')); ?>">
                                         <div class="card-body">
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div class="flex-grow-1">
                                                     <!-- Header: [titulo][botones] -->
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <h4 class="mb-0 fw-bold">
-                                                            Préstamo #{{ $prestamo->numero_folio }}
+                                                            Préstamo #<?php echo e($prestamo->numero_folio); ?>
+
                                                         </h4>
                                                         <div class="d-flex gap-1">
-                                                            @if ($estadoReal === 'Pendiente')
-                                                                <a href="{{ route('prestamo', ['prestamoId' => $prestamo->id]) }}"
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($estadoReal === 'Pendiente'): ?>
+                                                                <a href="<?php echo e(route('prestamo', ['prestamoId' => $prestamo->id])); ?>"
                                                                     class="btn btn-sm btn-warning"
                                                                     title="Continuar préstamo">
                                                                     <i class="fa-solid fa-arrow-right"></i>
                                                                 </a>
-                                                            @else
+                                                            <?php else: ?>
                                                                 <button class="btn btn-sm btn-info"
-                                                                    wire:click="verDetalles({{ $prestamo->id }})"
+                                                                    wire:click="verDetalles(<?php echo e($prestamo->id); ?>)"
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
-                                                            @endif
+                                                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         </div>
                                                     </div>
 
                                                     <!-- Items: Avatar Group de productos -->
-                                                    @if ($prestamo->prestamoItems->count() > 0)
+                                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($prestamo->prestamoItems->count() > 0): ?>
                                                         <div class="avatar-group mb-3">
-                                                            @foreach ($prestamo->prestamoItems as $item)
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $prestamo->prestamoItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
                                                                 <div class="avatar" style="cursor: pointer;"
-                                                                    x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
-                                                                    title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
-                                                                    <img src="{{ $item->producto->photo_url ?? '' }}"
-                                                                        alt="{{ $item->producto->nombre ?? 'Producto' }}">
+                                                                    x-on:click="$dispatch('mostrarKardex', { productoId: <?php echo e($item->producto_id); ?> })"
+                                                                    title="<?php echo e($item->producto->nombre ?? 'Producto'); ?> - Clic para ver Kardex">
+                                                                    <img src="<?php echo e($item->producto->photo_url ?? ''); ?>"
+                                                                        alt="<?php echo e($item->producto->nombre ?? 'Producto'); ?>">
                                                                     <span
-                                                                        class="quantity-badge">{{ $item->cantidad }}</span>
+                                                                        class="quantity-badge"><?php echo e($item->cantidad); ?></span>
                                                                 </div>
-                                                            @endforeach
+                                                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
                                                         </div>
-                                                    @endif
+                                                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
                                                     <!-- Monto y Vencimiento -->
                                                     <div class="d-flex gap-2 flex-wrap mb-2">
                                                         <span class="badge bg-primary">
                                                             <i class="fa-solid fa-coins me-1"></i>
-                                                            Bs. {{ number_format($prestamo->deposito, 2) }}
+                                                            Bs. <?php echo e(number_format($prestamo->deposito, 2)); ?>
+
                                                         </span>
-                                                        @if ($prestamo->fecha_vencimiento)
+                                                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($prestamo->fecha_vencimiento): ?>
                                                             <span
-                                                                class="badge {{ $estadoReal === 'Vencido' ? 'bg-danger' : ($estadoReal === 'Devuelto' ? 'bg-success' : 'bg-warning text-dark') }}">
+                                                                class="badge <?php echo e($estadoReal === 'Vencido' ? 'bg-danger' : ($estadoReal === 'Devuelto' ? 'bg-success' : 'bg-warning text-dark')); ?>">
                                                                 <i class="fa-solid fa-calendar-check me-1"></i>
-                                                                {{ $prestamo->fecha_vencimiento->format('d/m/Y') }}
+                                                                <?php echo e($prestamo->fecha_vencimiento->format('d/m/Y')); ?>
+
                                                             </span>
-                                                        @endif
+                                                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                                                         <span
-                                                            class="badge {{ $estadoReal === 'Devuelto' ? 'bg-success' : ($estadoReal === 'Vencido' ? 'bg-danger' : ($estadoReal === 'Prestado' ? 'bg-info' : 'bg-secondary')) }}">
-                                                            {{ $estadoReal }}
+                                                            class="badge <?php echo e($estadoReal === 'Devuelto' ? 'bg-success' : ($estadoReal === 'Vencido' ? 'bg-danger' : ($estadoReal === 'Prestado' ? 'bg-info' : 'bg-secondary'))); ?>">
+                                                            <?php echo e($estadoReal); ?>
+
                                                         </span>
                                                     </div>
 
@@ -125,15 +129,18 @@
                                                         class="d-flex justify-content-between align-items-center text-muted flex-wrap gap-1">
                                                         <small>
                                                             <i
-                                                                class="fa-solid fa-user-tie me-1"></i>{{ $prestamo->user->name ?? 'Usuario' }}
+                                                                class="fa-solid fa-user-tie me-1"></i><?php echo e($prestamo->user->name ?? 'Usuario'); ?>
+
                                                         </small>
                                                         <small>
                                                             <i
-                                                                class="fa-solid fa-calendar me-1"></i>{{ $prestamo->created_at->format('d/m/Y H:i') }}
+                                                                class="fa-solid fa-calendar me-1"></i><?php echo e($prestamo->created_at->format('d/m/Y H:i')); ?>
+
                                                         </small>
                                                         <small>
                                                             <i
-                                                                class="fa-solid fa-user me-1"></i>{{ $prestamo->cliente->nombre ?? 'Sin cliente' }}
+                                                                class="fa-solid fa-user me-1"></i><?php echo e($prestamo->cliente->nombre ?? 'Sin cliente'); ?>
+
                                                         </small>
                                                     </div>
                                                 </div>
@@ -141,14 +148,14 @@
                                         </div>
                                     </div>
                                 </div>
-                            @empty
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
                                 <div class="col-12">
                                     <div class="text-center py-5 empty-state">
                                         <i class="fa-solid fa-handshake fa-5x mb-3 text-muted"></i>
                                         <p class="h5 text-muted mb-0">No se encontraron préstamos</p>
                                     </div>
                                 </div>
-                            @endforelse
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -179,14 +186,15 @@
                                    document.cookie = 'paginatePrestamos=' + $event.target.value + '; path=/; max-age=31536000';
                                ">
                     </div>
-                    {{ $prestamos->links() }}
+                    <?php echo e($prestamos->links()); ?>
+
                 </div>
             </div>
         </div>
     </footer>
 
     <!-- Modal de Filtro de Fechas -->
-    @if ($mostrarModalFiltro)
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($mostrarModalFiltro): ?>
         <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -199,13 +207,13 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Desde</label>
                                 <input type="date" class="form-control" wire:model.live="fecha_inicio"
-                                    @if ($fecha_fin) max="{{ $fecha_fin }}" @endif>
+                                    <?php if($fecha_fin): ?> max="<?php echo e($fecha_fin); ?>" <?php endif; ?>>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Hasta</label>
                                 <input type="date" class="form-control" wire:model.live="fecha_fin"
-                                    @if ($fecha_inicio) min="{{ $fecha_inicio }}" @endif
-                                    @if (!$fecha_inicio) disabled @endif>
+                                    <?php if($fecha_inicio): ?> min="<?php echo e($fecha_inicio); ?>" <?php endif; ?>
+                                    <?php if(!$fecha_inicio): ?> disabled <?php endif; ?>>
                             </div>
                         </div>
                     </div>
@@ -215,10 +223,10 @@
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     <!-- Modal de Detalles de Préstamo -->
-    @if ($mostrarModal && $prestamoSeleccionado)
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($mostrarModal && $prestamoSeleccionado): ?>
         <!-- Backdrop del Modal -->
         <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
 
@@ -230,7 +238,8 @@
                     <div class="modal-header text-white" style="background-color: var(--theme-default, #7366ff);">
                         <h5 class="modal-title mb-0">
                             <i class="fa-solid fa-handshake me-2"></i>Préstamo
-                            #{{ $prestamoSeleccionado->numero_folio }}
+                            #<?php echo e($prestamoSeleccionado->numero_folio); ?>
+
                         </h5>
                         <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
                             aria-label="Cerrar"></button>
@@ -249,23 +258,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($prestamoSeleccionado->prestamoItems as $item)
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $prestamoSeleccionado->prestamoItems; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
                                         <tr style="cursor: pointer;"
-                                            x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
+                                            x-on:click="$dispatch('mostrarKardex', { productoId: <?php echo e($item->producto_id); ?> })"
                                             title="Clic para ver movimientos de Kardex">
                                             <td class="align-middle text-truncate">
-                                                <strong>{{ $item->producto->nombre ?? 'Producto' }}</strong>
+                                                <strong><?php echo e($item->producto->nombre ?? 'Producto'); ?></strong>
                                             </td>
                                             <td class="text-center align-middle text-truncate">
-                                                <span class="badge bg-info text-dark">{{ $item->cantidad }}</span>
+                                                <span class="badge bg-info text-dark"><?php echo e($item->cantidad); ?></span>
                                             </td>
                                             <td class="text-end align-middle text-truncate">Bs.
-                                                {{ number_format($item->precio, 2) }}</td>
+                                                <?php echo e(number_format($item->precio, 2)); ?></td>
                                             <td class="text-end align-middle text-truncate">
-                                                <strong>Bs. {{ number_format($item->subtotal, 2) }}</strong>
+                                                <strong>Bs. <?php echo e(number_format($item->subtotal, 2)); ?></strong>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
                                 </tbody>
                                 <tfoot class="table-light">
                                     <tr>
@@ -274,7 +283,8 @@
                                         </td>
                                         <td class="text-end align-middle text-truncate">
                                             <strong class="text-primary fs-5">
-                                                Bs. {{ number_format($prestamoSeleccionado->deposito, 2) }}
+                                                Bs. <?php echo e(number_format($prestamoSeleccionado->deposito, 2)); ?>
+
                                             </strong>
                                         </td>
                                     </tr>
@@ -287,21 +297,24 @@
                         <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
                             <small class="text-muted">
                                 <i
-                                    class="fa-solid fa-user-tie me-1"></i>{{ $prestamoSeleccionado->user->name ?? 'Usuario' }}
+                                    class="fa-solid fa-user-tie me-1"></i><?php echo e($prestamoSeleccionado->user->name ?? 'Usuario'); ?>
+
                             </small>
                             <small class="text-muted">
                                 <i
-                                    class="fa-solid fa-user me-1"></i>{{ $prestamoSeleccionado->cliente->nombre ?? 'Sin cliente' }}
+                                    class="fa-solid fa-user me-1"></i><?php echo e($prestamoSeleccionado->cliente->nombre ?? 'Sin cliente'); ?>
+
                             </small>
-                            @if ($prestamoSeleccionado->fecha_vencimiento)
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($prestamoSeleccionado->fecha_vencimiento): ?>
                                 <small class="text-muted">
                                     <i
-                                        class="fa-solid fa-calendar-check me-1"></i>{{ $prestamoSeleccionado->fecha_vencimiento->format('d/m/Y') }}
+                                        class="fa-solid fa-calendar-check me-1"></i><?php echo e($prestamoSeleccionado->fecha_vencimiento->format('d/m/Y')); ?>
+
                                 </small>
-                            @endif
-                            @if ($prestamoSeleccionado->estado === 'Prestado')
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($prestamoSeleccionado->estado === 'Prestado'): ?>
                                 <button type="button" class="btn btn-success" wire:click="procesarDevolucion"
-                                    wire:loading.attr="disabled" @if ($procesandoDevolucion) disabled @endif>
+                                    wire:loading.attr="disabled" <?php if($procesandoDevolucion): ?> disabled <?php endif; ?>>
                                     <span wire:loading.remove wire:target="procesarDevolucion">
                                         <i class="fa-solid fa-rotate-left me-1"></i>Devolver
                                     </span>
@@ -309,20 +322,24 @@
                                         <i class="fa-solid fa-spinner fa-spin me-1"></i>Procesando...
                                     </span>
                                 </button>
-                            @else
+                            <?php else: ?>
                                 <span
-                                    class="badge bg-{{ $prestamoSeleccionado->estado === 'Devuelto' ? 'success' : 'secondary' }} fs-6">
-                                    {{ $prestamoSeleccionado->estado }}
+                                    class="badge bg-<?php echo e($prestamoSeleccionado->estado === 'Devuelto' ? 'success' : 'secondary'); ?> fs-6">
+                                    <?php echo e($prestamoSeleccionado->estado); ?>
+
                                 </span>
-                            @endif
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    @endif
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-    @script
+        <?php
+        $__scriptKey = '3060809928-0';
+        ob_start();
+    ?>
         <script>
             // Gestionar el estado del body cuando hay modales abiertos
             $wire.on('$refresh', () => {
@@ -361,8 +378,34 @@
                 });
             });
         </script>
-    @endscript
+        <?php
+        $__output = ob_get_clean();
+
+        \Livewire\store($this)->push('scripts', $__output, $__scriptKey)
+    ?>
 
     <!-- Componente anidado de Kardex Modal -->
-    <livewire:kardex-modal />
+    <?php
+$__split = function ($name, $params = []) {
+    return [$name, $params];
+};
+[$__name, $__params] = $__split('kardex-modal', []);
+
+$key = null;
+$__componentSlots = [];
+
+$key ??= \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::generateKey('lw-3060809928-0', $key);
+
+$__html = app('livewire')->mount($__name, $__params, $key, $__componentSlots);
+
+echo $__html;
+
+unset($__html);
+unset($__name);
+unset($__params);
+unset($__componentSlots);
+unset($__split);
+if (isset($__slots)) unset($__slots);
+?>
 </div>
+<?php /**PATH C:\laragon\www\licos\resources\views/livewire/prestamos.blade.php ENDPATH**/ ?>

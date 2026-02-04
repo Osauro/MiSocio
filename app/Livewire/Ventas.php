@@ -244,8 +244,9 @@ class Ventas extends Component
 
     public function crearVenta()
     {
-        // Verificar si el usuario ya tiene una venta pendiente
+        // Verificar si el usuario ya tiene una venta pendiente en este tenant
         $ventaPendiente = Venta::where('user_id', auth()->id())
+            ->where('tenant_id', currentTenantId())
             ->where('estado', 'Pendiente')
             ->first();
 

@@ -725,7 +725,6 @@
             });
         </script>
     @endscript
-
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
 </div>

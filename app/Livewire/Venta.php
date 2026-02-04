@@ -690,25 +690,44 @@ class Venta extends Component
                 $producto = Producto::lockForUpdate()->find($item['producto_id']);
                 $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
-                // Reducir stock
-                $stockAnterior = $producto->stock;
-                $producto->stock -= $cantidadTotal;
-                $producto->save();
+                if ($producto->control) {
+                    // PRODUCTOS CON CONTROL: Reducir stock normalmente
+                    // Reducir stock
+                    $stockAnterior = $producto->stock;
+                    $producto->stock -= $cantidadTotal;
+                    $producto->save();
 
-                // Registrar en Kardex (solo si hay cantidad)
-                if ($cantidadTotal > 0) {
-                    Kardex::create([
-                        'tenant_id' => currentTenantId(),
-                        'user_id' => Auth::id(),
-                        'producto_id' => $producto->id,
-                        'entrada' => 0,
-                        'salida' => $cantidadTotal,
-                        'anterior' => $stockAnterior,
-                        'saldo' => $producto->stock, // Stock después de la reducción
-                        'precio' => $item['precio'],
-                        'total' => $item['subtotal'],
-                        'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
-                    ]);
+                    // Registrar en Kardex (solo si hay cantidad)
+                    if ($cantidadTotal > 0) {
+                        Kardex::create([
+                            'tenant_id' => currentTenantId(),
+                            'user_id' => Auth::id(),
+                            'producto_id' => $producto->id,
+                            'entrada' => 0,
+                            'salida' => $cantidadTotal,
+                            'anterior' => $stockAnterior,
+                            'saldo' => $producto->stock, // Stock después de la reducción
+                            'precio' => $item['precio'],
+                            'total' => $item['subtotal'],
+                            'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
+                        ]);
+                    }
+                } else {
+                    // PRODUCTOS SIN CONTROL: No modificar stock, pero registrar movimiento
+                    if ($cantidadTotal > 0) {
+                        Kardex::create([
+                            'tenant_id' => currentTenantId(),
+                            'user_id' => Auth::id(),
+                            'producto_id' => $producto->id,
+                            'entrada' => 0,
+                            'salida' => $cantidadTotal, // Registrar salida normalmente
+                            'anterior' => 0,
+                            'saldo' => 0,
+                            'precio' => $item['precio'],
+                            'total' => $item['subtotal'],
+                            'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
+                        ]);
+                    }
                 }
             }
 

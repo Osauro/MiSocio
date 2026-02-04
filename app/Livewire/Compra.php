@@ -643,87 +643,105 @@ class Compra extends Component
                 if ($producto) {
                     $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
-                    // Guardar el stock anterior antes de incrementar
-                    $stockAnterior = $producto->stock;
+                    if ($producto->control) {
+                        // PRODUCTOS CON CONTROL: Incrementar stock normalmente
+                        // Guardar el stock anterior antes de incrementar
+                        $stockAnterior = $producto->stock;
 
-                    // Incrementar stock
-                    $producto->increment('stock', $cantidadTotal);
+                        // Incrementar stock
+                        $producto->increment('stock', $cantidadTotal);
 
-                    // Refrescar el producto para obtener el nuevo stock
-                    $producto->refresh();
+                        // Refrescar el producto para obtener el nuevo stock
+                        $producto->refresh();
 
-                    // Calcular precio promedio ponderado
-                    $precioCompraActual = $producto->precio_de_compra ?? 0;
-                    $precioNuevaCompra = $item['precio'];
+                        // Calcular precio promedio ponderado
+                        $precioCompraActual = $producto->precio_de_compra ?? 0;
+                        $precioNuevaCompra = $item['precio'];
 
-                    // Valor del inventario anterior + Valor de la nueva compra / Total unidades
-                    $valorInventarioAnterior = $stockAnterior * $precioCompraActual;
-                    $valorNuevaCompra = $cantidadTotal * $precioNuevaCompra;
-                    $stockTotal = $stockAnterior + $cantidadTotal;
+                        // Valor del inventario anterior + Valor de la nueva compra / Total unidades
+                        $valorInventarioAnterior = $stockAnterior * $precioCompraActual;
+                        $valorNuevaCompra = $cantidadTotal * $precioNuevaCompra;
+                        $stockTotal = $stockAnterior + $cantidadTotal;
 
-                    $precioPonderado = $stockTotal > 0 ? ($valorInventarioAnterior + $valorNuevaCompra) / $stockTotal : $precioNuevaCompra;
+                        $precioPonderado = $stockTotal > 0 ? ($valorInventarioAnterior + $valorNuevaCompra) / $stockTotal : $precioNuevaCompra;
 
-                    // Solo actualizar precios por mayor y menor si el precio nuevo es mayor al actual
-                    if ($precioNuevaCompra > $precioCompraActual) {
-                        // Calcular diferencias (márgenes) actuales
-                        $diffPrecioMayor = $producto->precio_por_mayor - $precioCompraActual;
-                        $diffPrecioMayor = ceil($diffPrecioMayor); // Redondear hacia arriba
+                        // Solo actualizar precios por mayor y menor si el precio nuevo es mayor al actual
+                        if ($precioNuevaCompra > $precioCompraActual) {
+                            // Calcular diferencias (márgenes) actuales
+                            $diffPrecioMayor = $producto->precio_por_mayor - $precioCompraActual;
+                            $diffPrecioMayor = ceil($diffPrecioMayor); // Redondear hacia arriba
 
-                        $cantidad = $producto->cantidad ?? 1;
-                        $diffPrecioMenor = (($producto->precio_por_menor * $cantidad) - $producto->precio_por_mayor) / $cantidad;
-                        $diffPrecioMenor = round($diffPrecioMenor * 2) / 2; // Redondear a 0.50
+                            $cantidad = $producto->cantidad ?? 1;
+                            $diffPrecioMenor = (($producto->precio_por_menor * $cantidad) - $producto->precio_por_mayor) / $cantidad;
+                            $diffPrecioMenor = round($diffPrecioMenor * 2) / 2; // Redondear a 0.50
 
-                        // Calcular nuevos precios manteniendo los márgenes
-                        $precioMayorCalculado = $precioPonderado + $diffPrecioMayor;
+                            // Calcular nuevos precios manteniendo los márgenes
+                            $precioMayorCalculado = $precioPonderado + $diffPrecioMayor;
 
-                        // Redondeo inteligente para precio por mayor: <= 0.5 → 0.5, > 0.5 → entero siguiente
-                        $parteEnteraMayor = floor($precioMayorCalculado);
-                        $parteDecimalMayor = $precioMayorCalculado - $parteEnteraMayor;
+                            // Redondeo inteligente para precio por mayor: <= 0.5 → 0.5, > 0.5 → entero siguiente
+                            $parteEnteraMayor = floor($precioMayorCalculado);
+                            $parteDecimalMayor = $precioMayorCalculado - $parteEnteraMayor;
 
-                        if ($parteDecimalMayor <= 0.5) {
-                            $nuevoPrecioMayor = $parteEnteraMayor + 0.5;
+                            if ($parteDecimalMayor <= 0.5) {
+                                $nuevoPrecioMayor = $parteEnteraMayor + 0.5;
+                            } else {
+                                $nuevoPrecioMayor = ceil($precioMayorCalculado);
+                            }
+
+                            $precioMenorCalculado = ($nuevoPrecioMayor / $cantidad) + $diffPrecioMenor;
+
+                            // Redondeo inteligente para precio por menor: <= 0.5 → 0.5, > 0.5 → entero siguiente
+                            $parteEnteraMenor = floor($precioMenorCalculado);
+                            $parteDecimalMenor = $precioMenorCalculado - $parteEnteraMenor;
+
+                            if ($parteDecimalMenor <= 0.5) {
+                                $nuevoPrecioMenor = $parteEnteraMenor + 0.5;
+                            } else {
+                                $nuevoPrecioMenor = ceil($precioMenorCalculado);
+                            }
+
+                            // Actualizar todos los precios
+                            $producto->update([
+                                'precio_de_compra' => $precioPonderado,
+                                'precio_por_mayor' => $nuevoPrecioMayor,
+                                'precio_por_menor' => $nuevoPrecioMenor,
+                            ]);
                         } else {
-                            $nuevoPrecioMayor = ceil($precioMayorCalculado);
+                            // Solo actualizar precio de compra con la media ponderada
+                            $producto->update([
+                                'precio_de_compra' => $precioPonderado,
+                            ]);
                         }
 
-                        $precioMenorCalculado = ($nuevoPrecioMayor / $cantidad) + $diffPrecioMenor;
-
-                        // Redondeo inteligente para precio por menor: <= 0.5 → 0.5, > 0.5 → entero siguiente
-                        $parteEnteraMenor = floor($precioMenorCalculado);
-                        $parteDecimalMenor = $precioMenorCalculado - $parteEnteraMenor;
-
-                        if ($parteDecimalMenor <= 0.5) {
-                            $nuevoPrecioMenor = $parteEnteraMenor + 0.5;
-                        } else {
-                            $nuevoPrecioMenor = ceil($precioMenorCalculado);
-                        }
-
-                        // Actualizar todos los precios
-                        $producto->update([
-                            'precio_de_compra' => $precioPonderado,
-                            'precio_por_mayor' => $nuevoPrecioMayor,
-                            'precio_por_menor' => $nuevoPrecioMenor,
+                        // Crear registro en kardex con el stock actualizado
+                        Kardex::create([
+                            'tenant_id' => currentTenantId(),
+                            'user_id' => Auth::id(),
+                            'producto_id' => $producto->id,
+                            'entrada' => $cantidadTotal,
+                            'salida' => 0,
+                            'anterior' => $stockAnterior,
+                            'saldo' => $producto->stock, // Stock después del incremento
+                            'precio' => $item['precio'],
+                            'total' => $item['subtotal'],
+                            'obs' => 'Compra #' . $this->compra->numero_folio . ($nombreProveedor ? ' - ' . $nombreProveedor : ''),
                         ]);
                     } else {
-                        // Solo actualizar precio de compra con la media ponderada
-                        $producto->update([
-                            'precio_de_compra' => $precioPonderado,
+                        // PRODUCTOS SIN CONTROL: No modificar stock (siempre queda en 0)
+                        // Para productos sin control: anterior=0, entrada=positivo, saldo=0
+                        Kardex::create([
+                            'tenant_id' => currentTenantId(),
+                            'user_id' => Auth::id(),
+                            'producto_id' => $producto->id,
+                            'entrada' => $cantidadTotal, // POSITIVO
+                            'salida' => 0,
+                            'anterior' => 0,
+                            'saldo' => 0,
+                            'precio' => $item['precio'],
+                            'total' => $item['subtotal'],
+                            'obs' => 'Compra #' . $this->compra->numero_folio . ($nombreProveedor ? ' - ' . $nombreProveedor : ''),
                         ]);
                     }
-
-                    // Crear registro en kardex con el stock actualizado
-                    Kardex::create([
-                        'tenant_id' => currentTenantId(),
-                        'user_id' => Auth::id(),
-                        'producto_id' => $producto->id,
-                        'entrada' => $cantidadTotal,
-                        'salida' => 0,
-                        'anterior' => $stockAnterior,
-                        'saldo' => $producto->stock, // Stock después del incremento
-                        'precio' => $item['precio'],
-                        'total' => $item['subtotal'],
-                        'obs' => 'Compra #' . $this->compra->numero_folio . ($nombreProveedor ? ' - ' . $nombreProveedor : ''),
-                    ]);
                 }
             }
 

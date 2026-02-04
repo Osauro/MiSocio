@@ -39,9 +39,6 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Crear/Editar Venta - Todos los usuarios pueden acceder
     Route::livewire('venta/{ventaId}', Venta::class)->name('venta');
 
-    // Préstamos - Todos los usuarios pueden acceder
-    Route::livewire('prestamos', Prestamos::class)->name('prestamos');
-
     // Crear/Editar Préstamo - Todos los usuarios pueden acceder
     Route::livewire('prestamo/{prestamoId}', Prestamo::class)->name('prestamo');
 
@@ -71,6 +68,9 @@ Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
 
     // Crear/Editar Compra - Solo administradores
     Route::livewire('compra/{compraId}', Compra::class)->name('compra');
+
+    // Préstamos - Solo administradores
+    Route::livewire('prestamos', Prestamos::class)->name('prestamos');
 });
 
 // Rutas para landlord - Solo Landlords

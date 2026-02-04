@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CompraItem extends Model
 {
+    public $timestamps = false;
+
     protected $fillable = [
         'compra_id',
         'producto_id',
