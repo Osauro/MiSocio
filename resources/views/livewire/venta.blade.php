@@ -266,7 +266,7 @@
                         <label for="fechaVenta" class="form-label fw-bold">Fecha de la venta</label>
                         <input type="date"
                             id="fechaVenta"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model="fechaVenta"
                             max="{{ date('Y-m-d') }}">
                         <small class="text-muted">
@@ -306,7 +306,7 @@
                         <label for="buscarCliente" class="form-label fw-bold">Buscar cliente</label>
                         <input type="text"
                             id="buscarCliente"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model.live.debounce.300ms="buscarCliente"
                             placeholder="Celular (8 dígitos) o nombre..."
                             x-init="$nextTick(() => $el.focus())">
@@ -343,7 +343,7 @@
                                 <label class="form-label fw-bold">Nombre</label>
                                 <input type="text"
                                     id="nuevoClienteNombre"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoCliente.nombre"
                                     x-init="$nextTick(() => $el.focus())"
                                     @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
@@ -352,7 +352,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Celular</label>
                                 <input type="text"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoCliente.celular"
                                     @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
                                 @error('nuevoCliente.celular') <span class="text-danger small">{{ $message }}</span> @enderror
@@ -360,14 +360,14 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Dirección</label>
                                 <input type="text"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoCliente.direccion"
                                     @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">NIT</label>
                                 <input type="text"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoCliente.nit"
                                     @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
                             </div>
@@ -416,7 +416,7 @@
                                 Total
                             </label>
                             <input type="text"
-                                class="form-control form-control-lg text-end fw-bold"
+                                class="form-control form-control-lg text-center fw-bold"
                                 value="Bs. {{ number_format($total, 2) }}"
                                 disabled
                                 readonly
@@ -429,7 +429,7 @@
                             </label>
                             <input type="number"
                                 id="montoPagoEfectivo"
-                                class="form-control form-control-lg text-end"
+                                class="form-control form-control-lg text-center"
                                 wire:model.live="montoPagoEfectivo"
                                 min="0"
                                 step="0.01"
@@ -445,7 +445,7 @@
                             </label>
                             <input type="number"
                                 id="montoPagoOnline"
-                                class="form-control form-control-lg text-end"
+                                class="form-control form-control-lg text-center"
                                 wire:model.live="montoPagoOnline"
                                 wire:keydown.enter="procesarPago"
                                 min="0"
@@ -461,7 +461,7 @@
                                 @endif
                             </label>
                             <input type="text"
-                                class="form-control form-control-lg text-end fw-bold"
+                                class="form-control form-control-lg text-center fw-bold"
                                 value="Bs. {{ number_format($montoCredito, 2) }}"
                                 disabled
                                 readonly

@@ -17,7 +17,7 @@
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
-                                    <input type="text" class="form-control" placeholder="Buscar movimientos"
+                                    <input type="text" class="form-control text-start" placeholder="Buscar movimientos"
                                         wire:model.live="search" style="min-width: 200px;" autofocus>
                                     @if(canManageTenant())
                                         <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
@@ -39,7 +39,7 @@
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
-                            <input type="text" class="form-control" placeholder="Buscar movimientos"
+                            <input type="text" class="form-control text-start" placeholder="Buscar movimientos"
                                 wire:model.live="search" autofocus>
                             @if(canManageTenant())
                                 <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>

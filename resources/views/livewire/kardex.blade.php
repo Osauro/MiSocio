@@ -17,7 +17,7 @@
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
-                                    <input type="text" class="form-control" placeholder="Buscar en kardex"
+                                    <input type="text" class="form-control text-start" placeholder="Buscar en kardex"
                                         wire:model.live="search" style="min-width: 200px;" autofocus>
                                 </div>
                             </div>
@@ -36,7 +36,7 @@
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
-                            <input type="text" class="form-control" placeholder="Buscar en kardex"
+                            <input type="text" class="form-control text-start" placeholder="Buscar en kardex"
                                 wire:model.live="search" autofocus>
                         </div>
                     </div>

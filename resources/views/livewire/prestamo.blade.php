@@ -262,7 +262,7 @@
                         <label for="fechaPrestamo" class="form-label fw-bold">Fecha del Préstamo</label>
                         <input type="date"
                             id="fechaPrestamo"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model="fechaPrestamo"
                             max="{{ date('Y-m-d') }}">
                         <small class="text-muted">
@@ -302,7 +302,7 @@
                         <label for="buscarCliente" class="form-label fw-bold">Buscar cliente</label>
                         <input type="text"
                             id="buscarCliente"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model.live.debounce.300ms="buscarCliente"
                             placeholder="Celular (8 dígitos) o nombre..."
                             x-init="$nextTick(() => $el.focus())">
@@ -346,7 +346,7 @@
                             </label>
                             <input type="text"
                                 id="nuevoClienteNombre"
-                                class="form-control form-control-lg text-end"
+                                class="form-control form-control-lg text-center"
                                 wire:model="nuevoCliente.nombre"
                                 placeholder="Ingresa el nombre y presiona Enter..."
                                 x-init="$nextTick(() => $el.focus())"
@@ -404,7 +404,7 @@
                                 Total
                             </label>
                             <input type="text"
-                                class="form-control form-control-lg text-end fw-bold"
+                                class="form-control form-control-lg text-center fw-bold"
                                 value="Bs. {{ number_format($total, 2) }}"
                                 disabled
                                 readonly
@@ -417,7 +417,7 @@
                             </label>
                             <input type="number"
                                 id="montoPagoEfectivo"
-                                class="form-control form-control-lg text-end"
+                                class="form-control form-control-lg text-center"
                                 wire:model.live="montoPagoEfectivo"
                                 min="0"
                                 step="0.01"
@@ -431,7 +431,7 @@
                             </label>
                             <input type="number"
                                 id="montoPagoOnline"
-                                class="form-control form-control-lg text-end"
+                                class="form-control form-control-lg text-center"
                                 wire:model.live="montoPagoOnline"
                                 wire:keydown.enter="procesarDepósito"
                                 min="0"

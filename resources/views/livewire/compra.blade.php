@@ -177,7 +177,7 @@
                                             </span>
                                             <input type="text"
                                                 id="buscadorCompra"
-                                                class="form-control text-end"
+                                                class="form-control text-start"
                                                 wire:model.live.debounce.300ms="buscar"
                                                 placeholder="Nombre o código..."
                                                 autofocus>
@@ -262,7 +262,7 @@
                         <label for="fechaCompra" class="form-label fw-bold">Fecha de la compra</label>
                         <input type="date"
                             id="fechaCompra"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model="fechaCompra"
                             max="{{ date('Y-m-d') }}">
                         <small class="text-muted">
@@ -302,7 +302,7 @@
                         <label for="buscarProveedor" class="form-label fw-bold">Buscar proveedor</label>
                         <input type="text"
                             id="buscarProveedor"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model.live.debounce.300ms="buscarProveedor"
                             placeholder="Celular (8 dígitos) o nombre..."
                             x-init="$nextTick(() => $el.focus())">
@@ -339,7 +339,7 @@
                                 <label class="form-label fw-bold">Nombre</label>
                                 <input type="text"
                                     id="nuevoProveedorNombre"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoProveedor.nombre"
                                     x-init="$nextTick(() => $el.focus())"
                                     @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
@@ -348,7 +348,7 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Celular</label>
                                 <input type="text"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoProveedor.celular"
                                     @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
                                 @error('nuevoProveedor.celular') <span class="text-danger small">{{ $message }}</span> @enderror
@@ -356,14 +356,14 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">Dirección</label>
                                 <input type="text"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoProveedor.direccion"
                                     @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">NIT</label>
                                 <input type="text"
-                                    class="form-control text-end"
+                                    class="form-control text-center"
                                     wire:model="nuevoProveedor.nit"
                                     @keydown.enter="if($wire.nuevoProveedor.nombre && $wire.nuevoProveedor.nombre.trim() !== '') { $wire.call('crearYSeleccionarProveedor') } else { $wire.call('avanzarPaso2SinProveedor') }">
                             </div>
@@ -432,7 +432,7 @@
                         <label for="montoAnadirCaja" class="form-label fw-bold">Monto a añadir (opcional)</label>
                         <input type="number"
                             id="montoAnadirCaja"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model.live="montoAñadirCaja"
                             min="0"
                             step="0.01"
@@ -492,7 +492,7 @@
                         <label for="montoPago" class="form-label fw-bold">Monto a pagar en efectivo</label>
                         <input type="number"
                             id="montoPago"
-                            class="form-control form-control-lg text-end"
+                            class="form-control form-control-lg text-center"
                             wire:model.live="montoPago"
                             min="0"
                             max="{{ collect($items)->sum('subtotal') }}"

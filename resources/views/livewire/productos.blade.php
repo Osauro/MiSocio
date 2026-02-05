@@ -8,7 +8,7 @@
                             <h3 class="d-none d-md-block mb-0">Productos</h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Buscar productos"
+                                    <input type="text" class="form-control text-start" placeholder="Buscar productos"
                                         wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
                                     <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
                                 </div>
@@ -19,7 +19,7 @@
                     <!-- Buscador fijo para móvil -->
                     <div class="card-header card-no-border d-md-none" style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
                         <div class="input-group">
-                            <input type="text" class="form-control" placeholder="Buscar productos"
+                            <input type="text" class="form-control text-start" placeholder="Buscar productos"
                                 wire:model.live="search" id="searchInput" autofocus>
                             <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
                         </div>
