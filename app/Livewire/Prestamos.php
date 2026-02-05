@@ -109,9 +109,7 @@ class Prestamos extends Component
                         'obs' => 'Devolución préstamo #' . $numeroFolio . ' - ' . $nombreCliente,
                     ]);
                 }
-
-                // Eliminar el item
-                $item->delete();
+                // Los items NO se eliminan, se conservan como histórico
             }
 
             // Registrar devolución de depósito en movimientos (egreso de caja)
@@ -125,16 +123,14 @@ class Prestamos extends Component
                 ]);
             }
 
-            // Actualizar estado del préstamo
+            // Actualizar estado del préstamo (conservar depósito como histórico)
             $this->prestamoSeleccionado->estado = 'Devuelto';
-            $this->prestamoSeleccionado->deposito = 0;
             $this->prestamoSeleccionado->save();
 
             DB::commit();
 
             $this->cerrarModal();
             $this->toast('success', 'Préstamo devuelto. Depósito: Bs. ' . number_format($depositoDevolver, 2));
-
         } catch (\Exception $e) {
             DB::rollBack();
             $this->procesandoDevolucion = false;

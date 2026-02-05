@@ -1,1 +1,0 @@
-prestamo-{{ $prestamo->id }}

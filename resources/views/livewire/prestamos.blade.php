@@ -5,7 +5,7 @@
                 <div class="card" style="margin-top: 0 !important;">
                     <div class="card-header card-no-border pb-0 d-none d-md-block">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h3 class="d-none d-md-block mb-0">Préstamos de Envases</h3>
+                            <h3 class="d-none d-md-block mb-0">Préstamos</h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
                                     @if ($fecha_inicio && $fecha_fin)

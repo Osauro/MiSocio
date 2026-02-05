@@ -1,11 +1,9 @@
 # Laravel & PHP
 /vendor/
 /node_modules/
-/public/build
+/public/build/
 /public/hot
 /public/storage
-/storage/*.key
-/storage/pail
 *.log
 
 # Environment files
@@ -55,8 +53,6 @@ package-lock.json
 # Laravel specific
 Homestead.json
 Homestead.yaml
-npm-debug.log
-yarn-error.log
 .rr.yaml
 pail.log
 
@@ -67,9 +63,34 @@ Thumbs.db
 .LSOverride
 ._*
 
-# Security & Deployment
-/bootstrap/cache/config.php
-/bootstrap/cache/routes-v7.php
-/bootstrap/cache/events.php
-/bootstrap/cache/packages.php
-/bootstrap/cache/services.php
+# Storage - Cache, Sessions, Views compiladas y Logs
+/storage/*.key
+/storage/pail
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/testing/*
+/storage/framework/views/*
+/storage/logs/*
+!/storage/framework/cache/data/.gitignore
+!/storage/framework/sessions/.gitignore
+!/storage/framework/testing/.gitignore
+!/storage/framework/views/.gitignore
+!/storage/logs/.gitignore
+
+# Bootstrap Cache
+/bootstrap/cache/*.php
+
+# Temporary and build files
+*.cache
+*.tmp
+*.temp
+
+# Database
+*.sqlite
+*.sqlite-journal
+/paybol_fadi.sql
+
+# Scripts de desarrollo/mantenimiento (opcional)
+cleanup-analysis.md
+cleanup.ps1
+fix_encoding.py

@@ -1,1 +1,0 @@
-prestamo-<?php echo e($prestamo->id); ?><?php /**PATH C:\laragon\www\licos\storage\framework\views/ee64cdb19331ffa7ac8f275ecc34480e.blade.php ENDPATH**/ ?>
