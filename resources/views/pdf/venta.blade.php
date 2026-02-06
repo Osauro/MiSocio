@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compra #{{ $compra->numero_folio }}</title>
+    <title>Venta #{{ $venta->numero_folio }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -59,6 +59,10 @@
             background-color: #dc3545;
             color: white;
         }
+        .badge-info {
+            background-color: #17a2b8;
+            color: white;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -88,6 +92,12 @@
         .text-primary {
             color: #007bff;
         }
+        .text-success {
+            color: #28a745;
+        }
+        .text-info {
+            color: #17a2b8;
+        }
         .text-danger {
             color: #dc3545;
         }
@@ -114,11 +124,11 @@
     </style>
 </head>
 <body>
-    @if($compra->estado === 'Eliminado')
+    @if($venta->estado === 'Eliminado')
         <div class="watermark">CANCELADA</div>
     @endif
     <div class="header">
-        <h1>COMPRA #{{ $compra->numero_folio }}</h1>
+        <h1>VENTA #{{ $venta->numero_folio }}</h1>
         <p style="margin: 5px 0;">{{ currentTenant()->name ?? 'LicoPOS' }}</p>
     </div>
 
@@ -126,42 +136,36 @@
         <div class="info-row">
             <div class="info-label">Estado:</div>
             <div class="info-value">
-                <span class="badge {{ $compra->estado === 'Completo' ? 'badge-success' : ($compra->estado === 'Eliminado' ? 'badge-danger' : 'badge-warning') }}">
-                    {{ $compra->estado }}
+                <span class="badge {{ $venta->estado === 'Completo' ? 'badge-success' : ($venta->estado === 'Eliminado' ? 'badge-danger' : ($venta->estado === 'Pendiente' ? 'badge-warning' : 'badge-info')) }}">
+                    {{ $venta->estado }}
                 </span>
             </div>
         </div>
         <div class="info-row">
-            <div class="info-label">Proveedor:</div>
-            <div class="info-value">{{ $compra->proveedor->nombre ?? 'Sin proveedor' }}</div>
+            <div class="info-label">Cliente:</div>
+            <div class="info-value">{{ $venta->cliente->nombre ?? 'Sin cliente' }}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Usuario:</div>
-            <div class="info-value">{{ $compra->user->name ?? 'Usuario' }}</div>
+            <div class="info-value">{{ $venta->user->name ?? 'Usuario' }}</div>
         </div>
         <div class="info-row">
             <div class="info-label">Fecha:</div>
-            <div class="info-value">{{ $compra->created_at->format('d/m/Y H:i') }}</div>
+            <div class="info-value">{{ $venta->created_at->format('d/m/Y H:i') }}</div>
         </div>
     </div>
 
     <table>
-        <colgroup>
-            <col>
-            <col width="50">
-            <col width="80">
-            <col width="110">
-        </colgroup>
         <thead>
             <tr>
                 <th>Producto</th>
-                <th class="text-center" width="40" >Cantidad</th>
-                <th class="text-right" width="60" >Precio</th>
-                <th class="text-right" width="80" >Subtotal</th>
+                <th class="text-center" width="40">Cantidad</th>
+                <th class="text-right" width="60">Precio</th>
+                <th class="text-right" width="80">Subtotal</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($compra->compraItems as $item)
+            @foreach($venta->ventaItems as $item)
                 <tr>
                     <td>{{ $item->producto->nombre ?? 'Producto' }}</td>
                     <td class="text-center">{{ $item->cantidad_formateada }}</td>
@@ -174,19 +178,25 @@
             <tr>
                 <td colspan="3" class="text-right">Total:</td>
                 <td class="text-right text-primary">
-                    Bs. {{ number_format($compra->efectivo + $compra->credito, 2) }}
+                    Bs. {{ number_format($venta->efectivo + $venta->online + $venta->credito, 2) }}
                 </td>
             </tr>
-            @if ($compra->efectivo > 0)
+            @if ($venta->efectivo > 0)
                 <tr>
                     <td colspan="3" class="text-right">Efectivo:</td>
-                    <td class="text-right">Bs. {{ number_format($compra->efectivo, 2) }}</td>
+                    <td class="text-right text-success">Bs. {{ number_format($venta->efectivo, 2) }}</td>
                 </tr>
             @endif
-            @if ($compra->credito > 0)
+            @if ($venta->online > 0)
+                <tr>
+                    <td colspan="3" class="text-right">Online:</td>
+                    <td class="text-right text-info">Bs. {{ number_format($venta->online, 2) }}</td>
+                </tr>
+            @endif
+            @if ($venta->credito > 0)
                 <tr>
                     <td colspan="3" class="text-right">Crédito:</td>
-                    <td class="text-right text-danger">Bs. {{ number_format($compra->credito, 2) }}</td>
+                    <td class="text-right text-danger">Bs. {{ number_format($venta->credito, 2) }}</td>
                 </tr>
             @endif
         </tfoot>
