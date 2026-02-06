@@ -236,12 +236,19 @@ class Venta extends Component
         // Recalcular precio basado en el subtotal redondeado
         $precioVenta = $subtotalInicial;
 
+        // Guardar precio de compra del producto y calcular beneficio
+        // beneficio = ((precio / producto.cantidad) - (precio_compra / producto.cantidad)) * cantidad
+        $precioCompra = $producto->precio_de_compra;
+        $beneficio = (($precioVenta / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadInicial;
+
         // Crear el item en la base de datos
         $ventaItem = VentaItem::create([
             'venta_id' => $this->ventaId,
             'producto_id' => $productoId,
             'cantidad' => $cantidadInicial,
+            'precio_compra' => $precioCompra,
             'precio' => $precioVenta,
+            'beneficio' => $beneficio,
             'subtotal' => $subtotalInicial,
         ]);
 
@@ -328,10 +335,18 @@ class Venta extends Component
 
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
 
+        // Guardar precio de compra del producto y calcular beneficio
+        // beneficio = ((precio / producto.cantidad) - (precio_compra / producto.cantidad)) * cantidad
+        $precioCompra = $producto->precio_de_compra;
+        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
+        $beneficio = (($this->items[$index]['precio'] / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadTotal;
+
         // Actualizar en base de datos
         VentaItem::find($item['id'])->update([
             'cantidad' => $cantidadTotal,
+            'precio_compra' => $precioCompra,
             'precio' => $this->items[$index]['precio'],
+            'beneficio' => $beneficio,
             'subtotal' => $this->items[$index]['subtotal'],
         ]);
 
@@ -369,8 +384,16 @@ class Venta extends Component
             $this->items[$index]['subtotal'] = 0;
         }
 
+        // Guardar precio de compra del producto y calcular beneficio
+        // beneficio = ((precio / producto.cantidad) - (precio_compra / producto.cantidad)) * cantidad
+        $precioCompra = $producto->precio_de_compra;
+        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
+        $beneficio = (($this->items[$index]['precio'] / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadTotal;
+
         VentaItem::find($item['id'])->update([
+            'precio_compra' => $precioCompra,
             'precio' => $this->items[$index]['precio'],
+            'beneficio' => $beneficio,
             'subtotal' => $this->items[$index]['subtotal'],
         ]);
 
@@ -582,24 +605,33 @@ class Venta extends Component
 
     public function updatedMontoPagoEfectivo()
     {
-        // Redondear a 2 decimales
-        $this->montoPagoEfectivo = round(floatval($this->montoPagoEfectivo), 2);
+        // Convertir string vacío a 0
+        if ($this->montoPagoEfectivo === '' || $this->montoPagoEfectivo === null) {
+            $this->montoPagoEfectivo = 0;
+        }
     }
 
     public function updatedMontoPagoOnline()
     {
-        // Redondear a 2 decimales
-        $this->montoPagoOnline = round(floatval($this->montoPagoOnline), 2);
+        // Convertir string vacío a 0
+        if ($this->montoPagoOnline === '' || $this->montoPagoOnline === null) {
+            $this->montoPagoOnline = 0;
+        }
     }
 
     public function procesarPago()
     {
+        // Asegurar valores válidos
+        $this->montoPagoEfectivo = max(0, floatval($this->montoPagoEfectivo));
+        $this->montoPagoOnline = max(0, floatval($this->montoPagoOnline));
+
         $total = round(collect($this->items)->sum('subtotal'), 2);
         $totalPagado = round($this->montoPagoEfectivo + $this->montoPagoOnline, 2);
+        $cambio = 0;
 
         // Validar monto
         if ($totalPagado > $total) {
-            // Si se paga de más en efectivo, hay cambio
+            // Si se paga de más, hay cambio
             $cambio = $totalPagado - $total;
         } elseif ($totalPagado < $total) {
             // Si se paga menos, debe tener cliente para crédito
@@ -610,12 +642,12 @@ class Venta extends Component
             }
         }
 
-        // Verificar fondos en caja si hay pago en efectivo
-        if ($this->montoPagoEfectivo > 0) {
+        // Solo verificar fondos si hay cambio a entregar
+        if ($cambio > 0) {
             $this->obtenerSaldoCaja();
 
-            if ($this->saldoCaja < $this->montoPagoEfectivo) {
-                $this->toast('error', 'Fondos insuficientes en caja.<br>Saldo: Bs. ' . number_format($this->saldoCaja, 2));
+            if ($this->saldoCaja < $cambio) {
+                $this->toast('error', 'Fondos insuficientes para dar cambio.<br>Saldo: Bs. ' . number_format($this->saldoCaja, 2) . '<br>Cambio: Bs. ' . number_format($cambio, 2));
                 return;
             }
         }
@@ -660,6 +692,7 @@ class Venta extends Component
             }
 
             // Determinar efectivo, online y crédito
+            $efectivoOriginal = $this->montoPagoEfectivo; // Guardar para el detalle
             $efectivo = $this->montoPagoEfectivo;
             $online = $this->montoPagoOnline;
             $totalPagado = $efectivo + $online;
@@ -669,7 +702,7 @@ class Venta extends Component
             if ($totalPagado > $total) {
                 // Hay cambio (solo si se pagó en efectivo)
                 $cambio = $totalPagado - $total;
-                $efectivo = $efectivo - $cambio; // Ajustar efectivo
+                $efectivo = $efectivo - $cambio; // Ajustar efectivo para guardar en BD
             } elseif ($totalPagado < $total) {
                 // Hay crédito
                 $credito = $total - $totalPagado;
@@ -731,8 +764,10 @@ class Venta extends Component
                 }
             }
 
-            // Registrar ingreso por la venta en efectivo
-            if ($efectivo > 0) {
+            // Registrar ingreso por la venta (efectivo + online)
+            $ingresoTotal = $efectivo + $online; // El efectivo ya está ajustado si hubo cambio
+
+            if ($ingresoTotal > 0 || $cambio > 0) {
                 $detalle = 'Venta #' . $this->venta->numero_folio;
 
                 if ($nombreCliente) {
@@ -740,17 +775,19 @@ class Venta extends Component
                 }
 
                 if ($credito > 0) {
-                    $detalle .= ' (Pago parcial: Bs. ' . number_format($efectivo, 2) . ' efectivo';
-                    if ($online > 0) {
-                        $detalle .= ' + Bs. ' . number_format($online, 2) . ' online';
+                    $detalle .= ' (Pago parcial: Bs. ' . number_format($efectivoOriginal + $online, 2);
+                    if ($efectivoOriginal > 0 && $online > 0) {
+                        $detalle .= ' [Ef: ' . number_format($efectivoOriginal, 2) . ' + On: ' . number_format($online, 2) . ']';
                     }
-                    $detalle .= ' + Bs. ' . number_format($credito, 2) . ' crédito)';
+                    $detalle .= ' + Crédito: Bs. ' . number_format($credito, 2) . ')';
                 } else {
                     $detalle .= ' (Pago total';
-                    if ($online > 0) {
-                        $detalle .= ': Bs. ' . number_format($efectivo, 2) . ' efectivo + Bs. ' . number_format($online, 2) . ' online';
+                    if ($efectivoOriginal > 0 && $online > 0) {
+                        $detalle .= ': Bs. ' . number_format($efectivoOriginal, 2) . ' efectivo + Bs. ' . number_format($online, 2) . ' online';
+                    } elseif ($online > 0) {
+                        $detalle .= ': Bs. ' . number_format($online, 2) . ' online';
                     } else {
-                        $detalle .= ' en efectivo';
+                        $detalle .= ': Bs. ' . number_format($efectivoOriginal, 2) . ' efectivo';
                     }
                     if ($cambio > 0) {
                         $detalle .= ' - Cambio: Bs. ' . number_format($cambio, 2);
@@ -762,7 +799,7 @@ class Venta extends Component
                     'tenant_id' => currentTenantId(),
                     'user_id' => Auth::id(),
                     'detalle' => $detalle,
-                    'ingreso' => $efectivo,
+                    'ingreso' => $ingresoTotal,
                     'egreso' => 0,
                 ]);
             }
@@ -786,7 +823,6 @@ class Venta extends Component
         $this->pasoActual = 0;
         $this->clienteSeleccionado = null;
         $this->mostrarFormNuevoCliente = false;
-        $this->montoAñadirCaja = 0;
         $this->montoPagoEfectivo = 0;
         $this->montoPagoOnline = 0;
     }

@@ -249,39 +249,44 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end align-middle text-truncate">
-                                            <strong>Total:</strong></td>
-                                        <td class="text-end align-middle text-truncate">
-                                            <strong class="text-primary fs-5">
-                                                Bs.
-                                                {{ number_format($compraSeleccionada->efectivo + $compraSeleccionada->credito, 2) }}
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                    @if ($compraSeleccionada->efectivo > 0)
-                                        <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">
-                                            </td>
-                                            <td class="text-end text-success align-middle text-truncate">
-                                                <strong>Bs.
-                                                    {{ number_format($compraSeleccionada->efectivo, 2) }}</strong>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                    @if ($compraSeleccionada->credito > 0)
-                                        <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">
-                                            </td>
-                                            <td class="text-end text-danger align-middle text-truncate">
-                                                <strong>Bs.
-                                                    {{ number_format($compraSeleccionada->credito, 2) }}</strong>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                </tfoot>
                             </table>
+                        </div>
+
+                        <!-- Tarjetas de totales -->
+                        @php
+                            $totalCompra = $compraSeleccionada->efectivo + $compraSeleccionada->credito;
+
+                            // Crear array de tarjetas
+                            $tarjetas = [];
+                            $tarjetas[] = ['label' => 'Total', 'valor' => $totalCompra, 'color' => ''];
+                            if ($compraSeleccionada->efectivo > 0) {
+                                $tarjetas[] = ['label' => 'Efectivo', 'valor' => $compraSeleccionada->efectivo, 'color' => ''];
+                            }
+                            if ($compraSeleccionada->credito > 0) {
+                                $tarjetas[] = ['label' => 'Crédito', 'valor' => $compraSeleccionada->credito, 'color' => ''];
+                            }
+
+                            $numTarjetas = count($tarjetas);
+
+                            // Calcular clase de columna (móvil col-6, desktop dinámico)
+                            $colClass = match($numTarjetas) {
+                                1 => 'col-6 col-md-12',
+                                2 => 'col-6',
+                                3 => 'col-6 col-md-4',
+                                default => 'col-6 col-md-4'
+                            };
+                        @endphp
+                        <div class="p-3">
+                            <div class="row g-2">
+                                @foreach ($tarjetas as $tarjeta)
+                                    <div class="{{ $colClass }}">
+                                        <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
+                                            <small class="text-dark d-block">{{ $tarjeta['label'] }}</small>
+                                            <span class="fw-bold fs-5 {{ $tarjeta['color'] ?: 'text-dark' }}">Bs. {{ number_format($tarjeta['valor'], 2) }}</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
 
@@ -365,9 +370,13 @@
                     </div>
 
                     <div class="modal-footer bg-light">
-                        <div class="w-100 text-end">
-                            <strong class="text-dark">Devuelto a Caja: </strong>
-                            <strong class="text-primary fs-5">Bs. {{ number_format($resumenEliminacion['devuelto_caja'] ?? 0, 2) }}</strong>
+                        <div class="row g-2 justify-content-center w-100">
+                            <div class="col-6 col-md-4">
+                                <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
+                                    <small class="text-dark d-block">Devuelto a Caja</small>
+                                    <span class="fw-bold fs-5 text-success">Bs. {{ number_format($resumenEliminacion['devuelto_caja'] ?? 0, 2) }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

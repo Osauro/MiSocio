@@ -233,7 +233,13 @@
                                     <tr>
                                         <th class="align-middle">Producto</th>
                                         <th class="text-center align-middle">Cantidad</th>
+                                        @if (auth()->user()->canManageCurrentTenant())
+                                            <th class="text-end align-middle">P. Compra</th>
+                                        @endif
                                         <th class="text-end align-middle">Precio</th>
+                                        @if (auth()->user()->canManageCurrentTenant())
+                                            <th class="text-end align-middle">Beneficio</th>
+                                        @endif
                                         <th class="text-end align-middle">Subtotal</th>
                                     </tr>
                                 </thead>
@@ -249,54 +255,88 @@
                                                 <span
                                                     class="badge bg-info text-dark">{{ $item->cantidad_formateada }}</span>
                                             </td>
+                                            @if (auth()->user()->canManageCurrentTenant())
+                                                <td class="text-end align-middle text-truncate text-muted">Bs.
+                                                    {{ number_format($item->precio_compra, 2) }}</td>
+                                            @endif
                                             <td class="text-end align-middle text-truncate">Bs.
                                                 {{ number_format($item->precio, 2) }}</td>
+                                            @if (auth()->user()->canManageCurrentTenant())
+                                                <td class="text-end align-middle text-truncate">
+                                                    <span class="badge bg-{{ $item->beneficio >= 0 ? 'success' : 'danger' }}">
+                                                        Bs. {{ number_format($item->beneficio, 2) }}
+                                                    </span>
+                                                </td>
+                                            @endif
                                             <td class="text-end align-middle text-truncate">
                                                 <strong>Bs. {{ number_format($item->subtotal, 2) }}</strong>
                                             </td>
                                         </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end align-middle text-truncate">
-                                            <strong>Total:</strong></td>
-                                        <td class="text-end align-middle text-truncate">
-                                            <strong class="text-primary fs-5">
-                                                Bs.
-                                                {{ number_format($ventaSeleccionada->efectivo + $ventaSeleccionada->online + $ventaSeleccionada->credito, 2) }}
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                    @if ($ventaSeleccionada->efectivo > 0)
-                                        <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">Efectivo:</td>
-                                            <td class="text-end text-success align-middle text-truncate">
-                                                <strong>Bs.
-                                                    {{ number_format($ventaSeleccionada->efectivo, 2) }}</strong>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                    @if ($ventaSeleccionada->online > 0)
-                                        <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">Online:</td>
-                                            <td class="text-end text-info align-middle text-truncate">
-                                                <strong>Bs.
-                                                    {{ number_format($ventaSeleccionada->online, 2) }}</strong>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                    @if ($ventaSeleccionada->credito > 0)
-                                        <tr>
-                                            <td colspan="3" class="text-end align-middle text-truncate">Crédito:</td>
-                                            <td class="text-end text-danger align-middle text-truncate">
-                                                <strong>Bs.
-                                                    {{ number_format($ventaSeleccionada->credito, 2) }}</strong>
-                                            </td>
-                                        </tr>
-                                    @endif
-                                </tfoot>
                             </table>
+                        </div>
+
+                        <!-- Tarjetas de totales -->
+                        @php
+                            $totalVenta = $ventaSeleccionada->efectivo + $ventaSeleccionada->online + $ventaSeleccionada->credito;
+                            $beneficioTotal = $ventaSeleccionada->ventaItems->sum('beneficio');
+                            $isAdmin = auth()->user()->canManageCurrentTenant();
+
+                            // Crear array de tarjetas
+                            $tarjetas = [];
+                            $tarjetas[] = ['label' => 'Total', 'valor' => $totalVenta, 'color' => ''];
+                            if ($isAdmin) {
+                                $tarjetas[] = ['label' => 'Beneficio', 'valor' => $beneficioTotal, 'color' => $beneficioTotal >= 0 ? 'text-success' : 'text-danger'];
+                            }
+                            if ($ventaSeleccionada->efectivo > 0) {
+                                $tarjetas[] = ['label' => 'Efectivo', 'valor' => $ventaSeleccionada->efectivo, 'color' => ''];
+                            }
+                            if ($ventaSeleccionada->online > 0) {
+                                $tarjetas[] = ['label' => 'Online', 'valor' => $ventaSeleccionada->online, 'color' => ''];
+                            }
+                            if ($ventaSeleccionada->credito > 0) {
+                                $tarjetas[] = ['label' => 'Crédito', 'valor' => $ventaSeleccionada->credito, 'color' => ''];
+                            }
+
+                            $numTarjetas = count($tarjetas);
+
+                            // Distribuir en filas (máximo 4 por fila)
+                            // 5: 2+3, 6: 3+3, 7: 3+4
+                            if ($numTarjetas <= 4) {
+                                $filas = [array_slice($tarjetas, 0, $numTarjetas)];
+                            } elseif ($numTarjetas == 5) {
+                                $filas = [array_slice($tarjetas, 0, 2), array_slice($tarjetas, 2, 3)];
+                            } elseif ($numTarjetas == 6) {
+                                $filas = [array_slice($tarjetas, 0, 3), array_slice($tarjetas, 3, 3)];
+                            } else {
+                                $filas = [array_slice($tarjetas, 0, 3), array_slice($tarjetas, 3, 4)];
+                            }
+                        @endphp
+                        <div class="p-3">
+                            @foreach ($filas as $fila)
+                                @php
+                                    $numEnFila = count($fila);
+                                    // Clase de columna según cantidad en la fila (móvil col-6, desktop dinámico)
+                                    $colClass = match($numEnFila) {
+                                        1 => 'col-6 col-md-12',
+                                        2 => 'col-6',
+                                        3 => 'col-6 col-md-4',
+                                        4 => 'col-6 col-md-3',
+                                        default => 'col-6 col-md-3'
+                                    };
+                                @endphp
+                                <div class="row g-2 @if (!$loop->last) mb-2 @endif">
+                                    @foreach ($fila as $tarjeta)
+                                        <div class="{{ $colClass }}">
+                                            <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
+                                                <small class="text-dark d-block">{{ $tarjeta['label'] }}</small>
+                                                <span class="fw-bold fs-5 {{ $tarjeta['color'] ?: 'text-dark' }}">Bs. {{ number_format($tarjeta['valor'], 2) }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endforeach
                         </div>
                     </div>
 
@@ -380,9 +420,13 @@
                     </div>
 
                     <div class="modal-footer bg-light">
-                        <div class="w-100 text-end">
-                            <strong class="text-dark">Retirado de Caja: </strong>
-                            <strong class="text-danger fs-5">Bs. {{ number_format($resumenEliminacion['devuelto_caja'] ?? 0, 2) }}</strong>
+                        <div class="row g-2 justify-content-center w-100">
+                            <div class="col-6 col-md-4">
+                                <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
+                                    <small class="text-dark d-block">Retirado de Caja</small>
+                                    <span class="fw-bold fs-5 text-danger">Bs. {{ number_format($resumenEliminacion['devuelto_caja'] ?? 0, 2) }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

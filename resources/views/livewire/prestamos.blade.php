@@ -267,19 +267,19 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                                <tfoot class="table-light">
-                                    <tr>
-                                        <td colspan="3" class="text-end align-middle text-truncate">
-                                            <strong>Depósito:</strong>
-                                        </td>
-                                        <td class="text-end align-middle text-truncate">
-                                            <strong class="text-primary fs-5">
-                                                Bs. {{ number_format($prestamoSeleccionado->deposito, 2) }}
-                                            </strong>
-                                        </td>
-                                    </tr>
-                                </tfoot>
                             </table>
+                        </div>
+
+                        <!-- Tarjeta de depósito -->
+                        <div class="p-3">
+                            <div class="row g-2 justify-content-center">
+                                <div class="col-6 col-md-4">
+                                    <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
+                                        <small class="text-dark d-block">Depósito</small>
+                                        <span class="fw-bold fs-5 text-dark">Bs. {{ number_format($prestamoSeleccionado->deposito, 2) }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 

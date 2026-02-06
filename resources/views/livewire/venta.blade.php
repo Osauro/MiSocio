@@ -403,8 +403,11 @@
                 <div class="modal-body">
                     @php
                         $total = collect($items)->sum('subtotal');
-                        $montoCredito = $total - $montoPagoEfectivo - $montoPagoOnline;
-                        $montoCredito = max(0, $montoCredito); // No puede ser negativo
+                        $efectivoNum = floatval($montoPagoEfectivo ?? 0);
+                        $onlineNum = floatval($montoPagoOnline ?? 0);
+                        $totalPagado = $efectivoNum + $onlineNum;
+                        $montoCredito = max(0, $total - $totalPagado);
+                        $cambio = max(0, $totalPagado - $total);
                     @endphp
 
                     <!-- Inputs en línea: Total, Efectivo, Online, Crédito -->
@@ -430,14 +433,14 @@
                             <input type="number"
                                 id="montoPagoEfectivo"
                                 class="form-control form-control-lg text-center"
-                                wire:model.live="montoPagoEfectivo"
+                                wire:model.live.debounce.500ms="montoPagoEfectivo"
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00"
                                 x-init="$nextTick(() => { $el.focus(); $el.select(); })">
                         </div>
 
-                        <!-- Segunda fila: Online y Crédito -->
+                        <!-- Segunda fila: Online y Crédito/Cambio -->
                         <div class="col-6">
                             <label for="montoPagoOnline" class="form-label fw-bold">
                                 <i class="fa-solid fa-qrcode text-info me-1"></i>
@@ -446,26 +449,39 @@
                             <input type="number"
                                 id="montoPagoOnline"
                                 class="form-control form-control-lg text-center"
-                                wire:model.live="montoPagoOnline"
+                                wire:model.live.debounce.500ms="montoPagoOnline"
                                 wire:keydown.enter="procesarPago"
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-bold">
-                                <i class="fa-solid fa-credit-card text-danger me-1"></i>
-                                Crédito
-                                @if($clienteSeleccionado === null && $montoCredito > 0)
-                                    <i class="fa-solid fa-exclamation-triangle text-danger ms-1" title="Requiere cliente"></i>
-                                @endif
-                            </label>
-                            <input type="text"
-                                class="form-control form-control-lg text-center fw-bold"
-                                value="Bs. {{ number_format($montoCredito, 2) }}"
-                                disabled
-                                readonly
-                                style="background-color: {{ $montoCredito > 0 ? '#ffebee' : '#f8f9fa' }}; border-color: {{ $montoCredito > 0 ? '#f44336' : '#dee2e6' }};">
+                            @if($cambio > 0)
+                                <label class="form-label fw-bold">
+                                    <i class="fa-solid fa-coins text-warning me-1"></i>
+                                    Cambio
+                                </label>
+                                <input type="text"
+                                    class="form-control form-control-lg text-center fw-bold"
+                                    value="Bs. {{ number_format($cambio, 2) }}"
+                                    disabled
+                                    readonly
+                                    style="background-color: #fff3e0; border-color: #ff9800;">
+                            @else
+                                <label class="form-label fw-bold">
+                                    <i class="fa-solid fa-credit-card text-danger me-1"></i>
+                                    Crédito
+                                    @if($clienteSeleccionado === null && $montoCredito > 0)
+                                        <i class="fa-solid fa-exclamation-triangle text-danger ms-1" title="Requiere cliente"></i>
+                                    @endif
+                                </label>
+                                <input type="text"
+                                    class="form-control form-control-lg text-center fw-bold"
+                                    value="Bs. {{ number_format($montoCredito, 2) }}"
+                                    disabled
+                                    readonly
+                                    style="background-color: {{ $montoCredito > 0 ? '#ffebee' : '#f8f9fa' }}; border-color: {{ $montoCredito > 0 ? '#f44336' : '#dee2e6' }};">
+                            @endif
                         </div>
                     </div>
 
@@ -473,16 +489,23 @@
                     <div class="d-flex justify-content-around align-items-center p-3 bg-light rounded mb-3">
                         <div class="text-center">
                             <small class="text-muted d-block">Efectivo</small>
-                            <strong class="text-success fs-5">Bs. {{ number_format($montoPagoEfectivo, 2) }}</strong>
+                            <strong class="text-success fs-5">Bs. {{ number_format($efectivoNum, 2) }}</strong>
                         </div>
                         <div class="text-center">
                             <small class="text-muted d-block">Online</small>
-                            <strong class="text-info fs-5">Bs. {{ number_format($montoPagoOnline, 2) }}</strong>
+                            <strong class="text-info fs-5">Bs. {{ number_format($onlineNum, 2) }}</strong>
                         </div>
-                        <div class="text-center">
-                            <small class="text-muted d-block">Crédito</small>
-                            <strong class="text-danger fs-5">Bs. {{ number_format($montoCredito, 2) }}</strong>
-                        </div>
+                        @if($cambio > 0)
+                            <div class="text-center">
+                                <small class="text-muted d-block">Cambio</small>
+                                <strong class="text-warning fs-5">Bs. {{ number_format($cambio, 2) }}</strong>
+                            </div>
+                        @else
+                            <div class="text-center">
+                                <small class="text-muted d-block">Crédito</small>
+                                <strong class="text-danger fs-5">Bs. {{ number_format($montoCredito, 2) }}</strong>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Alertas según el estado del pago -->
@@ -497,7 +520,12 @@
                             <i class="fa-solid fa-info-circle me-1"></i>
                             Se registrará un crédito de <strong>Bs. {{ number_format($montoCredito, 2) }}</strong>
                         </div>
-                    @elseif($montoPagoEfectivo + $montoPagoOnline == $total)
+                    @elseif($cambio > 0)
+                        <div class="alert alert-info mb-0">
+                            <i class="fa-solid fa-coins me-1"></i>
+                            Cambio a entregar: <strong>Bs. {{ number_format($cambio, 2) }}</strong>
+                        </div>
+                    @elseif($totalPagado == $total)
                         <div class="alert alert-success mb-0">
                             <i class="fa-solid fa-check-circle me-1"></i>
                             Pago completo

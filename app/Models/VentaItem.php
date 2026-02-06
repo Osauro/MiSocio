@@ -13,13 +13,17 @@ class VentaItem extends Model
         'venta_id',
         'producto_id',
         'cantidad',
+        'precio_compra',
         'precio',
+        'beneficio',
         'subtotal',
     ];
 
     protected $casts = [
         'cantidad' => 'integer',
+        'precio_compra' => 'decimal:2',
         'precio' => 'decimal:2',
+        'beneficio' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
 
