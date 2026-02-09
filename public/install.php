@@ -1,4 +1,5 @@
 <?php
+
 /**
  * LicoPOS - Instalador Web
  *
@@ -20,7 +21,8 @@ $errors = [];
 $success = [];
 
 // Funciones auxiliares
-function checkRequirement($name, $condition, $required = true) {
+function checkRequirement($name, $condition, $required = true)
+{
     return [
         'name' => $name,
         'status' => $condition,
@@ -28,11 +30,13 @@ function checkRequirement($name, $condition, $required = true) {
     ];
 }
 
-function generateRandomKey($length = 32) {
+function generateRandomKey($length = 32)
+{
     return 'base64:' . base64_encode(random_bytes($length));
 }
 
-function runArtisanCommand($basePath, $command) {
+function runArtisanCommand($basePath, $command)
+{
     $output = [];
     $returnVar = 0;
     exec("cd {$basePath} && php artisan {$command} 2>&1", $output, $returnVar);
@@ -69,7 +73,6 @@ if ($step === 'database' && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         header('Location: ?step=install');
         exit;
-
     } catch (PDOException $e) {
         $errors[] = 'Error de conexión: ' . $e->getMessage();
     }
@@ -511,7 +514,6 @@ CACHE_PREFIX=licos_
             $logs[] = '<span class="success">✓ Ya existen datos, omitiendo creación de usuario</span>';
             $_SESSION['install']['new_user'] = false;
         }
-
     } catch (Exception $e) {
         $logs[] = '<span class="error">✗ Error: ' . $e->getMessage() . '</span>';
         $hasError = true;
