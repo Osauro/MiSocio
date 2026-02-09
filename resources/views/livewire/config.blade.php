@@ -715,10 +715,30 @@
             });
         });
 
-        // Manejar impresión de prueba
+        // Manejar impresión de prueba (fallback cuando no hay conexión directa)
         $wire.on('imprimir-prueba', (data) => {
             const config = data[0];
 
+            // Mostrar aviso si hay error de conexión directa
+            if (config.error) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Usando impresión por navegador',
+                    html: `<p>No se pudo conectar directamente a la impresora:</p>
+                           <small class="text-muted">${config.error}</small>
+                           <p class="mt-2">Se usará el diálogo de impresión del navegador.</p>`,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Continuar'
+                }).then(() => {
+                    imprimirPorNavegador(config);
+                });
+            } else {
+                imprimirPorNavegador(config);
+            }
+        });
+
+        // Función para imprimir usando el navegador
+        function imprimirPorNavegador(config) {
             // Crear contenido de prueba
             const contenido = `
 ================================
@@ -773,15 +793,7 @@ Sonido: ${config.sonido ? 'SÍ' : 'NO'}
                     printWindow.close();
                 };
             };
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Impresión enviada',
-                text: 'Se ha enviado la impresión de prueba. Verifica que se imprimió correctamente.',
-                timer: 3000,
-                showConfirmButton: false
-            });
-        });
+        }
     </script>
     @endscript
 </div>
