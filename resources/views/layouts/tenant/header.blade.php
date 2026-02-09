@@ -35,9 +35,11 @@
                 <li class="cart-nav">
                     @livewire('venta-cart')
                 </li>
+                @if (Auth::user()->canManageCurrentTenant())
                 <li class="cart-nav">
                     @livewire('compra-cart')
                 </li>
+                @endif
                 <li class="cart-nav">
                     @livewire('prestamo-cart')
                 </li>

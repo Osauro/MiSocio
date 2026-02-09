@@ -232,45 +232,34 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="align-middle">Producto</th>
-                                        <th class="text-center align-middle">Cantidad</th>
+                                        <th class="text-end align-middle" style="width: 35px;">Cantidad</th>
                                         @if (auth()->user()->canManageCurrentTenant())
-                                            <th class="text-end align-middle">P. Compra</th>
+                                            <th class="text-end align-middle" style="width: 105px;">Compra</th>
                                         @endif
-                                        <th class="text-end align-middle">Precio</th>
+                                        <th class="text-end align-middle" style="width: 105px;">Precio</th>
                                         @if (auth()->user()->canManageCurrentTenant())
-                                            <th class="text-end align-middle">Beneficio</th>
+                                            <th class="text-end align-middle" style="width: 105px;">Beneficio</th>
                                         @endif
-                                        <th class="text-end align-middle">Subtotal</th>
+                                        <th class="text-end align-middle" style="width: 130px;">Subtotal</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach ($ventaSeleccionada->ventaItems as $item)
                                         <tr style="cursor: pointer;"
                                             x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
-                                            title="Clic para ver movimientos de Kardex">
-                                            <td class="align-middle text-truncate">
-                                                <strong>{{ $item->producto->nombre ?? 'Producto' }}</strong>
+                                            title="{{ $item->producto->nombre ?? 'Producto' }}">
+                                            <td class="align-middle" style="max-width: 220px;">
+                                                <strong class="d-block text-truncate">{{ $item->producto->nombre ?? 'Producto' }}</strong>
                                             </td>
-                                            <td class="text-center align-middle text-truncate">
-                                                <span
-                                                    class="badge bg-info text-dark">{{ $item->cantidad_formateada }}</span>
-                                            </td>
+                                            <td class="text-end align-middle" style="width: 35px;">{{ $item->cantidad_formateada }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
-                                                <td class="text-end align-middle text-truncate text-muted">Bs.
-                                                    {{ number_format($item->precio_compra, 2) }}</td>
+                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_compra, 2) }}</td>
                                             @endif
-                                            <td class="text-end align-middle text-truncate">Bs.
-                                                {{ number_format($item->precio, 2) }}</td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio, 2) }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
-                                                <td class="text-end align-middle text-truncate">
-                                                    <span class="badge bg-{{ $item->beneficio >= 0 ? 'success' : 'danger' }}">
-                                                        Bs. {{ number_format($item->beneficio, 2) }}
-                                                    </span>
-                                                </td>
+                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->beneficio, 2) }}</td>
                                             @endif
-                                            <td class="text-end align-middle text-truncate">
-                                                <strong>Bs. {{ number_format($item->subtotal, 2) }}</strong>
-                                            </td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 130px;"><strong>Bs. {{ number_format($item->subtotal, 2) }}</strong></td>
                                         </tr>
                                     @endforeach
                                 </tbody>

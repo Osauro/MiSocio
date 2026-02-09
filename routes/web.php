@@ -5,6 +5,7 @@ use App\Livewire\Categorias;
 use App\Livewire\Clientes;
 use App\Livewire\Compra;
 use App\Livewire\Compras;
+use App\Livewire\Config;
 use App\Livewire\HomeLandlord;
 use App\Livewire\HomeTenant;
 use App\Livewire\Kardex;
@@ -71,6 +72,9 @@ Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
 
     // Préstamos - Solo administradores
     Route::livewire('prestamos', Prestamos::class)->name('prestamos');
+
+    // Configuración del sistema - Solo administradores
+    Route::livewire('config', Config::class)->name('config');
 });
 
 // Rutas para landlord - Solo Landlords
