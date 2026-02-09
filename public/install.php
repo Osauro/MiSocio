@@ -496,9 +496,9 @@ CACHE_PREFIX=licos_
             $tenantId = $pdo->lastInsertId();
 
             // Create user
-            $password = password_hash('admin123', PASSWORD_BCRYPT);
+            $password = password_hash('5421', PASSWORD_BCRYPT);
             $pdo->exec("INSERT INTO users (name, celular, password, is_super_admin, created_at, updated_at)
-                        VALUES ('Administrador', '70000000', '{$password}', 1, NOW(), NOW())");
+                        VALUES ('Administrador', '73010688', '{$password}', 1, NOW(), NOW())");
             $userId = $pdo->lastInsertId();
 
             // Link user to tenant
@@ -553,9 +553,9 @@ elseif ($step === 'complete') {
         echo '<div class="credentials-box">
             <h3>Credenciales de Acceso</h3>
             <p>Celular:</p>
-            <p class="cred">70000000</p>
+            <p class="cred">73010688</p>
             <p style="margin-top: 10px;">Contraseña:</p>
-            <p class="cred">admin123</p>
+            <p class="cred">5421</p>
         </div>';
     }
 
