@@ -435,6 +435,7 @@ class Ventas extends Component
             'direccion' => $config->direccion ?? '',
             'telefono' => $config->telefono ?? '',
             'nit' => $config->nit ?? '',
+            'logo_url' => $config->logo ? asset('storage/' . $config->logo) : '',
 
             // Datos de la venta
             'folio' => $venta->numero_folio,

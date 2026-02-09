@@ -798,13 +798,9 @@
                         }
 
                         const printerConfig = qz.configs.create(ticket.impresora);
-                        const comandos = generarComandosTicketVenta(ticket);
+                        const printData = await generarPrintData(ticket);
 
-                        await qz.print(printerConfig, [{
-                            type: 'raw',
-                            format: 'plain',
-                            data: comandos
-                        }]);
+                        await qz.print(printerConfig, printData);
 
                         console.log('Ticket impreso exitosamente');
                     } catch (e) {
@@ -822,6 +818,35 @@
                     window.location.href = '{{ route("ventas") }}';
                 }, 500);
             });
+
+            // Generar datos de impresión (logo + comandos ESC/POS)
+            async function generarPrintData(ticket) {
+                const printData = [];
+
+                // Si hay logo, agregar como imagen
+                if (ticket.logo_url) {
+                    printData.push({
+                        type: 'pixel',
+                        format: 'image',
+                        flavor: 'file',
+                        data: ticket.logo_url,
+                        options: {
+                            language: 'ESCPOS',
+                            dotDensity: 'double',
+                            xmlTag: 'center'
+                        }
+                    });
+                }
+
+                // Agregar comandos ESC/POS
+                printData.push({
+                    type: 'raw',
+                    format: 'plain',
+                    data: generarComandosTicketVenta(ticket)
+                });
+
+                return printData;
+            }
 
             // Generar comandos ESC/POS para ticket de venta
             function generarComandosTicketVenta(ticket) {
@@ -938,10 +963,12 @@
                             .linea { border-top: 1px dashed #000; margin: 5px 0; }
                             .item { display: flex; justify-content: space-between; }
                             .total-row { display: flex; justify-content: space-between; }
+                            .logo { max-width: 180px; max-height: 80px; margin: 0 auto 5px; display: block; }
                             @media print { @page { margin: 0; } body { width: 100%; } }
                         </style>
                     </head>
                     <body>
+                        ${ticket.logo_url ? '<img src="' + ticket.logo_url + '" class="logo" />' : ''}
                         <div class="center bold">${ticket.nombre_tienda || 'MI TIENDA'}</div>
                         ${ticket.direccion ? '<div class="center">' + ticket.direccion + '</div>' : ''}
                         ${ticket.telefono ? '<div class="center">Tel: ' + ticket.telefono + '</div>' : ''}
