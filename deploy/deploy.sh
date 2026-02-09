@@ -36,7 +36,7 @@ composer install --optimize-autoloader --no-dev
 if [ ! -f ".env" ]; then
     echo "Creando archivo .env..."
     cp .env.example .env
-    
+
     # Generar APP_KEY
     php artisan key:generate
 fi

@@ -2,7 +2,7 @@
 
 /**
  * LicoPOS - Index para cPanel
- * 
+ *
  * Este archivo va en public_html/ cuando el proyecto
  * está instalado en /home/usuario/licos/
  */
