@@ -842,26 +842,151 @@
             });
         });
 
-        // Manejar impresión de prueba (fallback cuando no hay conexión directa)
-        $wire.on('imprimir-prueba', (data) => {
+        // Manejar impresión de prueba con QZ Tray
+        $wire.on('imprimir-prueba-qz', async (data) => {
             const config = data[0];
 
-            // Mostrar aviso si hay error de conexión directa
-            if (config.error) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Usando impresión por navegador',
-                    html: `<p>No se pudo conectar directamente a la impresora:</p>
-                           <small class="text-muted">${config.error}</small>
-                           <p class="mt-2">Se usará el diálogo de impresión del navegador.</p>`,
-                    showConfirmButton: true,
-                    confirmButtonText: 'Continuar'
-                }).then(() => {
-                    imprimirPorNavegador(config);
-                });
-            } else {
-                imprimirPorNavegador(config);
+            // Intentar con QZ Tray primero
+            if (typeof qz !== 'undefined') {
+                try {
+                    // Conectar si no está conectado
+                    if (!qz.websocket.isActive()) {
+                        Swal.fire({
+                            title: 'Conectando con QZ Tray...',
+                            text: 'Asegúrate de que QZ Tray esté ejecutándose',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                        await qz.websocket.connect();
+                    }
+
+                    Swal.fire({
+                        title: 'Imprimiendo...',
+                        text: 'Enviando a ' + config.impresora,
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    // Configurar impresora
+                    const printerConfig = qz.configs.create(config.impresora, {
+                        copies: 1,
+                        jobName: 'Prueba LicoPOS'
+                    });
+
+                    // Comandos ESC/POS para impresora térmica
+                    const ESC = '\x1B';
+                    const GS = '\x1D';
+                    const ancho = config.ancho || 48;
+                    const linea = '='.repeat(ancho);
+
+                    let comandos = [
+                        ESC + '@',                    // Inicializar impresora
+                        ESC + 'a' + '\x01',          // Centrar texto
+                        ESC + 'E' + '\x01',          // Negrita ON
+                        'IMPRESION DE PRUEBA\n',
+                        ESC + 'E' + '\x00',          // Negrita OFF
+                        linea + '\n',
+                        ESC + 'a' + '\x00',          // Alinear izquierda
+                        'Tienda: ' + (config.nombre_tienda || 'Mi Tienda') + '\n',
+                        'Impresora: ' + config.impresora + '\n',
+                        'Tipo: ' + config.tipo + '\n',
+                        'Papel: ' + config.papel + '\n',
+                        'Ancho: ' + ancho + ' caracteres\n',
+                        linea + '\n',
+                        'Corte automatico: ' + (config.corte ? 'SI' : 'NO') + '\n',
+                        'Abrir cajon: ' + (config.abrir_cajon ? 'SI' : 'NO') + '\n',
+                        'Sonido: ' + (config.sonido ? 'SI' : 'NO') + '\n',
+                        linea + '\n',
+                        ESC + 'a' + '\x01',          // Centrar
+                        '\n!Configuracion correcta!\n\n',
+                        new Date().toLocaleString() + '\n\n'
+                    ];
+
+                    // Agregar corte de papel si está habilitado
+                    if (config.corte) {
+                        comandos.push(GS + 'V' + '\x00'); // Corte total
+                    }
+
+                    // Abrir cajón si está habilitado
+                    if (config.abrir_cajon) {
+                        comandos.push(ESC + 'p' + '\x00' + '\x19' + '\xFA'); // Pulso cajón
+                    }
+
+                    // Enviar a imprimir
+                    const printData = [{
+                        type: 'raw',
+                        format: 'plain',
+                        data: comandos.join('')
+                    }];
+
+                    await qz.print(printerConfig, printData);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Impresión enviada',
+                        text: 'El ticket de prueba se envió a ' + config.impresora,
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                    return;
+
+                } catch (e) {
+                    Swal.close();
+                    console.error('Error QZ Tray:', e);
+
+                    // Si QZ no está corriendo, mostrar mensaje
+                    if (e.message && e.message.includes('Unable to establish')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'QZ Tray no está corriendo',
+                            html: `
+                                <p>Inicia QZ Tray para imprimir directamente.</p>
+                                <p class="mt-2">¿Deseas usar el diálogo de impresión del navegador?</p>
+                            `,
+                            showCancelButton: true,
+                            confirmButtonText: 'Usar navegador',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                imprimirPorNavegador(config);
+                            }
+                        });
+                        return;
+                    }
+
+                    // Otro error, usar navegador
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de impresión',
+                        html: `<p>${e.message}</p><p>¿Usar impresión por navegador?</p>`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí',
+                        cancelButtonText: 'No'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            imprimirPorNavegador(config);
+                        }
+                    });
+                    return;
+                }
             }
+
+            // Sin QZ Tray, usar navegador
+            Swal.fire({
+                icon: 'info',
+                title: 'Imprimiendo por navegador',
+                text: 'Se abrirá el diálogo de impresión',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                imprimirPorNavegador(config);
+            });
+        });
+
+        // Manejar impresión de prueba legacy (fallback)
+        $wire.on('imprimir-prueba', (data) => {
+            const config = data[0];
+            imprimirPorNavegador(config);
         });
 
         // Función para imprimir usando el navegador

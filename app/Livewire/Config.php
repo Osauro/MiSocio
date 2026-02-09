@@ -257,10 +257,30 @@ class Config extends Component
             return;
         }
 
+        // En hosting compartido, la impresión debe hacerse desde el navegador del usuario
+        // usando QZ Tray o el diálogo de impresión
+        $this->dispatch('imprimir-prueba-qz', [
+            'impresora' => $this->impresora_nombre,
+            'tipo' => $this->impresora_tipo,
+            'papel' => $this->papel_tamano,
+            'corte' => $this->corte_automatico,
+            'abrir_cajon' => $this->abrir_cajon,
+            'sonido' => $this->sonido_apertura,
+            'ancho' => $this->ancho_caracteres,
+            'nombre_tienda' => $this->nombre_tienda ?? 'Mi Tienda',
+        ]);
+    }
+
+    public function impresionPruebaLegacy()
+    {
+        if (!$this->impresora_nombre) {
+            $this->alertError('Configura una impresora primero');
+            return;
+        }
+
         $printerService = new \App\Services\PrinterService();
 
         if (!$printerService->connect($this->getTenantId())) {
-            // Si falla la conexión directa, usar impresión por navegador como fallback
             $this->dispatch('imprimir-prueba', [
                 'impresora' => $this->impresora_nombre,
                 'tipo' => $this->impresora_tipo,
