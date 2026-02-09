@@ -197,7 +197,7 @@ class Config extends Component
             'logo' => $logoPath,
         ]);
 
-        $this->success('Configuración general guardada correctamente');
+        $this->alertSuccess('Configuración general guardada correctamente');
     }
 
     public function guardarImpresion()
@@ -225,7 +225,7 @@ class Config extends Component
             'ancho_caracteres' => $this->ancho_caracteres ?? 48,
         ]);
 
-        $this->success('Configuración de impresión guardada correctamente');
+        $this->alertSuccess('Configuración de impresión guardada correctamente');
     }
 
     public function eliminarLogo()
@@ -239,7 +239,7 @@ class Config extends Component
         $config->update(['logo' => null]);
         $this->logo_actual = null;
 
-        $this->success('Logo eliminado correctamente');
+        $this->alertSuccess('Logo eliminado correctamente');
     }
 
     public function detectarImpresoras()
@@ -290,9 +290,9 @@ class Config extends Component
         $this->dispatch('impresoras-detectadas', ['impresoras' => $impresoras]);
 
         if (empty($impresoras)) {
-            $this->info('No se detectaron impresoras del sistema. Puedes agregar una manualmente.');
+            $this->alertInfo('No se detectaron impresoras del sistema. Puedes agregar una manualmente.');
         } else {
-            $this->success('Se detectaron ' . count($impresoras) . ' impresora(s)');
+            $this->alertSuccess('Se detectaron ' . count($impresoras) . ' impresora(s)');
         }
     }
 
@@ -326,7 +326,7 @@ class Config extends Component
             'whatsapp_enabled' => $this->whatsapp_enabled ?? false,
         ]);
 
-        $this->success('Configuración de WhatsApp guardada correctamente');
+        $this->alertSuccess('Configuración de WhatsApp guardada correctamente');
     }
 
     public function guardarFacebook()
@@ -344,7 +344,7 @@ class Config extends Component
             'facebook_enabled' => $this->facebook_enabled ?? false,
         ]);
 
-        $this->success('Configuración de Facebook guardada correctamente');
+        $this->alertSuccess('Configuración de Facebook guardada correctamente');
     }
 
     public function guardarImportacion()
@@ -358,7 +358,7 @@ class Config extends Component
             'formato_importacion' => $this->formato_importacion,
         ]);
 
-        $this->success('Configuración de importación guardada correctamente');
+        $this->alertSuccess('Configuración de importación guardada correctamente');
     }
 
     public function render()
