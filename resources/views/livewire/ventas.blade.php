@@ -500,7 +500,7 @@
 
             // ========== IMPRESIÓN DE TICKET DE VENTA ==========
             $wire.on('imprimir-ticket-venta', async (data) => {
-                const ticket = data;
+                const ticket = data[0] || data;
 
                 // Si no hay impresora configurada, usar navegador
                 if (!ticket.impresora) {
