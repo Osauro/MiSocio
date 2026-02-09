@@ -581,16 +581,33 @@
 
     @script
     <script>
+        // Variable para rastrear conexión QZ
+        let qzConectado = false;
+
         // Detectar impresoras locales (desde el navegador del usuario)
         $wire.on('detectar-impresoras-local', async () => {
             const container = document.getElementById('lista-impresoras-container');
             const lista = document.getElementById('lista-impresoras');
 
-            // Intentar detectar con QZ Tray primero
+            // Intentar detectar con QZ Tray
             if (typeof qz !== 'undefined') {
                 try {
-                    await qz.websocket.connect();
+                    // Conectar si no está conectado
+                    if (!qz.websocket.isActive()) {
+                        Swal.fire({
+                            title: 'Conectando con QZ Tray...',
+                            text: 'Asegúrate de que QZ Tray esté ejecutándose',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        await qz.websocket.connect();
+                        qzConectado = true;
+                    }
+
                     const printers = await qz.printers.find();
+                    Swal.close();
+
                     if (printers.length > 0) {
                         lista.innerHTML = printers.map(nombre => `
                             <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
@@ -613,11 +630,37 @@
                         return;
                     }
                 } catch (e) {
-                    console.log('QZ Tray no disponible:', e);
+                    Swal.close();
+                    console.log('QZ Tray error:', e);
+
+                    // Mostrar instrucciones si QZ no está corriendo
+                    if (e.message && e.message.includes('Unable to establish')) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'QZ Tray no está corriendo',
+                            html: `
+                                <p>QZ Tray debe estar ejecutándose para detectar impresoras.</p>
+                                <ol class="text-start">
+                                    <li>Busca <strong>QZ Tray</strong> en tu menú de inicio</li>
+                                    <li>Ejecútalo (aparecerá un ícono en la bandeja del sistema)</li>
+                                    <li>Vuelve a hacer clic en <strong>Detectar</strong></li>
+                                </ol>
+                            `,
+                            confirmButtonText: 'Entendido'
+                        });
+                        container.style.display = 'block';
+                        lista.innerHTML = `
+                            <div class="list-group-item text-center text-warning py-3">
+                                <i class="fa-solid fa-exclamation-triangle me-1"></i>
+                                Inicia QZ Tray y vuelve a detectar
+                            </div>
+                        `;
+                        return;
+                    }
                 }
             }
 
-            // Sin QZ Tray: mostrar opciones manuales
+            // Sin QZ Tray instalado: mostrar opciones manuales
             Swal.fire({
                 icon: 'info',
                 title: 'Configurar Impresora',
