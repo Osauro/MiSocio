@@ -754,7 +754,23 @@
 
             // ========== IMPRESIÓN DE TICKET DE VENTA ==========
             $wire.on('imprimir-ticket-venta', async (data) => {
-                const ticket = data[0] || data;
+                const raw = data[0] || data;
+                // Convertir valores numéricos (llegan como string desde PHP)
+                const ticket = {
+                    ...raw,
+                    total: parseFloat(raw.total) || 0,
+                    efectivo: parseFloat(raw.efectivo) || 0,
+                    online: parseFloat(raw.online) || 0,
+                    credito: parseFloat(raw.credito) || 0,
+                    cambio: parseFloat(raw.cambio) || 0,
+                    ancho: parseInt(raw.ancho) || 48,
+                    items: (raw.items || []).map(i => ({
+                        ...i,
+                        cantidad: parseFloat(i.cantidad) || 0,
+                        precio: parseFloat(i.precio) || 0,
+                        subtotal: parseFloat(i.subtotal) || 0,
+                    })),
+                };
 
                 // Si no hay impresora configurada, solo redirigir
                 if (!ticket.impresora) {
