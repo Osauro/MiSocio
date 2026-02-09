@@ -755,7 +755,7 @@
             // ========== IMPRESIÓN DE TICKET DE VENTA ==========
             $wire.on('imprimir-ticket-venta', async (data) => {
                 const ticket = data;
-                
+
                 // Si no hay impresora configurada, solo redirigir
                 if (!ticket.impresora) {
                     Swal.fire({
@@ -816,95 +816,95 @@
                 const lineaSimple = '-'.repeat(ancho);
 
                 let cmd = '';
-                
+
                 // Inicializar
                 cmd += ESC + '@';
-                
+
                 // Centrar y negrita para título
                 cmd += ESC + 'a\x01';  // Centrar
                 cmd += ESC + 'E\x01';  // Negrita ON
                 cmd += (ticket.nombre_tienda || 'MI TIENDA').toUpperCase() + '\n';
                 cmd += ESC + 'E\x00';  // Negrita OFF
-                
+
                 // Dirección y teléfono
                 if (ticket.direccion) cmd += ticket.direccion + '\n';
                 if (ticket.telefono) cmd += 'Tel: ' + ticket.telefono + '\n';
                 if (ticket.nit) cmd += 'NIT: ' + ticket.nit + '\n';
-                
+
                 cmd += linea + '\n';
                 cmd += ESC + 'E\x01';
                 cmd += '**** TICKET DE VENTA ****\n';
                 cmd += ESC + 'E\x00';
                 cmd += linea + '\n';
-                
+
                 // Alinear izquierda para datos
                 cmd += ESC + 'a\x00';
                 cmd += 'FECHA:   ' + ticket.fecha + '\n';
                 cmd += 'USUARIO: ' + ticket.usuario + '\n';
                 cmd += 'CLIENTE: ' + ticket.cliente + '\n';
                 cmd += 'FOLIO:   #' + ticket.folio + '\n';
-                
+
                 cmd += lineaSimple + '\n';
                 cmd += ESC + 'a\x01';  // Centrar
                 cmd += 'D E T A L L E\n';
                 cmd += lineaSimple + '\n';
                 cmd += ESC + 'a\x00';  // Izquierda
-                
+
                 // Items
                 ticket.items.forEach(item => {
                     const cantStr = item.cantidad + 'u';
                     const precioStr = item.subtotal.toFixed(2);
                     const nombre = item.nombre.substring(0, ancho - cantStr.length - precioStr.length - 4);
-                    
+
                     // Línea: cantidad + nombre truncado + precio alineado a la derecha
                     const espacios = ancho - cantStr.length - nombre.length - precioStr.length - 1;
                     cmd += cantStr + ' ' + nombre + '.'.repeat(Math.max(1, espacios)) + precioStr + '\n';
                 });
-                
+
                 cmd += lineaSimple + '\n';
-                
+
                 // Totales alineados a la derecha
                 const formatTotal = (label, valor) => {
                     const valorStr = valor.toFixed(2);
                     const espacios = ancho - label.length - valorStr.length;
                     return label + ' '.repeat(Math.max(1, espacios)) + valorStr + '\n';
                 };
-                
+
                 cmd += ESC + 'E\x01';  // Negrita
                 cmd += formatTotal('TOTAL:', ticket.total);
                 cmd += ESC + 'E\x00';  // Negrita OFF
-                
+
                 if (ticket.efectivo > 0) cmd += formatTotal('EFECTIVO:', ticket.efectivo);
                 if (ticket.online > 0) cmd += formatTotal('ONLINE:', ticket.online);
                 if (ticket.credito > 0) cmd += formatTotal('CREDITO:', ticket.credito);
                 if (ticket.cambio > 0) cmd += formatTotal('CAMBIO:', ticket.cambio);
-                
+
                 cmd += linea + '\n';
-                
+
                 // Mensaje final centrado
                 cmd += ESC + 'a\x01';
                 cmd += '\n';
                 cmd += 'GRACIAS POR SU COMPRA\n';
                 cmd += '\n\n';
-                
+
                 // Corte de papel
                 if (ticket.corte) {
                     cmd += GS + 'V\x00';
                 }
-                
+
                 // Abrir cajón
                 if (ticket.abrir_cajon) {
                     cmd += ESC + 'p\x00\x19\xFA';
                 }
-                
+
                 return cmd;
             }
 
             // Fallback: imprimir ticket por navegador
             function imprimirTicketNavegador(ticket) {
                 const ancho = ticket.papel === '58mm' ? '58mm' : '80mm';
-                
-                let itemsHtml = ticket.items.map(item => 
+
+                let itemsHtml = ticket.items.map(item =>
                     `<div class="item">
                         <span>${item.cantidad}u ${item.nombre}</span>
                         <span>${item.subtotal.toFixed(2)}</span>

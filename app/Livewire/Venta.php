@@ -808,20 +808,20 @@ class Venta extends Component
 
             // Preparar datos para el ticket
             $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
-            
+
             $ticketData = [
                 // Datos de la tienda
                 'nombre_tienda' => $config->nombre_tienda ?? 'Mi Tienda',
                 'direccion' => $config->direccion ?? '',
                 'telefono' => $config->telefono ?? '',
                 'nit' => $config->nit ?? '',
-                
+
                 // Datos de la venta
                 'folio' => $this->venta->numero_folio,
                 'fecha' => now()->format('d/m/Y H:i:s'),
                 'usuario' => Auth::user()->name ?? 'Usuario',
                 'cliente' => $nombreCliente ?? 'Consumidor Final',
-                
+
                 // Items
                 'items' => collect($this->items)->map(function($item) {
                     $cantidad = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
@@ -832,14 +832,14 @@ class Venta extends Component
                         'subtotal' => $item['subtotal'],
                     ];
                 })->toArray(),
-                
+
                 // Totales
                 'total' => round($total, 2),
                 'efectivo' => round($efectivoOriginal, 2),
                 'online' => round($online, 2),
                 'credito' => round($credito, 2),
                 'cambio' => round($cambio, 2),
-                
+
                 // Config de impresora
                 'impresora' => $config->impresora_nombre ?? '',
                 'papel' => $config->papel_tamano ?? '80mm',
@@ -849,7 +849,7 @@ class Venta extends Component
             ];
 
             $this->toast('success', 'Venta completada exitosamente');
-            
+
             // Emitir evento para imprimir ticket
             $this->dispatch('imprimir-ticket-venta', $ticketData);
         } catch (\Exception $e) {
