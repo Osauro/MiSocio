@@ -1,7 +1,7 @@
 <?php
 /**
  * LicoPOS - Instalador Web
- * 
+ *
  * Este archivo realiza la instalación completa del sistema.
  * ELIMINAR DESPUÉS DE LA INSTALACIÓN
  */
@@ -36,7 +36,7 @@ function runArtisanCommand($basePath, $command) {
 $css = '
 <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { 
+    body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         background: linear-gradient(135deg, #1a472a 0%, #2d5a3d 100%);
         min-height: 100vh;
@@ -230,23 +230,23 @@ if ($step === 'check') {
         checkRequirement('BCMath Extension', extension_loaded('bcmath'), false),
         checkRequirement('Fileinfo Extension', extension_loaded('fileinfo')),
     ];
-    
+
     // Check directories
     $directories = [
         checkRequirement('storage/framework writable', is_writable($basePath . '/storage/framework') || @mkdir($basePath . '/storage/framework', 0775, true)),
         checkRequirement('storage/logs writable', is_writable($basePath . '/storage/logs') || @mkdir($basePath . '/storage/logs', 0775, true)),
         checkRequirement('bootstrap/cache writable', is_writable($basePath . '/bootstrap/cache') || @mkdir($basePath . '/bootstrap/cache', 0775, true)),
     ];
-    
+
     // Create necessary directories
     @mkdir($basePath . '/storage/framework/sessions', 0775, true);
     @mkdir($basePath . '/storage/framework/views', 0775, true);
     @mkdir($basePath . '/storage/framework/cache', 0775, true);
-    
+
     $allPassed = true;
-    
+
     echo '<h2 style="margin-bottom: 20px;">📋 Verificación de Requisitos</h2>';
-    
+
     echo '<h4 style="margin: 15px 0 10px;">Extensiones PHP</h4>';
     echo '<ul class="check-list">';
     foreach ($requirements as $req) {
@@ -259,7 +259,7 @@ if ($step === 'check') {
         </li>";
     }
     echo '</ul>';
-    
+
     echo '<h4 style="margin: 15px 0 10px;">Permisos de Directorios</h4>';
     echo '<ul class="check-list">';
     foreach ($directories as $dir) {
@@ -272,7 +272,7 @@ if ($step === 'check') {
         </li>";
     }
     echo '</ul>';
-    
+
     echo '<div class="mt-20 text-center">';
     if ($allPassed) {
         echo '<a href="?step=database" class="btn">Continuar →</a>';
@@ -292,7 +292,7 @@ elseif ($step === 'database') {
         $dbUser = $_POST['db_user'] ?? '';
         $dbPass = $_POST['db_pass'] ?? '';
         $appUrl = $_POST['app_url'] ?? '';
-        
+
         // Test connection
         try {
             $pdo = new PDO(
@@ -301,10 +301,10 @@ elseif ($step === 'database') {
                 $dbPass,
                 [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
             );
-            
+
             // Create database if not exists
             $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            
+
             // Save to session for next step
             session_start();
             $_SESSION['install'] = [
@@ -315,32 +315,32 @@ elseif ($step === 'database') {
                 'db_pass' => $dbPass,
                 'app_url' => $appUrl,
             ];
-            
+
             header('Location: ?step=install');
             exit;
-            
+
         } catch (PDOException $e) {
             $errors[] = 'Error de conexión: ' . $e->getMessage();
         }
     }
-    
+
     // Detectar URL
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
     $detectedUrl = $protocol . '://' . $host;
-    
+
     echo '<h2 style="margin-bottom: 20px;">🗄️ Configuración de Base de Datos</h2>';
-    
+
     if (!empty($errors)) {
         echo '<div class="alert alert-error">' . implode('<br>', $errors) . '</div>';
     }
-    
+
     echo '<form method="POST">
         <div class="form-group">
             <label>URL de la Aplicación</label>
             <input type="url" name="app_url" value="' . $detectedUrl . '" required placeholder="https://licos.fadi.com.bo">
         </div>
-        
+
         <div class="form-row">
             <div class="form-group">
                 <label>Host de Base de Datos</label>
@@ -351,13 +351,13 @@ elseif ($step === 'database') {
                 <input type="text" name="db_port" value="3306" required>
             </div>
         </div>
-        
+
         <div class="form-group">
             <label>Nombre de la Base de Datos</label>
             <input type="text" name="db_name" required placeholder="paybol_licos">
             <p class="small">Se creará automáticamente si no existe</p>
         </div>
-        
+
         <div class="form-row">
             <div class="form-group">
                 <label>Usuario de BD</label>
@@ -368,7 +368,7 @@ elseif ($step === 'database') {
                 <input type="password" name="db_pass" placeholder="••••••••">
             </div>
         </div>
-        
+
         <div class="mt-20">
             <button type="submit" class="btn btn-block">Probar Conexión e Instalar →</button>
         </div>
@@ -378,19 +378,19 @@ elseif ($step === 'database') {
 // STEP 3: Install
 elseif ($step === 'install') {
     session_start();
-    
+
     if (!isset($_SESSION['install'])) {
         header('Location: ?step=database');
         exit;
     }
-    
+
     $config = $_SESSION['install'];
     $logs = [];
     $hasError = false;
-    
+
     echo '<h2 style="margin-bottom: 20px;">⚙️ Instalando LicoPOS...</h2>';
     echo '<div class="log-output" id="install-log">';
-    
+
     // 1. Create .env file
     $logs[] = '<span class="success">→ Creando archivo .env...</span>';
     $envContent = "APP_NAME=LicoPOS
@@ -440,7 +440,7 @@ CACHE_PREFIX=licos_
         $logs[] = '<span class="error">✗ Error creando .env</span>';
         $hasError = true;
     }
-    
+
     // 2. Generate APP_KEY
     $logs[] = '<span class="success">→ Generando APP_KEY...</span>';
     $result = runArtisanCommand($basePath, 'key:generate --force');
@@ -450,13 +450,13 @@ CACHE_PREFIX=licos_
         $logs[] = '<span class="error">✗ Error: ' . $result['output'] . '</span>';
         $hasError = true;
     }
-    
+
     // 3. Clear config cache
     $logs[] = '<span class="success">→ Limpiando caché...</span>';
     runArtisanCommand($basePath, 'config:clear');
     runArtisanCommand($basePath, 'cache:clear');
     $logs[] = '<span class="success">✓ Caché limpiada</span>';
-    
+
     // 4. Run migrations
     $logs[] = '<span class="success">→ Ejecutando migraciones...</span>';
     $result = runArtisanCommand($basePath, 'migrate --force');
@@ -466,12 +466,12 @@ CACHE_PREFIX=licos_
         $logs[] = '<span class="error">✗ Error en migraciones: ' . $result['output'] . '</span>';
         $hasError = true;
     }
-    
+
     // 5. Create storage link
     $logs[] = '<span class="success">→ Creando enlace de storage...</span>';
     $result = runArtisanCommand($basePath, 'storage:link');
     $logs[] = '<span class="success">✓ Enlace de storage creado</span>';
-    
+
     // 6. Create default tenant and user
     $logs[] = '<span class="success">→ Creando tenant y usuario por defecto...</span>';
     try {
@@ -481,50 +481,50 @@ CACHE_PREFIX=licos_
             $config['db_pass'],
             [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
         );
-        
+
         // Check if tenant exists
         $stmt = $pdo->query("SELECT COUNT(*) FROM tenants");
         $count = $stmt->fetchColumn();
-        
+
         if ($count == 0) {
             // Create tenant
-            $pdo->exec("INSERT INTO tenants (name, subscription_type, status, created_at, updated_at) 
+            $pdo->exec("INSERT INTO tenants (name, subscription_type, status, created_at, updated_at)
                         VALUES ('Mi Empresa', 'demo', 1, NOW(), NOW())");
             $tenantId = $pdo->lastInsertId();
-            
+
             // Create user
             $password = password_hash('admin123', PASSWORD_BCRYPT);
-            $pdo->exec("INSERT INTO users (name, celular, password, is_super_admin, created_at, updated_at) 
+            $pdo->exec("INSERT INTO users (name, celular, password, is_super_admin, created_at, updated_at)
                         VALUES ('Administrador', '70000000', '{$password}', 1, NOW(), NOW())");
             $userId = $pdo->lastInsertId();
-            
+
             // Link user to tenant
-            $pdo->exec("INSERT INTO tenant_user (tenant_id, user_id, role, is_active, created_at, updated_at) 
+            $pdo->exec("INSERT INTO tenant_user (tenant_id, user_id, role, is_active, created_at, updated_at)
                         VALUES ({$tenantId}, {$userId}, 'tenant', 1, NOW(), NOW())");
-            
+
             $logs[] = '<span class="success">✓ Tenant y usuario creados</span>';
             $_SESSION['install']['new_user'] = true;
         } else {
             $logs[] = '<span class="success">✓ Ya existen datos, omitiendo creación de usuario</span>';
             $_SESSION['install']['new_user'] = false;
         }
-        
+
     } catch (Exception $e) {
         $logs[] = '<span class="error">✗ Error: ' . $e->getMessage() . '</span>';
         $hasError = true;
     }
-    
+
     // 7. Optimize
     $logs[] = '<span class="success">→ Optimizando para producción...</span>';
     runArtisanCommand($basePath, 'config:cache');
     runArtisanCommand($basePath, 'route:cache');
     runArtisanCommand($basePath, 'view:cache');
     $logs[] = '<span class="success">✓ Optimización completada</span>';
-    
+
     // Output logs
     echo implode("\n", $logs);
     echo '</div>';
-    
+
     if ($hasError) {
         echo '<div class="alert alert-error mt-20">
             Hubo errores durante la instalación. Revisa los logs arriba.
@@ -544,9 +544,9 @@ CACHE_PREFIX=licos_
 elseif ($step === 'complete') {
     session_start();
     $newUser = $_SESSION['install']['new_user'] ?? true;
-    
+
     echo '<h2 style="margin-bottom: 20px; text-align: center;">🎉 ¡Instalación Completada!</h2>';
-    
+
     if ($newUser) {
         echo '<div class="credentials-box">
             <h3>Credenciales de Acceso</h3>
@@ -556,24 +556,24 @@ elseif ($step === 'complete') {
             <p class="cred">admin123</p>
         </div>';
     }
-    
+
     echo '<div class="alert alert-warning">
         <strong>⚠️ IMPORTANTE:</strong> Por seguridad, elimina este archivo después de la instalación:
         <div class="code-block">rm public/install.php</div>
     </div>';
-    
+
     $appUrl = $_SESSION['install']['app_url'] ?? '';
-    
+
     echo '<div class="text-center mt-20">
         <a href="' . $appUrl . '" class="btn" style="font-size: 18px; padding: 18px 40px;">
             Ir a LicoPOS →
         </a>
     </div>';
-    
+
     echo '<p class="small text-center mt-20">
         Recuerda cambiar la contraseña después del primer inicio de sesión.
     </p>';
-    
+
     // Clear session
     unset($_SESSION['install']);
 }
