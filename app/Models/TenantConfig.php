@@ -12,11 +12,26 @@ class TenantConfig extends Model
         // General
         'sueldo_base',
         'ip_local',
+        // Tienda
+        'nombre_tienda',
+        'direccion',
+        'telefono',
+        'email',
+        'nit',
+        // Propietario
+        'propietario_nombre',
+        'propietario_celular',
+        // Logo
+        'logo',
         // Impresión
         'impresora_nombre',
         'impresora_tipo',
         'papel_tamano',
         'papel_copias',
+        'corte_automatico',
+        'abrir_cajon',
+        'sonido_apertura',
+        'ancho_caracteres',
         // WhatsApp API
         'whatsapp_token',
         'whatsapp_phone_id',
@@ -33,6 +48,10 @@ class TenantConfig extends Model
     protected $casts = [
         'sueldo_base' => 'decimal:2',
         'papel_copias' => 'integer',
+        'corte_automatico' => 'boolean',
+        'abrir_cajon' => 'boolean',
+        'sonido_apertura' => 'boolean',
+        'ancho_caracteres' => 'integer',
         'whatsapp_enabled' => 'boolean',
         'facebook_enabled' => 'boolean',
         'ultima_importacion' => 'datetime',
