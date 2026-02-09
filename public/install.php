@@ -10,6 +10,9 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Iniciar sesión al principio
+session_start();
+
 // Configuración
 $basePath = dirname(__DIR__);
 $step = $_GET['step'] ?? 'check';
@@ -34,6 +37,48 @@ function runArtisanCommand($basePath, $command) {
     $returnVar = 0;
     exec("cd {$basePath} && php artisan {$command} 2>&1", $output, $returnVar);
     return ['output' => implode("\n", $output), 'success' => $returnVar === 0];
+}
+
+// Manejar POST del formulario de BD ANTES de cualquier output
+if ($step === 'database' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $dbHost = $_POST['db_host'] ?? 'localhost';
+    $dbPort = $_POST['db_port'] ?? '3306';
+    $dbName = $_POST['db_name'] ?? '';
+    $dbUser = $_POST['db_user'] ?? '';
+    $dbPass = $_POST['db_pass'] ?? '';
+    $appUrl = $_POST['app_url'] ?? '';
+
+    try {
+        $pdo = new PDO(
+            "mysql:host={$dbHost};port={$dbPort}",
+            $dbUser,
+            $dbPass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+
+        $_SESSION['install'] = [
+            'db_host' => $dbHost,
+            'db_port' => $dbPort,
+            'db_name' => $dbName,
+            'db_user' => $dbUser,
+            'db_pass' => $dbPass,
+            'app_url' => $appUrl,
+        ];
+
+        header('Location: ?step=install');
+        exit;
+
+    } catch (PDOException $e) {
+        $errors[] = 'Error de conexión: ' . $e->getMessage();
+    }
+}
+
+// Redirect si install step pero no hay sesión
+if ($step === 'install' && !isset($_SESSION['install'])) {
+    header('Location: ?step=database');
+    exit;
 }
 
 // Estilos CSS
@@ -289,45 +334,6 @@ if ($step === 'check') {
 
 // STEP 2: Database Configuration
 elseif ($step === 'database') {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $dbHost = $_POST['db_host'] ?? 'localhost';
-        $dbPort = $_POST['db_port'] ?? '3306';
-        $dbName = $_POST['db_name'] ?? '';
-        $dbUser = $_POST['db_user'] ?? '';
-        $dbPass = $_POST['db_pass'] ?? '';
-        $appUrl = $_POST['app_url'] ?? '';
-
-        // Test connection
-        try {
-            $pdo = new PDO(
-                "mysql:host={$dbHost};port={$dbPort}",
-                $dbUser,
-                $dbPass,
-                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-            );
-
-            // Create database if not exists
-            $pdo->exec("CREATE DATABASE IF NOT EXISTS `{$dbName}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-
-            // Save to session for next step
-            session_start();
-            $_SESSION['install'] = [
-                'db_host' => $dbHost,
-                'db_port' => $dbPort,
-                'db_name' => $dbName,
-                'db_user' => $dbUser,
-                'db_pass' => $dbPass,
-                'app_url' => $appUrl,
-            ];
-
-            header('Location: ?step=install');
-            exit;
-
-        } catch (PDOException $e) {
-            $errors[] = 'Error de conexión: ' . $e->getMessage();
-        }
-    }
-
     // Detectar URL
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
@@ -381,13 +387,6 @@ elseif ($step === 'database') {
 
 // STEP 3: Install
 elseif ($step === 'install') {
-    session_start();
-
-    if (!isset($_SESSION['install'])) {
-        header('Location: ?step=database');
-        exit;
-    }
-
     $config = $_SESSION['install'];
     $logs = [];
     $hasError = false;
@@ -546,7 +545,6 @@ CACHE_PREFIX=licos_
 
 // STEP 4: Complete
 elseif ($step === 'complete') {
-    session_start();
     $newUser = $_SESSION['install']['new_user'] ?? true;
 
     echo '<h2 style="margin-bottom: 20px; text-align: center;">🎉 ¡Instalación Completada!</h2>';
