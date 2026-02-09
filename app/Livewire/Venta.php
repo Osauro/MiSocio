@@ -806,10 +806,52 @@ class Venta extends Component
 
             DB::commit();
 
-            $this->toast('success', 'Venta completada exitosamente');
+            // Preparar datos para el ticket
+            $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
+            
+            $ticketData = [
+                // Datos de la tienda
+                'nombre_tienda' => $config->nombre_tienda ?? 'Mi Tienda',
+                'direccion' => $config->direccion ?? '',
+                'telefono' => $config->telefono ?? '',
+                'nit' => $config->nit ?? '',
+                
+                // Datos de la venta
+                'folio' => $this->venta->numero_folio,
+                'fecha' => now()->format('d/m/Y H:i:s'),
+                'usuario' => Auth::user()->name ?? 'Usuario',
+                'cliente' => $nombreCliente ?? 'Consumidor Final',
+                
+                // Items
+                'items' => collect($this->items)->map(function($item) {
+                    $cantidad = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
+                    return [
+                        'cantidad' => $cantidad,
+                        'nombre' => $item['nombre'],
+                        'precio' => $item['precio'],
+                        'subtotal' => $item['subtotal'],
+                    ];
+                })->toArray(),
+                
+                // Totales
+                'total' => round($total, 2),
+                'efectivo' => round($efectivoOriginal, 2),
+                'online' => round($online, 2),
+                'credito' => round($credito, 2),
+                'cambio' => round($cambio, 2),
+                
+                // Config de impresora
+                'impresora' => $config->impresora_nombre ?? '',
+                'papel' => $config->papel_tamano ?? '80mm',
+                'ancho' => $config->ancho_caracteres ?? 48,
+                'corte' => $config->corte_automatico ?? true,
+                'abrir_cajon' => $config->abrir_cajon ?? false,
+            ];
 
-            // Redirigir a la lista de ventas
-            return redirect()->route('ventas');
+            $this->toast('success', 'Venta completada exitosamente');
+            
+            // Emitir evento para imprimir ticket
+            $this->dispatch('imprimir-ticket-venta', $ticketData);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al finalizar venta: ' . $e->getMessage());
