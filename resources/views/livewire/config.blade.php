@@ -241,79 +241,116 @@
                                     <!-- Selección de Impresora -->
                                     <div class="col-md-6 mb-3">
                                         <div class="card border shadow-sm h-100">
-                                            <div class="card-header bg-secondary text-white">
+                                            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-print me-2"></i>
                                                     Impresora
                                                 </h5>
+                                                <button type="button" class="btn btn-sm btn-light" wire:click="detectarImpresoras"
+                                                    wire:loading.attr="disabled" title="Detectar impresoras del sistema">
+                                                    <span wire:loading.remove wire:target="detectarImpresoras">
+                                                        <i class="fa-solid fa-sync"></i> Detectar
+                                                    </span>
+                                                    <span wire:loading wire:target="detectarImpresoras">
+                                                        <i class="fa-solid fa-spinner fa-spin"></i> Buscando...
+                                                    </span>
+                                                </button>
                                             </div>
                                             <div class="card-body">
+                                                <!-- Impresora seleccionada -->
                                                 <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Nombre de la Impresora</label>
+                                                    <label class="form-label fw-semibold">Impresora Seleccionada</label>
                                                     <div class="input-group">
+                                                        <span class="input-group-text"><i class="fa-solid fa-print"></i></span>
                                                         <input type="text" class="form-control" id="impresora_nombre"
-                                                            wire:model="impresora_nombre" placeholder="Selecciona o escribe el nombre">
-                                                        <button type="button" class="btn btn-outline-secondary" id="btn-detectar-impresoras"
-                                                            title="Detectar impresoras disponibles">
-                                                            <i class="fa-solid fa-search"></i>
-                                                        </button>
+                                                            wire:model="impresora_nombre" placeholder="Nombre de la impresora">
                                                     </div>
-                                                    <small class="text-muted">Haz clic en el botón para detectar impresoras</small>
                                                     @error('impresora_nombre') <span class="text-danger small">{{ $message }}</span> @enderror
+                                                </div>
 
-                                                    <!-- Lista de impresoras detectadas -->
-                                                    <div id="lista-impresoras" class="mt-2" style="display: none;">
-                                                        <label class="form-label small">Impresoras detectadas:</label>
-                                                        <select class="form-select form-select-sm" id="select-impresora">
-                                                            <option value="">Selecciona una impresora...</option>
-                                                        </select>
+                                                <!-- Lista de impresoras detectadas -->
+                                                <div id="lista-impresoras-container" class="mb-3" style="display: none;">
+                                                    <label class="form-label fw-semibold small">
+                                                        <i class="fa-solid fa-list me-1"></i> Impresoras Disponibles
+                                                    </label>
+                                                    <div class="list-group list-group-flush" id="lista-impresoras" style="max-height: 200px; overflow-y: auto;">
+                                                        <!-- Se llena dinámicamente -->
                                                     </div>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Tipo de Impresora</label>
-                                                    <select class="form-select" wire:model="impresora_tipo">
-                                                        <option value="termica">Térmica (POS)</option>
-                                                        <option value="laser">Láser</option>
-                                                        <option value="inyeccion">Inyección de Tinta</option>
-                                                    </select>
-                                                    @error('impresora_tipo') <span class="text-danger small">{{ $message }}</span> @enderror
-                                                </div>
-                                                <div class="mb-0">
-                                                    <label class="form-label fw-semibold">Ancho de Caracteres</label>
-                                                    <input type="number" class="form-control" wire:model="ancho_caracteres"
-                                                        min="32" max="80" placeholder="48">
-                                                    <small class="text-muted">Para impresoras térmicas (32-80 caracteres)</small>
-                                                    @error('ancho_caracteres') <span class="text-danger small">{{ $message }}</span> @enderror
+
+                                                <!-- Agregar impresora de red -->
+                                                <div class="border-top pt-3">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100"
+                                                        data-bs-toggle="collapse" data-bs-target="#agregarIpCollapse">
+                                                        <i class="fa-solid fa-network-wired me-1"></i>
+                                                        Agregar Impresora de Red (IP)
+                                                    </button>
+                                                    <div class="collapse mt-2" id="agregarIpCollapse">
+                                                        <div class="input-group input-group-sm">
+                                                            <span class="input-group-text">IP:</span>
+                                                            <input type="text" class="form-control" id="impresora_ip"
+                                                                placeholder="192.168.1.100">
+                                                            <input type="number" class="form-control" id="impresora_puerto"
+                                                                placeholder="9100" style="max-width: 80px;">
+                                                            <button type="button" class="btn btn-success" id="btn-agregar-ip">
+                                                                <i class="fa-solid fa-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                        <small class="text-muted">Puerto por defecto: 9100 (RAW)</small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Configuración de Papel -->
+                                    <!-- Tipo y Configuración -->
                                     <div class="col-md-6 mb-3">
                                         <div class="card border shadow-sm">
-                                            <div class="card-header bg-warning text-dark">
+                                            <div class="card-header bg-primary text-white">
                                                 <h5 class="mb-0">
-                                                    <i class="fa-solid fa-scroll me-2"></i>
-                                                    Papel
+                                                    <i class="fa-solid fa-cog me-2"></i>
+                                                    Configuración
                                                 </h5>
                                             </div>
                                             <div class="card-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Tamaño de Papel</label>
-                                                    <select class="form-select" wire:model="papel_tamano">
-                                                        <option value="58mm">58mm (Térmica pequeña)</option>
-                                                        <option value="80mm">80mm (Térmica estándar)</option>
-                                                        <option value="carta">Carta (8.5" x 11")</option>
-                                                        <option value="media-carta">Media Carta</option>
-                                                    </select>
-                                                    @error('papel_tamano') <span class="text-danger small">{{ $message }}</span> @enderror
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold">Tipo</label>
+                                                            <select class="form-select" wire:model="impresora_tipo">
+                                                                <option value="termica">Térmica (POS)</option>
+                                                                <option value="laser">Láser</option>
+                                                                <option value="inyeccion">Inyección</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold">Tamaño Papel</label>
+                                                            <select class="form-select" wire:model="papel_tamano">
+                                                                <option value="58mm">58mm</option>
+                                                                <option value="80mm">80mm</option>
+                                                                <option value="carta">Carta</option>
+                                                                <option value="media-carta">Media Carta</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div class="mb-0">
-                                                    <label class="form-label fw-semibold">Copias por Impresión</label>
-                                                    <input type="number" class="form-control"
-                                                        wire:model="papel_copias" min="1" max="5">
-                                                    @error('papel_copias') <span class="text-danger small">{{ $message }}</span> @enderror
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold">Ancho (caracteres)</label>
+                                                            <input type="number" class="form-control" wire:model="ancho_caracteres"
+                                                                min="32" max="80" placeholder="48">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <div class="mb-3">
+                                                            <label class="form-label fw-semibold">Copias</label>
+                                                            <input type="number" class="form-control"
+                                                                wire:model="papel_copias" min="1" max="5">
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -323,7 +360,7 @@
                                             <div class="card-header bg-info text-white">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-sliders me-2"></i>
-                                                    Opciones de Impresora
+                                                    Opciones Extras
                                                 </h5>
                                             </div>
                                             <div class="card-body">
@@ -357,7 +394,7 @@
                                     </button>
                                     <button class="btn btn-primary" wire:click="guardarImpresion">
                                         <i class="fa-solid fa-save me-1"></i>
-                                        Guardar Configuración de Impresión
+                                        Guardar Configuración
                                     </button>
                                 </div>
                             </div>
@@ -544,72 +581,138 @@
 
     @script
     <script>
-        // Detectar impresoras usando la API del navegador
-        document.getElementById('btn-detectar-impresoras')?.addEventListener('click', async function() {
-            const listaDiv = document.getElementById('lista-impresoras');
-            const selectImpresora = document.getElementById('select-impresora');
+        // Manejar impresoras detectadas del servidor
+        $wire.on('impresoras-detectadas', (data) => {
+            const container = document.getElementById('lista-impresoras-container');
+            const lista = document.getElementById('lista-impresoras');
+            const impresoras = data[0].impresoras || [];
 
-            // Mostrar que estamos buscando
-            this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-            this.disabled = true;
-
-            try {
-                // Intentar usar Web USB API para impresoras
-                if ('usb' in navigator) {
-                    try {
-                        const device = await navigator.usb.requestDevice({
-                            filters: [
-                                { classCode: 7 }, // Printer class
-                            ]
-                        });
-                        if (device) {
-                            selectImpresora.innerHTML = `<option value="${device.productName}">${device.productName} (${device.manufacturerName})</option>`;
-                            listaDiv.style.display = 'block';
-                        }
-                    } catch (e) {
-                        console.log('USB API no disponible o sin permisos');
-                    }
-                }
-
-                // Fallback: mostrar opciones comunes
-                selectImpresora.innerHTML = `
-                    <option value="">Selecciona una impresora...</option>
-                    <option value="default">Impresora predeterminada del sistema</option>
-                    <option value="EPSON TM-T20III">EPSON TM-T20III</option>
-                    <option value="EPSON TM-T88V">EPSON TM-T88V</option>
-                    <option value="Star TSP100">Star TSP100</option>
-                    <option value="XPrinter XP-58">XPrinter XP-58</option>
-                    <option value="XPrinter XP-80">XPrinter XP-80</option>
-                    <option value="Impresora personalizada">Otra impresora...</option>
+            if (impresoras.length > 0) {
+                lista.innerHTML = impresoras.map((imp, index) => `
+                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                        onclick="seleccionarImpresora('${imp.nombre}')">
+                        <div>
+                            <i class="fa-solid fa-print text-primary me-2"></i>
+                            <strong>${imp.nombre}</strong>
+                            ${imp.puerto ? `<small class="text-muted ms-2">(${imp.puerto})</small>` : ''}
+                        </div>
+                        <span class="badge bg-secondary">${imp.tipo}</span>
+                    </button>
+                `).join('');
+                container.style.display = 'block';
+            } else {
+                lista.innerHTML = `
+                    <div class="list-group-item text-muted text-center">
+                        <i class="fa-solid fa-info-circle me-1"></i>
+                        No se encontraron impresoras en el servidor.
+                        <br><small>Prueba agregando una impresora de red por IP.</small>
+                    </div>
                 `;
-                listaDiv.style.display = 'block';
-
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Detección de impresoras',
-                    text: 'Se muestran impresoras comunes. Selecciona una o escribe el nombre exacto de tu impresora.',
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'No se pudo detectar impresoras: ' + error.message
-                });
-            } finally {
-                this.innerHTML = '<i class="fa-solid fa-search"></i>';
-                this.disabled = false;
+                container.style.display = 'block';
             }
         });
 
-        // Al seleccionar una impresora
-        document.getElementById('select-impresora')?.addEventListener('change', function() {
-            const valor = this.value;
-            if (valor && valor !== '') {
-                document.getElementById('impresora_nombre').value = valor;
-                @this.set('impresora_nombre', valor);
+        // Función global para seleccionar impresora
+        window.seleccionarImpresora = function(nombre) {
+            document.getElementById('impresora_nombre').value = nombre;
+            @this.set('impresora_nombre', nombre);
+
+            // Marcar visualmente la seleccionada
+            document.querySelectorAll('#lista-impresoras .list-group-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(nombre)) {
+                    item.classList.add('active');
+                }
+            });
+        };
+
+        // Agregar impresora de red por IP
+        document.getElementById('btn-agregar-ip')?.addEventListener('click', function() {
+            const ip = document.getElementById('impresora_ip').value.trim();
+            const puerto = document.getElementById('impresora_puerto').value.trim() || '9100';
+
+            if (!ip) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'IP requerida',
+                    text: 'Ingresa la dirección IP de la impresora',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
             }
+
+            // Validar formato IP
+            const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (!ipRegex.test(ip)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'IP inválida',
+                    text: 'Ingresa una dirección IP válida (ej: 192.168.1.100)',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            const nombreImpresora = `${ip}:${puerto}`;
+
+            // Agregar a la lista
+            const container = document.getElementById('lista-impresoras-container');
+            const lista = document.getElementById('lista-impresoras');
+
+            // Verificar si ya existe
+            if (lista.innerHTML.includes(nombreImpresora)) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Ya existe',
+                    text: 'Esta impresora ya está en la lista',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                return;
+            }
+
+            // Agregar nuevo item
+            const nuevoItem = document.createElement('button');
+            nuevoItem.type = 'button';
+            nuevoItem.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+            nuevoItem.onclick = function() { seleccionarImpresora(nombreImpresora); };
+            nuevoItem.innerHTML = `
+                <div>
+                    <i class="fa-solid fa-network-wired text-success me-2"></i>
+                    <strong>${nombreImpresora}</strong>
+                </div>
+                <span class="badge bg-success">Red</span>
+            `;
+
+            // Si la lista tiene el mensaje de "no encontraron", limpiarlo
+            if (lista.querySelector('.text-muted.text-center')) {
+                lista.innerHTML = '';
+            }
+
+            lista.appendChild(nuevoItem);
+            container.style.display = 'block';
+
+            // Seleccionar automáticamente
+            seleccionarImpresora(nombreImpresora);
+
+            // Limpiar campos
+            document.getElementById('impresora_ip').value = '';
+            document.getElementById('impresora_puerto').value = '';
+
+            // Cerrar collapse
+            const collapse = document.getElementById('agregarIpCollapse');
+            const bsCollapse = bootstrap.Collapse.getInstance(collapse);
+            if (bsCollapse) bsCollapse.hide();
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Impresora agregada',
+                text: `Se agregó la impresora de red ${nombreImpresora}`,
+                timer: 2000,
+                showConfirmButton: false
+            });
         });
 
         // Manejar impresión de prueba
