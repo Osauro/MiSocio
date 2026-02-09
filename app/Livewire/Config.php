@@ -244,56 +244,10 @@ class Config extends Component
 
     public function detectarImpresoras()
     {
-        $impresoras = [];
-
-        // Detectar sistema operativo y listar impresoras
-        if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
-            // Windows: usar wmic
-            $output = shell_exec('wmic printer get name,portname,drivername 2>&1');
-            if ($output) {
-                $lines = explode("\n", trim($output));
-                array_shift($lines); // Quitar encabezado
-                foreach ($lines as $line) {
-                    $line = trim($line);
-                    if (!empty($line)) {
-                        // Parsear la línea (formato: DriverName  Name  PortName)
-                        $parts = preg_split('/\s{2,}/', $line);
-                        if (count($parts) >= 2) {
-                            $impresoras[] = [
-                                'nombre' => $parts[1] ?? $parts[0],
-                                'driver' => $parts[0] ?? '',
-                                'puerto' => $parts[2] ?? '',
-                                'tipo' => 'sistema'
-                            ];
-                        }
-                    }
-                }
-            }
-        } else {
-            // Linux/Mac: usar lpstat
-            $output = shell_exec('lpstat -p 2>&1');
-            if ($output && strpos($output, 'not found') === false) {
-                $lines = explode("\n", trim($output));
-                foreach ($lines as $line) {
-                    if (preg_match('/printer\s+(\S+)/', $line, $matches)) {
-                        $impresoras[] = [
-                            'nombre' => $matches[1],
-                            'driver' => '',
-                            'puerto' => '',
-                            'tipo' => 'sistema'
-                        ];
-                    }
-                }
-            }
-        }
-
-        $this->dispatch('impresoras-detectadas', ['impresoras' => $impresoras]);
-
-        if (empty($impresoras)) {
-            $this->alertInfo('No se detectaron impresoras del sistema. Puedes agregar una manualmente.');
-        } else {
-            $this->alertSuccess('Se detectaron ' . count($impresoras) . ' impresora(s)');
-        }
+        // En hosting compartido no hay impresoras en el servidor.
+        // Las impresoras están en el PC local del usuario.
+        // Emitimos evento para que JavaScript detecte usando QZ Tray o muestre opciones.
+        $this->dispatch('detectar-impresoras-local');
     }
 
     public function impresionPrueba()

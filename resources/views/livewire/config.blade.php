@@ -581,36 +581,120 @@
 
     @script
     <script>
-        // Manejar impresoras detectadas del servidor
-        $wire.on('impresoras-detectadas', (data) => {
+        // Detectar impresoras locales (desde el navegador del usuario)
+        $wire.on('detectar-impresoras-local', async () => {
             const container = document.getElementById('lista-impresoras-container');
             const lista = document.getElementById('lista-impresoras');
-            const impresoras = data[0].impresoras || [];
 
-            if (impresoras.length > 0) {
-                lista.innerHTML = impresoras.map((imp, index) => `
-                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
-                        onclick="seleccionarImpresora('${imp.nombre}')">
-                        <div>
-                            <i class="fa-solid fa-print text-primary me-2"></i>
-                            <strong>${imp.nombre}</strong>
-                            ${imp.puerto ? `<small class="text-muted ms-2">(${imp.puerto})</small>` : ''}
-                        </div>
-                        <span class="badge bg-secondary">${imp.tipo}</span>
-                    </button>
-                `).join('');
-                container.style.display = 'block';
-            } else {
-                lista.innerHTML = `
-                    <div class="list-group-item text-muted text-center">
-                        <i class="fa-solid fa-info-circle me-1"></i>
-                        No se encontraron impresoras en el servidor.
-                        <br><small>Prueba agregando una impresora de red por IP.</small>
-                    </div>
-                `;
-                container.style.display = 'block';
+            // Intentar detectar con QZ Tray primero
+            if (typeof qz !== 'undefined') {
+                try {
+                    await qz.websocket.connect();
+                    const printers = await qz.printers.find();
+                    if (printers.length > 0) {
+                        lista.innerHTML = printers.map(nombre => `
+                            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                                onclick="seleccionarImpresora('${nombre}')">
+                                <div>
+                                    <i class="fa-solid fa-print text-success me-2"></i>
+                                    <strong>${nombre}</strong>
+                                </div>
+                                <span class="badge bg-success">QZ Tray</span>
+                            </button>
+                        `).join('');
+                        container.style.display = 'block';
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Impresoras detectadas',
+                            text: `Se encontraron ${printers.length} impresora(s) en tu PC`,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    console.log('QZ Tray no disponible:', e);
+                }
             }
+
+            // Sin QZ Tray: mostrar opciones manuales
+            Swal.fire({
+                icon: 'info',
+                title: 'Configurar Impresora',
+                html: `
+                    <div class="text-start">
+                        <p class="mb-3">Las impresoras están conectadas a <strong>tu computadora</strong>, no al servidor web.</p>
+                        <p class="mb-2"><strong>Opciones disponibles:</strong></p>
+                        <ul class="mb-3">
+                            <li><strong>Impresora de Red:</strong> Si tu impresora tiene IP (ej: 192.168.1.100)</li>
+                            <li><strong>Impresora USB:</strong> Usa la impresión por navegador</li>
+                            <li><strong>QZ Tray:</strong> <a href="https://qz.io/download/" target="_blank">Descargar gratis</a> para detectar impresoras automáticamente</li>
+                        </ul>
+                    </div>
+                `,
+                confirmButtonText: 'Entendido',
+                showCancelButton: true,
+                cancelButtonText: 'Ver impresoras comunes'
+            }).then((result) => {
+                if (result.dismiss === Swal.DismissReason.cancel) {
+                    mostrarImpresorasComunes();
+                }
+            });
+
+            // Mostrar lista vacía con mensaje
+            lista.innerHTML = `
+                <div class="list-group-item text-center py-3">
+                    <i class="fa-solid fa-info-circle text-info me-1"></i>
+                    <span class="text-muted">Selecciona una opción:</span>
+                </div>
+                <button type="button" class="list-group-item list-group-item-action" onclick="mostrarImpresorasComunes()">
+                    <i class="fa-solid fa-list text-primary me-2"></i>
+                    Ver impresoras térmicas comunes
+                </button>
+                <button type="button" class="list-group-item list-group-item-action" onclick="document.getElementById('agregarIpCollapse').classList.add('show')">
+                    <i class="fa-solid fa-network-wired text-success me-2"></i>
+                    Agregar impresora de red (IP)
+                </button>
+                <a href="https://qz.io/download/" target="_blank" class="list-group-item list-group-item-action">
+                    <i class="fa-solid fa-download text-warning me-2"></i>
+                    Descargar QZ Tray (detecta automáticamente)
+                </a>
+            `;
+            container.style.display = 'block';
         });
+
+        // Mostrar lista de impresoras térmicas comunes
+        window.mostrarImpresorasComunes = function() {
+            const lista = document.getElementById('lista-impresoras');
+            const impresoras = [
+                { nombre: 'EPSON TM-T20III', marca: 'Epson' },
+                { nombre: 'EPSON TM-T88V', marca: 'Epson' },
+                { nombre: 'EPSON TM-T88VI', marca: 'Epson' },
+                { nombre: 'Star TSP100', marca: 'Star' },
+                { nombre: 'Star TSP143', marca: 'Star' },
+                { nombre: 'XPrinter XP-58', marca: 'XPrinter' },
+                { nombre: 'XPrinter XP-80', marca: 'XPrinter' },
+                { nombre: 'POS-58', marca: 'Genérica' },
+                { nombre: 'POS-80', marca: 'Genérica' },
+                { nombre: 'USB Thermal Printer', marca: 'Genérica' },
+            ];
+
+            lista.innerHTML = impresoras.map(imp => `
+                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    onclick="seleccionarImpresora('${imp.nombre}')">
+                    <div>
+                        <i class="fa-solid fa-print text-primary me-2"></i>
+                        <strong>${imp.nombre}</strong>
+                    </div>
+                    <span class="badge bg-secondary">${imp.marca}</span>
+                </button>
+            `).join('') + `
+                <button type="button" class="list-group-item list-group-item-action text-center text-muted"
+                    onclick="document.getElementById('agregarIpCollapse').classList.add('show')">
+                    <i class="fa-solid fa-plus me-1"></i> Agregar otra...
+                </button>
+            `;
+        };
 
         // Función global para seleccionar impresora
         window.seleccionarImpresora = function(nombre) {
