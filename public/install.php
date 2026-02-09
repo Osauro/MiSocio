@@ -6,6 +6,10 @@
  * ELIMINAR DESPUÉS DE LA INSTALACIÓN
  */
 
+// Mostrar errores durante instalación
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Configuración
 $basePath = dirname(__DIR__);
 $step = $_GET['step'] ?? 'check';
