@@ -77,6 +77,11 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
+                                                                <button class="btn btn-sm btn-success"
+                                                                    wire:click="imprimirTicket({{ $venta->id }})"
+                                                                    title="Imprimir ticket">
+                                                                    <i class="fa-solid fa-print"></i>
+                                                                </button>
                                                                 @if ($venta->credito > 0)
                                                                     <button class="btn btn-sm btn-warning"
                                                                         wire:click="abrirModalPago({{ $venta->id }})"
@@ -492,6 +497,202 @@
                     }
                 });
             });
+
+            // ========== IMPRESIÓN DE TICKET DE VENTA ==========
+            $wire.on('imprimir-ticket-venta', async (data) => {
+                const ticket = data;
+
+                // Si no hay impresora configurada, usar navegador
+                if (!ticket.impresora) {
+                    imprimirTicketNavegador(ticket);
+                    return;
+                }
+
+                // Intentar imprimir con QZ Tray
+                if (typeof qz !== 'undefined') {
+                    try {
+                        if (!qz.websocket.isActive()) {
+                            Swal.fire({
+                                title: 'Conectando con QZ Tray...',
+                                allowOutsideClick: false,
+                                didOpen: () => Swal.showLoading()
+                            });
+                            await qz.websocket.connect();
+                        }
+
+                        Swal.fire({
+                            title: 'Imprimiendo...',
+                            text: 'Enviando a ' + ticket.impresora,
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+
+                        const printerConfig = qz.configs.create(ticket.impresora);
+                        const comandos = generarComandosTicketVenta(ticket);
+
+                        await qz.print(printerConfig, [{
+                            type: 'raw',
+                            format: 'plain',
+                            data: comandos
+                        }]);
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Ticket impreso',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        return;
+
+                    } catch (e) {
+                        Swal.close();
+                        console.error('Error QZ Tray:', e);
+                        imprimirTicketNavegador(ticket);
+                    }
+                } else {
+                    imprimirTicketNavegador(ticket);
+                }
+            });
+
+            // Generar comandos ESC/POS para ticket de venta
+            function generarComandosTicketVenta(ticket) {
+                const ESC = '\x1B';
+                const GS = '\x1D';
+                const ancho = ticket.ancho || 48;
+                const linea = '='.repeat(ancho);
+                const lineaSimple = '-'.repeat(ancho);
+
+                let cmd = '';
+
+                cmd += ESC + '@';
+                cmd += ESC + 'a\x01';  // Centrar
+                cmd += ESC + 'E\x01';  // Negrita ON
+                cmd += (ticket.nombre_tienda || 'MI TIENDA').toUpperCase() + '\n';
+                cmd += ESC + 'E\x00';  // Negrita OFF
+
+                if (ticket.direccion) cmd += ticket.direccion + '\n';
+                if (ticket.telefono) cmd += 'Tel: ' + ticket.telefono + '\n';
+                if (ticket.nit) cmd += 'NIT: ' + ticket.nit + '\n';
+
+                cmd += linea + '\n';
+                cmd += ESC + 'E\x01';
+                cmd += '**** TICKET DE VENTA ****\n';
+                cmd += ESC + 'E\x00';
+                cmd += linea + '\n';
+
+                cmd += ESC + 'a\x00';  // Izquierda
+                cmd += 'FECHA:   ' + ticket.fecha + '\n';
+                cmd += 'USUARIO: ' + ticket.usuario + '\n';
+                cmd += 'CLIENTE: ' + ticket.cliente + '\n';
+                cmd += 'FOLIO:   #' + ticket.folio + '\n';
+
+                cmd += lineaSimple + '\n';
+                cmd += ESC + 'a\x01';
+                cmd += 'D E T A L L E\n';
+                cmd += lineaSimple + '\n';
+                cmd += ESC + 'a\x00';
+
+                ticket.items.forEach(item => {
+                    const cantStr = item.cantidad + 'u';
+                    const precioStr = item.subtotal.toFixed(2);
+                    const nombre = item.nombre.substring(0, ancho - cantStr.length - precioStr.length - 4);
+                    const espacios = ancho - cantStr.length - nombre.length - precioStr.length - 1;
+                    cmd += cantStr + ' ' + nombre + '.'.repeat(Math.max(1, espacios)) + precioStr + '\n';
+                });
+
+                cmd += lineaSimple + '\n';
+
+                const formatTotal = (label, valor) => {
+                    const valorStr = valor.toFixed(2);
+                    const espacios = ancho - label.length - valorStr.length;
+                    return label + ' '.repeat(Math.max(1, espacios)) + valorStr + '\n';
+                };
+
+                cmd += ESC + 'E\x01';
+                cmd += formatTotal('TOTAL:', ticket.total);
+                cmd += ESC + 'E\x00';
+
+                if (ticket.efectivo > 0) cmd += formatTotal('EFECTIVO:', ticket.efectivo);
+                if (ticket.online > 0) cmd += formatTotal('ONLINE:', ticket.online);
+                if (ticket.credito > 0) cmd += formatTotal('CREDITO:', ticket.credito);
+                if (ticket.cambio > 0) cmd += formatTotal('CAMBIO:', ticket.cambio);
+
+                cmd += linea + '\n';
+                cmd += ESC + 'a\x01';
+                cmd += '\n';
+                cmd += 'GRACIAS POR SU COMPRA\n';
+                cmd += '\n\n';
+
+                if (ticket.corte) {
+                    cmd += GS + 'V\x00';
+                }
+
+                if (ticket.abrir_cajon) {
+                    cmd += ESC + 'p\x00\x19\xFA';
+                }
+
+                return cmd;
+            }
+
+            // Fallback: imprimir ticket por navegador
+            function imprimirTicketNavegador(ticket) {
+                const ancho = ticket.papel === '58mm' ? '58mm' : '80mm';
+
+                let itemsHtml = ticket.items.map(item =>
+                    `<div class="item">
+                        <span>${item.cantidad}u ${item.nombre}</span>
+                        <span>${item.subtotal.toFixed(2)}</span>
+                    </div>`
+                ).join('');
+
+                const html = `
+                    <html>
+                    <head>
+                        <title>Ticket #${ticket.folio}</title>
+                        <style>
+                            body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 10px; width: ${ancho}; }
+                            .center { text-align: center; }
+                            .bold { font-weight: bold; }
+                            .linea { border-top: 1px dashed #000; margin: 5px 0; }
+                            .item { display: flex; justify-content: space-between; }
+                            .total-row { display: flex; justify-content: space-between; }
+                            @media print { @page { margin: 0; } body { width: 100%; } }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="center bold">${ticket.nombre_tienda || 'MI TIENDA'}</div>
+                        ${ticket.direccion ? '<div class="center">' + ticket.direccion + '</div>' : ''}
+                        ${ticket.telefono ? '<div class="center">Tel: ' + ticket.telefono + '</div>' : ''}
+                        <div class="linea"></div>
+                        <div class="center bold">TICKET DE VENTA #${ticket.folio}</div>
+                        <div class="linea"></div>
+                        <div>Fecha: ${ticket.fecha}</div>
+                        <div>Usuario: ${ticket.usuario}</div>
+                        <div>Cliente: ${ticket.cliente}</div>
+                        <div class="linea"></div>
+                        <div class="center">DETALLE</div>
+                        <div class="linea"></div>
+                        ${itemsHtml}
+                        <div class="linea"></div>
+                        <div class="total-row bold"><span>TOTAL:</span><span>${ticket.total.toFixed(2)}</span></div>
+                        ${ticket.efectivo > 0 ? '<div class="total-row"><span>Efectivo:</span><span>' + ticket.efectivo.toFixed(2) + '</span></div>' : ''}
+                        ${ticket.online > 0 ? '<div class="total-row"><span>Online:</span><span>' + ticket.online.toFixed(2) + '</span></div>' : ''}
+                        ${ticket.credito > 0 ? '<div class="total-row"><span>Crédito:</span><span>' + ticket.credito.toFixed(2) + '</span></div>' : ''}
+                        ${ticket.cambio > 0 ? '<div class="total-row"><span>Cambio:</span><span>' + ticket.cambio.toFixed(2) + '</span></div>' : ''}
+                        <div class="linea"></div>
+                        <div class="center">GRACIAS POR SU COMPRA</div>
+                    </body>
+                    </html>
+                `;
+
+                const printWindow = window.open('', '_blank', 'width=400,height=600');
+                printWindow.document.write(html);
+                printWindow.document.close();
+                printWindow.onload = function() {
+                    printWindow.print();
+                    printWindow.onafterprint = function() { printWindow.close(); };
+                };
+            }
         </script>
     @endscript
 
