@@ -194,10 +194,10 @@ echo.
 echo // Imprimir texto
 echo function printText^($printerName, $content, $copies = 1^) {
 echo     if ^(empty^($printerName^)^) return ['success' =^> false, 'error' =^> 'No hay impresora configurada'];
-echo.    
+echo.
 echo     $tempFile = sys_get_temp_dir^(^) . '/licoprint_' . uniqid^(^) . '.txt';
 echo     file_put_contents^($tempFile, $content^);
-echo.    
+echo.
 echo     for ^($i = 0; $i ^< max^(1, $copies^); $i++^) {
 echo         $cmd = 'powershell -Command "Get-Content \"' . $tempFile . '\" | Out-Printer -Name \"' . $printerName . '\""';
 echo         exec^($cmd, $output, $returnCode^);
@@ -206,7 +206,7 @@ echo             @unlink^($tempFile^);
 echo             return ['success' =^> false, 'error' =^> 'Error al imprimir: codigo ' . $returnCode];
 echo         }
 echo     }
-echo.    
+echo.
 echo     @unlink^($tempFile^);
 echo     logPrint^("Impreso en $printerName: " . strlen^($content^) . " bytes"^);
 echo     return ['success' =^> true];
@@ -225,7 +225,7 @@ echo.
 echo // API Routes
 echo if ^(strpos^($uri, '/api/'^) === 0^) {
 echo     header^('Content-Type: application/json'^);
-echo.    
+echo.
 echo     switch ^($uri^) {
 echo         case '/api/config':
 echo             if ^($method === 'GET'^) {
@@ -236,18 +236,18 @@ echo                 saveConfig^($data^);
 echo                 echo json_encode^(['status' =^> 'ok']^);
 echo             }
 echo             break;
-echo.            
+echo.
 echo         case '/api/printers':
 echo             echo json_encode^(getPrinters^(^)^);
 echo             break;
-echo.            
+echo.
 echo         case '/api/print':
 echo             $data = json_decode^(file_get_contents^('php://input'^), true^);
 echo             $config = loadConfig^(^);
 echo             $result = printText^($config['printer_name'], $data['content'] ?? '', $data['copies'] ?? 1^);
 echo             echo json_encode^($result^);
 echo             break;
-echo.            
+echo.
 echo         case '/api/test':
 echo             $config = loadConfig^(^);
 echo             $width = $config['char_width'] ?: 48;
@@ -267,7 +267,7 @@ echo             $content .= date^('d/m/Y H:i:s'^) . "\n\n\n";
 echo             $result = printText^($config['printer_name'], $content^);
 echo             echo json_encode^($result^);
 echo             break;
-echo.            
+echo.
 echo         default:
 echo             http_response_code^(404^);
 echo             echo json_encode^(['error' =^> 'Not found']^);
@@ -297,40 +297,38 @@ echo.
 :: Crear script de inicio
 echo [6/7] Creando scripts de inicio...
 
-:: Script para iniciar el servidor
+:: Script para iniciar el servidor (visible)
 (
 echo @echo off
-echo title LicoPrint - Servicio de Impresion [Puerto 2026]
-echo color 0A
-echo.
-echo  ╔═════════════════════════════════════════╗
-echo  ║     LicoPrint - Servicio Activo         ║
-echo  ║     http://localhost:2026               ║
-echo  ╠═════════════════════════════════════════╣
-echo  ║  Presiona Ctrl+C para detener           ║
-echo  ╚═════════════════════════════════════════╝
-echo.
 echo "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
 ) > "%LICOPRINT_DIR%\start.bat"
 
-:: Script para abrir navegador
+:: Script VBS para inicio SILENCIOSO (oculta la ventana)
 (
-echo @echo off
-echo start "" "http://localhost:2026"
-) > "%LICOPRINT_DIR%\open-browser.bat"
+echo Set WshShell = CreateObject^("WScript.Shell"^)
+echo WshShell.Run chr^(34^) ^& "%LICOPRINT_DIR%\start.bat" ^& chr^(34^), 0, False
+echo Set WshShell = Nothing
+) > "%LICOPRINT_DIR%\start-silent.vbs"
 
-:: Crear acceso directo en Escritorio
-set "DESKTOP=%USERPROFILE%\Desktop"
+:: Script para detener el servidor
 (
 echo @echo off
-echo cd /d "%LICOPRINT_DIR%"
-echo start "" "%LICOPRINT_DIR%\start.bat"
-echo timeout /t 2 /nobreak ^>nul
-echo start "" "http://localhost:2026"
-) > "%DESKTOP%\LicoPrint.bat"
+echo taskkill /F /IM php.exe /FI "WINDOWTITLE eq *localhost:2026*" 2^>nul
+echo for /f "tokens=5" %%%%a in ^('netstat -aon ^| findstr ":2026"'^) do taskkill /F /PID %%%%a 2^>nul
+echo echo LicoPrint detenido.
+) > "%LICOPRINT_DIR%\stop.bat"
+
+:: Crear acceso directo en Escritorio (silencioso)
+set "DESKTOP=%USERPROFILE%\Desktop"
+copy "%LICOPRINT_DIR%\start-silent.vbs" "%DESKTOP%\LicoPrint.vbs" >nul
+
+:: Agregar al inicio de Windows
+set "STARTUP=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+copy "%LICOPRINT_DIR%\start-silent.vbs" "%STARTUP%\LicoPrint.vbs" >nul
 
 echo       Scripts creados.
-echo       Acceso directo en Escritorio: LicoPrint.bat
+echo       Acceso directo en Escritorio: LicoPrint.vbs
+echo       Inicio automatico con Windows: Activado
 echo.
 
 :: Actualizar PATH (opcional)
@@ -339,19 +337,9 @@ echo [7/7] Finalizando instalacion...
 :: Guardar la ruta de PHP para el script de inicio
 echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
 
-:: Actualizar el script de inicio con la ruta correcta
+:: Recrear el script de inicio con la ruta correcta
 (
 echo @echo off
-echo title LicoPrint - Servicio de Impresion [Puerto 2026]
-echo color 0A
-echo.
-echo  ╔═════════════════════════════════════════╗
-echo  ║     LicoPrint - Servicio Activo         ║
-echo  ║     http://localhost:2026               ║
-echo  ╠═════════════════════════════════════════╣
-echo  ║  Presiona Ctrl+C para detener           ║
-echo  ╚═════════════════════════════════════════╝
-echo.
 echo "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
 ) > "%LICOPRINT_DIR%\start.bat"
 
@@ -407,107 +395,111 @@ echo     ^<title^>LicoPrint - Configuracion^</title^>
 echo     ^<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"^>
 echo     ^<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"^>
 echo     ^<style^>
-echo         body { background: linear-gradient^(135deg, #1a1a2e 0%%, #16213e 100%%^); min-height: 100vh; color: #fff; }
-echo         .card { background: rgba^(255,255,255,0.1^); backdrop-filter: blur^(10px^); border: 1px solid rgba^(255,255,255,0.2^); border-radius: 15px; }
-echo         .card-header { background: rgba^(0,0,0,0.2^); border-bottom: 1px solid rgba^(255,255,255,0.1^); border-radius: 15px 15px 0 0 !important; }
-echo         .form-control, .form-select { background: rgba^(255,255,255,0.1^); border: 1px solid rgba^(255,255,255,0.2^); color: #fff; }
-echo         .form-control:focus, .form-select:focus { background: rgba^(255,255,255,0.15^); border-color: #4CAF50; color: #fff; }
-echo         .form-select option { background: #1a1a2e; color: #fff; }
-echo         .btn-success { background: linear-gradient^(45deg, #4CAF50, #45a049^); border: none; }
-echo         .btn-primary { background: linear-gradient^(45deg, #2196F3, #1976D2^); border: none; }
-echo         .form-check-input:checked { background-color: #4CAF50; border-color: #4CAF50; }
-echo         .printer-item { background: rgba^(255,255,255,0.05^); border: 1px solid rgba^(255,255,255,0.1^); border-radius: 10px; padding: 12px 15px; margin-bottom: 8px; cursor: pointer; transition: all 0.3s; }
-echo         .printer-item:hover { background: rgba^(255,255,255,0.1^); transform: translateX^(5px^); }
-echo         .printer-item.active { background: rgba^(76, 175, 80, 0.3^); border-color: #4CAF50; }
-echo         .logo { font-size: 2rem; font-weight: bold; text-align: center; margin-bottom: 20px; }
-echo         .logo i { color: #4CAF50; }
-echo         .status-toast { position: fixed; bottom: 20px; right: 20px; padding: 12px 24px; border-radius: 8px; z-index: 1000; display: none; }
+echo         :root { --primary: #10b981; --primary-hover: #059669; --bg: #f8fafc; --card-bg: #ffffff; --text: #1e293b; --text-muted: #64748b; --border: #e2e8f0; }
+echo         body { background: var^(--bg^); color: var^(--text^); font-family: 'Segoe UI', system-ui, sans-serif; }
+echo         .card { background: var^(--card-bg^); border: 1px solid var^(--border^); border-radius: 12px; box-shadow: 0 1px 3px rgba^(0,0,0,0.1^); }
+echo         .card-header { background: var^(--card-bg^); border-bottom: 1px solid var^(--border^); font-weight: 600; }
+echo         .form-control, .form-select { border: 1px solid var^(--border^); border-radius: 8px; }
+echo         .form-control:focus, .form-select:focus { border-color: var^(--primary^); box-shadow: 0 0 0 3px rgba^(16,185,129,0.15^); }
+echo         .btn-success { background: var^(--primary^); border-color: var^(--primary^); }
+echo         .btn-success:hover { background: var^(--primary-hover^); border-color: var^(--primary-hover^); }
+echo         .btn-primary { background: #3b82f6; border-color: #3b82f6; }
+echo         .btn-primary:hover { background: #2563eb; border-color: #2563eb; }
+echo         .form-check-input:checked { background-color: var^(--primary^); border-color: var^(--primary^); }
+echo         .printer-item { background: var^(--bg^); border: 1px solid var^(--border^); border-radius: 8px; padding: 12px 15px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+echo         .printer-item:hover { background: #f1f5f9; border-color: #cbd5e1; }
+echo         .printer-item.active { background: #ecfdf5; border-color: var^(--primary^); color: #065f46; }
+echo         .printer-item.active i { color: var^(--primary^); }
+echo         .logo { font-size: 1.5rem; font-weight: 700; color: var^(--text^); display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 24px; }
+echo         .logo i { color: var^(--primary^); font-size: 1.75rem; }
+echo         .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+echo         .status-badge.online { background: #dcfce7; color: #166534; }
+echo         .status-badge.online::before { content: ''; width: 8px; height: 8px; background: #22c55e; border-radius: 50%%; animation: pulse 2s infinite; }
+echo         @keyframes pulse { 0%%, 100%% { opacity: 1; } 50%% { opacity: 0.5; } }
+echo         .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+echo         .custom-toast { padding: 12px 20px; border-radius: 8px; color: #fff; display: none; box-shadow: 0 4px 12px rgba^(0,0,0,0.15^); }
 echo     ^</style^>
 echo ^</head^>
 echo ^<body^>
-echo     ^<div class="container py-4"^>
+echo     ^<div class="container py-4" style="max-width: 900px;"^>
 echo         ^<div class="logo"^>^<i class="fa-solid fa-print"^>^</i^> LicoPrint^</div^>
-echo         ^<div class="row"^>
-echo             ^<div class="col-md-5 mb-4"^>
+echo         ^<div class="row g-4"^>
+echo             ^<div class="col-md-5"^>
 echo                 ^<div class="card h-100"^>
-echo                     ^<div class="card-header d-flex justify-content-between align-items-center"^>
-echo                         ^<h5 class="mb-0"^>^<i class="fa-solid fa-list me-2"^>^</i^>Impresoras^</h5^>
-echo                         ^<button class="btn btn-sm btn-outline-light" onclick="refreshPrinters^(^)"^>
+echo                     ^<div class="card-header d-flex justify-content-between align-items-center py-3"^>
+echo                         ^<span^>^<i class="fa-solid fa-list me-2 text-muted"^>^</i^>Impresoras^</span^>
+echo                         ^<button class="btn btn-sm btn-outline-secondary" onclick="refreshPrinters^(^)" title="Actualizar"^>
 echo                             ^<i class="fa-solid fa-sync" id="refresh-icon"^>^</i^>
 echo                         ^</button^>
 echo                     ^</div^>
 echo                     ^<div class="card-body"^>
-echo                         ^<div id="printers-list"^>^<div class="text-center py-3"^>Cargando...^</div^>^</div^>
+echo                         ^<div id="printers-list"^>^<div class="text-center py-4 text-muted"^>^<i class="fa-solid fa-spinner fa-spin me-2"^>^</i^>Cargando...^</div^>^</div^>
 echo                         ^<div class="mt-3"^>
-echo                             ^<label class="form-label small"^>Impresora seleccionada:^</label^>
-echo                             ^<input type="text" class="form-control" id="printer_name" placeholder="Nombre de impresora"^>
+echo                             ^<label class="form-label small text-muted"^>Impresora seleccionada^</label^>
+echo                             ^<input type="text" class="form-control" id="printer_name" placeholder="Selecciona una impresora"^>
 echo                         ^</div^>
 echo                     ^</div^>
 echo                 ^</div^>
 echo             ^</div^>
-echo             ^<div class="col-md-7 mb-4"^>
+echo             ^<div class="col-md-7"^>
 echo                 ^<div class="card"^>
-echo                     ^<div class="card-header"^>^<h5 class="mb-0"^>^<i class="fa-solid fa-cog me-2"^>^</i^>Configuracion^</h5^>^</div^>
+echo                     ^<div class="card-header py-3"^>^<i class="fa-solid fa-sliders me-2 text-muted"^>^</i^>Configuracion^</div^>
 echo                     ^<div class="card-body"^>
-echo                         ^<div class="row"^>
-echo                             ^<div class="col-md-6 mb-3"^>
-echo                                 ^<label class="form-label"^>Tipo de Impresora^</label^>
+echo                         ^<div class="row g-3"^>
+echo                             ^<div class="col-6"^>
+echo                                 ^<label class="form-label small text-muted"^>Tipo de Impresora^</label^>
 echo                                 ^<select class="form-select" id="printer_type"^>
 echo                                     ^<option value="thermal"^>Termica ^(POS^)^</option^>
 echo                                     ^<option value="laser"^>Laser^</option^>
 echo                                     ^<option value="inkjet"^>Inyeccion^</option^>
 echo                                 ^</select^>
 echo                             ^</div^>
-echo                             ^<div class="col-md-6 mb-3"^>
-echo                                 ^<label class="form-label"^>Tamano de Papel^</label^>
+echo                             ^<div class="col-6"^>
+echo                                 ^<label class="form-label small text-muted"^>Tamano de Papel^</label^>
 echo                                 ^<select class="form-select" id="paper_size"^>
 echo                                     ^<option value="58mm"^>58mm^</option^>
 echo                                     ^<option value="80mm" selected^>80mm^</option^>
-echo                                     ^<option value="letter"^>Carta^</option^>
 echo                                 ^</select^>
 echo                             ^</div^>
-echo                         ^</div^>
-echo                         ^<div class="mb-3"^>
-echo                             ^<label class="form-label"^>Ancho de caracteres^</label^>
-echo                             ^<input type="number" class="form-control" id="char_width" value="48" min="32" max="80"^>
-echo                         ^</div^>
-echo                         ^<div class="row mb-3"^>
+echo                             ^<div class="col-12"^>
+echo                                 ^<label class="form-label small text-muted"^>Ancho de caracteres^</label^>
+echo                                 ^<input type="number" class="form-control" id="char_width" value="48" min="32" max="80"^>
+echo                             ^</div^>
 echo                             ^<div class="col-6"^>
 echo                                 ^<div class="form-check form-switch"^>
 echo                                     ^<input class="form-check-input" type="checkbox" id="auto_cut" checked^>
-echo                                     ^<label class="form-check-label" for="auto_cut"^>^<i class="fa-solid fa-scissors me-1"^>^</i^> Corte automatico^</label^>
+echo                                     ^<label class="form-check-label" for="auto_cut"^>Corte automatico^</label^>
 echo                                 ^</div^>
 echo                             ^</div^>
 echo                             ^<div class="col-6"^>
 echo                                 ^<div class="form-check form-switch"^>
 echo                                     ^<input class="form-check-input" type="checkbox" id="open_drawer"^>
-echo                                     ^<label class="form-check-label" for="open_drawer"^>^<i class="fa-solid fa-cash-register me-1"^>^</i^> Abrir cajon^</label^>
+echo                                     ^<label class="form-check-label" for="open_drawer"^>Abrir cajon^</label^>
 echo                                 ^</div^>
 echo                             ^</div^>
 echo                         ^</div^>
-echo                         ^<hr class="border-secondary"^>
-echo                         ^<div class="d-flex gap-2 flex-wrap"^>
-echo                             ^<button class="btn btn-success" onclick="saveConfig^(^)"^>^<i class="fa-solid fa-save me-1"^>^</i^> Guardar^</button^>
-echo                             ^<button class="btn btn-primary" onclick="testPrint^(^)"^>^<i class="fa-solid fa-print me-1"^>^</i^> Imprimir Prueba^</button^>
+echo                         ^<hr class="my-3"^>
+echo                         ^<div class="d-flex gap-2"^>
+echo                             ^<button class="btn btn-success" onclick="saveConfig^(^)"^>^<i class="fa-solid fa-check me-1"^>^</i^> Guardar^</button^>
+echo                             ^<button class="btn btn-primary" onclick="testPrint^(^)"^>^<i class="fa-solid fa-print me-1"^>^</i^> Prueba^</button^>
 echo                         ^</div^>
 echo                     ^</div^>
 echo                 ^</div^>
-echo                 ^<div class="card mt-3"^>
-echo                     ^<div class="card-body py-2"^>
-echo                         ^<small^>^<span class="badge bg-success"^>Activo^</span^> Puerto 2026 - LicoPrint v1.0^</small^>
-echo                     ^</div^>
+echo                 ^<div class="d-flex justify-content-between align-items-center mt-3 px-1"^>
+echo                     ^<span class="status-badge online"^>Servicio activo^</span^>
+echo                     ^<small class="text-muted"^>Puerto 2026 • LicoPrint v1.0^</small^>
 echo                 ^</div^>
 echo             ^</div^>
 echo         ^</div^>
 echo     ^</div^>
-echo     ^<div id="toast" class="status-toast bg-success text-white"^>^</div^>
+echo     ^<div class="toast-container"^>^<div id="toast" class="custom-toast"^>^</div^>^</div^>
 echo     ^<script^>
-echo         function toast^(msg, type^) { const t = document.getElementById^('toast'^); t.textContent = msg; t.className = 'status-toast bg-' + type + ' text-white'; t.style.display = 'block'; setTimeout^(^(^) =^> t.style.display = 'none', 3000^); }
+echo         function toast^(msg, ok^) { const t = document.getElementById^('toast'^); t.textContent = msg; t.style.background = ok ? '#10b981' : '#ef4444'; t.style.display = 'block'; setTimeout^(^(^) =^> t.style.display = 'none', 3000^); }
 echo         function selectPrinter^(name^) { document.getElementById^('printer_name'^).value = name; document.querySelectorAll^('.printer-item'^).forEach^(i =^> i.classList.toggle^('active', i.dataset.name === name^)^); }
-echo         async function refreshPrinters^(^) { document.getElementById^('refresh-icon'^).classList.add^('fa-spin'^); try { const res = await fetch^('/api/printers'^); const printers = await res.json^(^); const current = document.getElementById^('printer_name'^).value; document.getElementById^('printers-list'^).innerHTML = printers.length ? printers.map^(p =^> `^<div class="printer-item ${p === current ? 'active' : ''}" data-name="${p}" onclick="selectPrinter^('${p}'^)"^>^<i class="fa-solid fa-print me-2"^>^</i^>${p}^</div^>`^).join^(''^) : '^<div class="text-center text-muted py-3"^>No se detectaron impresoras^</div^>'; toast^('Actualizado', 'success'^); } catch^(e^) { toast^('Error', 'danger'^); } document.getElementById^('refresh-icon'^).classList.remove^('fa-spin'^); }
+echo         async function refreshPrinters^(^) { document.getElementById^('refresh-icon'^).classList.add^('fa-spin'^); try { const res = await fetch^('/api/printers'^); const printers = await res.json^(^); const current = document.getElementById^('printer_name'^).value; document.getElementById^('printers-list'^).innerHTML = printers.length ? printers.map^(p =^> `^<div class="printer-item ${p === current ? 'active' : ''}" data-name="${p}" onclick="selectPrinter^('${p}'^)"^>^<i class="fa-solid fa-print me-2"^>^</i^>${p}^</div^>`^).join^(''^) : '^<div class="text-center text-muted py-4"^>^<i class="fa-solid fa-exclamation-circle me-2"^>^</i^>No se detectaron impresoras^</div^>'; } catch^(e^) { toast^('Error al cargar impresoras', false^); } document.getElementById^('refresh-icon'^).classList.remove^('fa-spin'^); }
 echo         async function loadConfig^(^) { try { const res = await fetch^('/api/config'^); const c = await res.json^(^); document.getElementById^('printer_name'^).value = c.printer_name ^|^| ''; document.getElementById^('printer_type'^).value = c.printer_type ^|^| 'thermal'; document.getElementById^('paper_size'^).value = c.paper_size ^|^| '80mm'; document.getElementById^('char_width'^).value = c.char_width ^|^| 48; document.getElementById^('auto_cut'^).checked = c.auto_cut !== false; document.getElementById^('open_drawer'^).checked = c.open_drawer === true; } catch^(e^) {} }
-echo         async function saveConfig^(^) { const config = { printer_name: document.getElementById^('printer_name'^).value, printer_type: document.getElementById^('printer_type'^).value, paper_size: document.getElementById^('paper_size'^).value, char_width: parseInt^(document.getElementById^('char_width'^).value^) ^|^| 48, auto_cut: document.getElementById^('auto_cut'^).checked, open_drawer: document.getElementById^('open_drawer'^).checked }; try { await fetch^('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify^(config^) }^); toast^('Guardado', 'success'^); } catch^(e^) { toast^('Error al guardar', 'danger'^); } }
-echo         async function testPrint^(^) { try { const res = await fetch^('/api/test'^); const data = await res.json^(^); toast^(data.success ? 'Impresion enviada' : ^(data.error ^|^| 'Error'^), data.success ? 'success' : 'danger'^); } catch^(e^) { toast^('Error de conexion', 'danger'^); } }
+echo         async function saveConfig^(^) { const config = { printer_name: document.getElementById^('printer_name'^).value, printer_type: document.getElementById^('printer_type'^).value, paper_size: document.getElementById^('paper_size'^).value, char_width: parseInt^(document.getElementById^('char_width'^).value^) ^|^| 48, auto_cut: document.getElementById^('auto_cut'^).checked, open_drawer: document.getElementById^('open_drawer'^).checked }; try { await fetch^('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify^(config^) }^); toast^('Configuracion guardada', true^); } catch^(e^) { toast^('Error al guardar', false^); } }
+echo         async function testPrint^(^) { try { const res = await fetch^('/api/test'^); const data = await res.json^(^); toast^(data.success ? 'Impresion enviada' : ^(data.error ^|^| 'Error'^), data.success^); } catch^(e^) { toast^('Error de conexion', false^); } }
 echo         document.getElementById^('paper_size'^).addEventListener^('change', function^(^) { document.getElementById^('char_width'^).value = this.value === '58mm' ? 32 : 48; }^);
 echo         loadConfig^(^); refreshPrinters^(^);
 echo     ^</script^>
