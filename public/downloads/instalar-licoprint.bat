@@ -1,20 +1,13 @@
 @echo off
 setlocal enabledelayedexpansion
-title LicoPrint - Instalador Automatico
-color 0A
+chcp 65001 >nul
+title LicoPrint - Instalador
 
 echo.
-echo  ╔═══════════════════════════════════════════════════════════════╗
-echo  ║                                                               ║
-echo  ║     ██╗     ██╗ ██████╗ ██████╗ ██████╗ ██████╗ ██╗███╗   ██╗╔══╗
-echo  ║     ██║     ██║██╔════╝██╔═══██╗██╔══██╗██╔══██╗██║████╗  ██║║  ║
-echo  ║     ██║     ██║██║     ██║   ██║██████╔╝██████╔╝██║██╔██╗ ██║║  ║
-echo  ║     ██║     ██║██║     ██║   ██║██╔═══╝ ██╔══██╗██║██║╚██╗██║║  ║
-echo  ║     ███████╗██║╚██████╗╚██████╔╝██║     ██║  ██║██║██║ ╚████║║  ║
-echo  ║     ╚══════╝╚═╝ ╚═════╝ ╚═════╝ ╚═╝     ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝╚══╝
-echo  ║                                                               ║
-echo  ║           Servicio de Impresion Local - Instalador            ║
-echo  ╚═══════════════════════════════════════════════════════════════╝
+echo  ========================================
+echo       LicoPrint - Instalador v1.0
+echo       Servicio de Impresion Local
+echo  ========================================
 echo.
 
 :: Configuracion
@@ -24,21 +17,12 @@ set "PHP_URL=https://windows.php.net/downloads/releases/php-%PHP_VERSION%-nts-Wi
 set "COMPOSER_URL=https://getcomposer.org/download/latest-stable/composer.phar"
 set "PORT=2026"
 
-echo [1/7] Verificando requisitos del sistema...
+echo [1/7] Preparando instalacion...
 echo.
 
-:: Verificar si ya esta instalado
-if exist "%LICOPRINT_DIR%\server.php" (
-    echo [INFO] LicoPrint ya esta instalado en: %LICOPRINT_DIR%
-    echo.
-    set /p REINSTALL="Deseas reinstalar? (S/N): "
-    if /i "!REINSTALL!" neq "S" (
-        echo.
-        echo Iniciando LicoPrint existente...
-        goto :START_SERVER
-    )
-    echo.
-    echo Reinstalando...
+:: Eliminar instalacion anterior si existe
+if exist "%LICOPRINT_DIR%" (
+    echo       Eliminando instalacion anterior...
     rmdir /s /q "%LICOPRINT_DIR%" 2>nul
 )
 
@@ -297,16 +281,10 @@ echo.
 :: Crear script de inicio
 echo [6/7] Creando scripts de inicio...
 
-:: Script para iniciar el servidor (visible)
-(
-echo @echo off
-echo "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
-) > "%LICOPRINT_DIR%\start.bat"
-
-:: Script VBS para inicio SILENCIOSO (oculta la ventana)
+:: Script VBS para inicio SILENCIOSO (ejecuta PHP directamente oculto)
 (
 echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo WshShell.Run chr^(34^) ^& "%LICOPRINT_DIR%\start.bat" ^& chr^(34^), 0, False
+echo WshShell.Run """%PHP_EXE%"" -S localhost:2026 -t ""%LICOPRINT_DIR%"" ""%LICOPRINT_DIR%\server.php""", 0, False
 echo Set WshShell = Nothing
 ) > "%LICOPRINT_DIR%\start-silent.vbs"
 
@@ -337,28 +315,27 @@ echo [7/7] Finalizando instalacion...
 :: Guardar la ruta de PHP para el script de inicio
 echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
 
-:: Recrear el script de inicio con la ruta correcta
+:: Recrear el VBS con la ruta correcta de PHP
 (
-echo @echo off
-echo "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
-) > "%LICOPRINT_DIR%\start.bat"
+echo Set WshShell = CreateObject^("WScript.Shell"^)
+echo WshShell.Run """%PHP_EXE%"" -S localhost:2026 -t ""%LICOPRINT_DIR%"" ""%LICOPRINT_DIR%\server.php""", 0, False
+echo Set WshShell = Nothing
+) > "%LICOPRINT_DIR%\start-silent.vbs"
 
 echo.
-echo  ╔═══════════════════════════════════════════════════════════════╗
-echo  ║                                                               ║
-echo  ║              INSTALACION COMPLETADA                           ║
-echo  ║                                                               ║
-echo  ╠═══════════════════════════════════════════════════════════════╣
-echo  ║                                                               ║
-echo  ║   Directorio: %LICOPRINT_DIR%
-echo  ║   PHP: %PHP_EXE%
-echo  ║   Puerto: 2026                                                ║
-echo  ║                                                               ║
-echo  ║   Para iniciar: Ejecuta LicoPrint.bat en tu Escritorio        ║
-echo  ║   O abre: %LICOPRINT_DIR%\start.bat
-echo  ║                                                               ║
-echo  ╚═══════════════════════════════════════════════════════════════╝
+echo  ========================================
+echo       INSTALACION COMPLETADA
+echo  ========================================
 echo.
+echo  Directorio: %LICOPRINT_DIR%
+echo  PHP: %PHP_EXE%
+echo  Puerto: 2026
+echo.
+echo  El servicio se iniciara automaticamente
+echo  con Windows (modo silencioso).
+echo.
+echo  Acceso directo: LicoPrint.vbs en Escritorio
+echo  ========================================
 
 :START_SERVER
 set /p INICIAR="Deseas iniciar LicoPrint ahora? (S/N): "
