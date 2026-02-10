@@ -244,16 +244,37 @@
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
-                                        <a href="/downloads/iniciar-licoprint.bat" class="btn btn-outline-primary" download>
+                                        <button type="button" class="btn btn-outline-primary" onclick="iniciarServicio()">
                                             <i class="fa-solid fa-play me-1"></i>
                                             Iniciar Servicio
-                                        </a>
+                                        </button>
                                     </div>
                                     <a href="http://localhost:2026" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
                                         <i class="fa-solid fa-external-link-alt me-1"></i>
                                         Abrir en ventana
                                     </a>
                                 </div>
+                                
+                                <script>
+                                function iniciarServicio() {
+                                    Swal.fire({
+                                        title: 'Iniciar LicoPrint',
+                                        html: `
+                                            <p>Ejecuta el siguiente archivo para iniciar el servicio:</p>
+                                            <code class="d-block p-2 bg-light rounded my-2">C:\\LicoPrint\\start-silent.vbs</code>
+                                            <p class="small text-muted mt-2">O descarga y ejecuta el archivo .bat</p>
+                                        `,
+                                        icon: 'info',
+                                        showCancelButton: true,
+                                        confirmButtonText: '<i class="fa fa-download me-1"></i> Descargar BAT',
+                                        cancelButtonText: 'Cerrar'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = '/downloads/iniciar-licoprint.bat';
+                                        }
+                                    });
+                                }
+                                </script>
 
                                 <!-- Frame de configuración de impresora -->
                                 <div class="card border shadow-sm">

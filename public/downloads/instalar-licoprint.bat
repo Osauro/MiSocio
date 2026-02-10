@@ -162,14 +162,36 @@ echo     $date = date^('Y-m-d H:i:s'^);
 echo     @file_put_contents^($logFile, "[$date] $message\n", FILE_APPEND^);
 echo }
 echo.
-echo // Detectar impresoras ^(Windows^)
+echo // Detectar impresoras ^(Windows^) - multiples metodos
 echo function getPrinters^(^) {
 echo     $printers = [];
-echo     if ^(strtoupper^(substr^(PHP_OS, 0, 3^)^) === 'WIN'^) {
-echo         exec^('powershell -Command "Get-Printer | Select-Object -ExpandProperty Name"', $output^);
-echo         foreach ^($output as $line^) {
-echo             $line = trim^($line^);
-echo             if ^(!empty^($line^)^) $printers[] = $line;
+echo     if ^(strtoupper^(substr^(PHP_OS, 0, 3^)^) !== 'WIN'^) return $printers;
+echo.
+echo     // Metodo 1: WMIC ^(mas compatible^)
+echo     exec^('wmic printer get name 2^>nul', $output^);
+echo     foreach ^($output as $line^) {
+echo         $line = trim^($line^);
+echo         if ^(!empty^($line^) ^&^& strtolower^($line^) !== 'name'^) {
+echo             $printers[] = $line;
+echo         }
+echo     }
+echo     if ^(!empty^($printers^)^) return $printers;
+echo.
+echo     // Metodo 2: PowerShell Get-Printer
+echo     $output = [];
+echo     exec^('powershell -Command "Get-Printer | Select-Object -ExpandProperty Name" 2^>nul', $output^);
+echo     foreach ^($output as $line^) {
+echo         $line = trim^($line^);
+echo         if ^(!empty^($line^)^) $printers[] = $line;
+echo     }
+echo     if ^(!empty^($printers^)^) return $printers;
+echo.
+echo     // Metodo 3: Registro de Windows
+echo     $output = [];
+echo     exec^('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Print\Printers" 2^>nul', $output^);
+echo     foreach ^($output as $line^) {
+echo         if ^(preg_match^('/Printers\\\\^(.+^)$/i', $line, $m^)^) {
+echo             $printers[] = trim^($m[1]^);
 echo         }
 echo     }
 echo     return $printers;
