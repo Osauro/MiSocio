@@ -306,24 +306,27 @@ echo [6/7] Creando scripts de inicio...
 :: Guardar la ruta de PHP
 echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
 
-:: Script VBS para inicio SILENCIOSO que lee la config
-(
-echo Dim fso, file, phpPath, licoprintDir
-echo Set fso = CreateObject^("Scripting.FileSystemObject"^)
-echo licoprintDir = fso.GetParentFolderName^(WScript.ScriptFullName^)
-echo Set file = fso.OpenTextFile^(licoprintDir ^& "\php_path.txt", 1^)
-echo phpPath = Trim^(file.ReadLine^)
-echo file.Close
-echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo cmd = Chr^(34^) ^& phpPath ^& Chr^(34^) ^& " -S localhost:2026 -t " ^& Chr^(34^) ^& licoprintDir ^& Chr^(34^) ^& " " ^& Chr^(34^) ^& licoprintDir ^& "\server.php" ^& Chr^(34^)
-echo WshShell.Run cmd, 0, False
-) > "%LICOPRINT_DIR%\start-silent.vbs"
-
-:: Script batch para inicio visible (debug)
+:: Script BAT normal para inicio (usado por VBS)
 (
 echo @echo off
-echo cd /d "%LICOPRINT_DIR%"
-echo "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
+echo cd /d "C:\LicoPrint"
+echo "%PHP_EXE%" -S localhost:2026 -t "C:\LicoPrint" "C:\LicoPrint\server.php"
+) > "%LICOPRINT_DIR%\start.bat"
+
+:: Script VBS para inicio SILENCIOSO (oculta ventana del BAT)
+(
+echo Set WshShell = CreateObject^("WScript.Shell"^)
+echo WshShell.Run "C:\LicoPrint\start.bat", 0, False
+) > "%LICOPRINT_DIR%\start-silent.vbs"
+
+:: Script batch para debug (muestra ventana)
+(
+echo @echo off
+echo cd /d "C:\LicoPrint"
+echo echo Iniciando LicoPrint en http://localhost:2026
+echo echo Presiona Ctrl+C para detener
+echo echo.
+echo "%PHP_EXE%" -S localhost:2026 -t "C:\LicoPrint" "C:\LicoPrint\server.php"
 echo pause
 ) > "%LICOPRINT_DIR%\start-debug.bat"
 

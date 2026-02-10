@@ -254,7 +254,7 @@
                                         Abrir en ventana
                                     </a>
                                 </div>
-                                
+
                                 <script>
                                 function iniciarServicio() {
                                     Swal.fire({
