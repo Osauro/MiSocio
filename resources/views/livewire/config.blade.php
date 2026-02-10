@@ -267,9 +267,11 @@
                                         <iframe
                                             src="http://localhost:2026"
                                             style="width: 100%; height: 550px; border: none;"
-                                            id="iframe-impresora">
+                                            id="iframe-impresora"
+                                            onload="this.nextElementSibling.style.display='none'; this.style.display='block';"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                                         </iframe>
-                                        <div id="iframe-error" class="alert alert-warning m-3" style="display: none;">
+                                        <div id="iframe-error" class="alert alert-warning m-3">
                                             <i class="fa-solid fa-exclamation-triangle me-2"></i>
                                             <strong>Servicio no disponible</strong><br>
                                             <p class="mb-2">El servicio de impresora local no está corriendo.</p>
@@ -282,39 +284,6 @@
                                     </div>
                                 </div>
                             </div>
-
-                            @script
-                            <script>
-                                // Verificar si el iframe cargó correctamente
-                                const iframe = document.getElementById('iframe-impresora');
-                                const errorDiv = document.getElementById('iframe-error');
-
-                                // Timeout para detectar si el servicio no está disponible
-                                setTimeout(() => {
-                                    try {
-                                        // Intentar acceder al contenido del iframe
-                                        if (!iframe.contentWindow || !iframe.contentWindow.document.body.innerHTML) {
-                                            errorDiv.style.display = 'block';
-                                            iframe.style.display = 'none';
-                                        }
-                                    } catch (e) {
-                                        // Error de CORS significa que el iframe cargó algo
-                                        errorDiv.style.display = 'none';
-                                        iframe.style.display = 'block';
-                                    }
-                                }, 3000);
-
-                                iframe.onerror = function() {
-                                    errorDiv.style.display = 'block';
-                                    iframe.style.display = 'none';
-                                };
-
-                                iframe.onload = function() {
-                                    errorDiv.style.display = 'none';
-                                    iframe.style.display = 'block';
-                                };
-                            </script>
-                            @endscript
                             @endif
 
                             <!-- Tab WhatsApp -->
