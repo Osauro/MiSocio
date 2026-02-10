@@ -68,7 +68,11 @@ exit /b 1
 :: Crear VBS temporal para inicio silencioso
 (
 echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo WshShell.Run """%PHP_EXE%"" -S localhost:2026 -t ""%LICOPRINT_DIR%"" ""%LICOPRINT_DIR%\server.php""", 0, False
+echo phpPath = chr^(34^) ^& "%PHP_EXE%" ^& chr^(34^)
+echo serverDir = chr^(34^) ^& "%LICOPRINT_DIR%" ^& chr^(34^)
+echo serverFile = chr^(34^) ^& "%LICOPRINT_DIR%\server.php" ^& chr^(34^)
+echo cmd = phpPath ^& " -S localhost:2026 -t " ^& serverDir ^& " " ^& serverFile
+echo WshShell.Run cmd, 0, False
 echo Set WshShell = Nothing
 ) > "%TEMP%\licoprint_start.vbs"
 

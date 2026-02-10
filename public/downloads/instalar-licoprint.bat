@@ -284,7 +284,11 @@ echo [6/7] Creando scripts de inicio...
 :: Script VBS para inicio SILENCIOSO (ejecuta PHP directamente oculto)
 (
 echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo WshShell.Run """%PHP_EXE%"" -S localhost:2026 -t ""%LICOPRINT_DIR%"" ""%LICOPRINT_DIR%\server.php""", 0, False
+echo phpPath = chr^(34^) ^& "%PHP_EXE%" ^& chr^(34^)
+echo serverDir = chr^(34^) ^& "%LICOPRINT_DIR%" ^& chr^(34^)
+echo serverFile = chr^(34^) ^& "%LICOPRINT_DIR%\server.php" ^& chr^(34^)
+echo cmd = phpPath ^& " -S localhost:2026 -t " ^& serverDir ^& " " ^& serverFile
+echo WshShell.Run cmd, 0, False
 echo Set WshShell = Nothing
 ) > "%LICOPRINT_DIR%\start-silent.vbs"
 
@@ -318,7 +322,11 @@ echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
 :: Recrear el VBS con la ruta correcta de PHP
 (
 echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo WshShell.Run """%PHP_EXE%"" -S localhost:2026 -t ""%LICOPRINT_DIR%"" ""%LICOPRINT_DIR%\server.php""", 0, False
+echo phpPath = chr^(34^) ^& "%PHP_EXE%" ^& chr^(34^)
+echo serverDir = chr^(34^) ^& "%LICOPRINT_DIR%" ^& chr^(34^)
+echo serverFile = chr^(34^) ^& "%LICOPRINT_DIR%\server.php" ^& chr^(34^)
+echo cmd = phpPath ^& " -S localhost:2026 -t " ^& serverDir ^& " " ^& serverFile
+echo WshShell.Run cmd, 0, False
 echo Set WshShell = Nothing
 ) > "%LICOPRINT_DIR%\start-silent.vbs"
 
