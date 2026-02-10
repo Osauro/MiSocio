@@ -17,7 +17,7 @@ set "PHP_URL=https://windows.php.net/downloads/releases/php-%PHP_VERSION%-nts-Wi
 set "COMPOSER_URL=https://getcomposer.org/download/latest-stable/composer.phar"
 set "PORT=2026"
 
-echo [1/7] Preparando instalacion...
+echo [1/8] Preparando instalacion...
 echo.
 
 :: Eliminar instalacion anterior si existe
@@ -27,7 +27,7 @@ if exist "%LICOPRINT_DIR%" (
 )
 
 :: Crear directorio
-echo [2/7] Creando directorio de instalacion...
+echo [2/8] Creando directorio de instalacion...
 mkdir "%LICOPRINT_DIR%" 2>nul
 mkdir "%LICOPRINT_DIR%\php" 2>nul
 mkdir "%LICOPRINT_DIR%\logs" 2>nul
@@ -36,7 +36,7 @@ echo       Directorio: %LICOPRINT_DIR%
 echo.
 
 :: Verificar PHP
-echo [3/7] Verificando PHP...
+echo [3/8] Verificando PHP...
 set "PHP_EXE="
 
 :: Buscar PHP en PATH
@@ -115,8 +115,41 @@ echo.
 echo       PHP encontrado: %PHP_EXE%
 echo.
 
+:: Instalar Composer y dependencias
+echo [4/8] Instalando dependencias (mike42/escpos-php)...
+
+:: Crear composer.json
+(
+echo {
+echo     "name": "licoprint/server",
+echo     "require": {
+echo         "mike42/escpos-php": "^4.0"
+echo     }
+echo }
+) > "%LICOPRINT_DIR%\composer.json"
+
+:: Descargar Composer si no existe
+if not exist "%LICOPRINT_DIR%\composer.phar" (
+    echo       Descargando Composer...
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://getcomposer.org/download/latest-stable/composer.phar' -OutFile '%LICOPRINT_DIR%\composer.phar' -UseBasicParsing" 2>nul
+)
+
+if exist "%LICOPRINT_DIR%\composer.phar" (
+    echo       Instalando mike42/escpos-php...
+    cd /d "%LICOPRINT_DIR%"
+    "%PHP_EXE%" composer.phar install --no-dev --no-interaction --quiet 2>nul
+    if exist "%LICOPRINT_DIR%\vendor\autoload.php" (
+        echo       Dependencias instaladas correctamente.
+    ) else (
+        echo       [AVISO] No se pudieron instalar dependencias. Usando modo basico.
+    )
+) else (
+    echo       [AVISO] No se pudo descargar Composer. Usando modo basico.
+)
+echo.
+
 :: Crear archivos del servidor
-echo [4/7] Creando servidor de impresion...
+echo [5/8] Creando servidor de impresion...
 
 :: Crear server.php
 (
@@ -129,6 +162,14 @@ echo.
 echo error_reporting^(E_ALL^);
 echo ini_set^('display_errors', '0'^);
 echo ini_set^('log_errors', '1'^);
+echo.
+echo // Autoload de Composer si existe
+echo $autoload = __DIR__ . '/vendor/autoload.php';
+echo $useEscPos = false;
+echo if ^(file_exists^($autoload^)^) {
+echo     require_once $autoload;
+echo     $useEscPos = class_exists^('Mike42\Escpos\Printer'^);
+echo }
 echo.
 echo $configFile = __DIR__ . '/config.json';
 echo $logFile = __DIR__ . '/logs/print.log';
@@ -199,8 +240,30 @@ echo }
 echo.
 echo // Imprimir texto
 echo function printText^($printerName, $content, $copies = 1^) {
+echo     global $useEscPos;
 echo     if ^(empty^($printerName^)^) return ['success' =^> false, 'error' =^> 'No hay impresora configurada'];
 echo.
+echo     // Intentar con ESC/POS ^(mike42^)
+echo     if ^($useEscPos^) {
+echo         try {
+echo             $connector = new Mike42\Escpos\PrintConnectors\WindowsPrintConnector^($printerName^);
+echo             $printer = new Mike42\Escpos\Printer^($connector^);
+echo             for ^($i = 0; $i ^< max^(1, $copies^); $i++^) {
+echo                 $printer-^>initialize^(^);
+echo                 $printer-^>text^($content^);
+echo                 $printer-^>feed^(3^);
+echo                 $printer-^>cut^(^);
+echo             }
+echo             $printer-^>close^(^);
+echo             logPrint^("ESC/POS: Impreso en $printerName"^);
+echo             return ['success' =^> true, 'method' =^> 'escpos'];
+echo         } catch ^(Exception $e^) {
+echo             logPrint^("ESC/POS error: " . $e-^>getMessage^(^)^);
+echo             // Fallback a metodo basico
+echo         }
+echo     }
+echo.
+echo     // Metodo basico con PowerShell
 echo     $tempFile = sys_get_temp_dir^(^) . '/licoprint_' . uniqid^(^) . '.txt';
 echo     file_put_contents^($tempFile, $content^);
 echo.
@@ -214,8 +277,8 @@ echo         }
 echo     }
 echo.
 echo     @unlink^($tempFile^);
-echo     logPrint^("Impreso en $printerName: " . strlen^($content^) . " bytes"^);
-echo     return ['success' =^> true];
+echo     logPrint^("Basico: Impreso en $printerName"^);
+echo     return ['success' =^> true, 'method' =^> 'basic'];
 echo }
 echo.
 echo // Router
@@ -245,6 +308,33 @@ echo             break;
 echo.
 echo         case '/api/printers':
 echo             echo json_encode^(getPrinters^(^)^);
+echo             break;
+echo.
+echo         case '/api/status':
+echo             global $useEscPos;
+echo             echo json_encode^([
+echo                 'escpos' =^> $useEscPos,
+echo                 'version' =^> '1.0',
+echo                 'php' =^> PHP_VERSION
+echo             ]^);
+echo             break;
+echo.
+echo         case '/api/drawer':
+echo             global $useEscPos;
+echo             $config = loadConfig^(^);
+echo             if ^($useEscPos ^&^& !empty^($config['printer_name']^)^) {
+echo                 try {
+echo                     $connector = new Mike42\Escpos\PrintConnectors\WindowsPrintConnector^($config['printer_name']^);
+echo                     $printer = new Mike42\Escpos\Printer^($connector^);
+echo                     $printer-^>pulse^(^);
+echo                     $printer-^>close^(^);
+echo                     echo json_encode^(['success' =^> true]^);
+echo                 } catch ^(Exception $e^) {
+echo                     echo json_encode^(['success' =^> false, 'error' =^> $e-^>getMessage^(^)]^);
+echo                 }
+echo             } else {
+echo                 echo json_encode^(['success' =^> false, 'error' =^> 'ESC/POS no disponible']^);
+echo             }
 echo             break;
 echo.
 echo         case '/api/print':
@@ -294,14 +384,14 @@ echo }
 echo       server.php creado.
 
 :: Crear index.html
-echo [5/7] Creando interfaz web...
+echo [6/8] Creando interfaz web...
 call :CREATE_INDEX_HTML
 
 echo       index.html creado.
 echo.
 
 :: Crear script de inicio
-echo [6/7] Creando scripts de inicio...
+echo [7/8] Creando scripts de inicio...
 
 :: Guardar la ruta de PHP
 echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
@@ -352,7 +442,7 @@ echo       Inicio automatico con Windows: Activado
 echo.
 
 :: Actualizar PATH (opcional)
-echo [7/7] Finalizando instalacion...
+echo [8/8] Finalizando instalacion...
 
 echo.
 echo  ========================================
