@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set "LICOPRINT_DIR=%LOCALAPPDATA%\LicoPrint"
+set "LICOPRINT_DIR=C:\LicoPrint"
 
 :: Verificar si LicoPrint esta instalado
 if not exist "%LICOPRINT_DIR%\server.php" (

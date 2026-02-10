@@ -11,7 +11,7 @@ echo  ========================================
 echo.
 
 :: Configuracion
-set "LICOPRINT_DIR=%LOCALAPPDATA%\LicoPrint"
+set "LICOPRINT_DIR=C:\LicoPrint"
 set "PHP_VERSION=8.3.4"
 set "PHP_URL=https://windows.php.net/downloads/releases/php-%PHP_VERSION%-nts-Win32-vs16-x64.zip"
 set "COMPOSER_URL=https://getcomposer.org/download/latest-stable/composer.phar"
