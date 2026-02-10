@@ -281,16 +281,29 @@ echo.
 :: Crear script de inicio
 echo [6/7] Creando scripts de inicio...
 
-:: Script VBS para inicio SILENCIOSO (ejecuta PHP directamente oculto)
+:: Guardar la ruta de PHP
+echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
+
+:: Script VBS para inicio SILENCIOSO que lee la config
 (
+echo Dim fso, file, phpPath, licoprintDir
+echo Set fso = CreateObject^("Scripting.FileSystemObject"^)
+echo licoprintDir = fso.GetParentFolderName^(WScript.ScriptFullName^)
+echo Set file = fso.OpenTextFile^(licoprintDir ^& "\php_path.txt", 1^)
+echo phpPath = Trim^(file.ReadLine^)
+echo file.Close
 echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo phpPath = chr^(34^) ^& "%PHP_EXE%" ^& chr^(34^)
-echo serverDir = chr^(34^) ^& "%LICOPRINT_DIR%" ^& chr^(34^)
-echo serverFile = chr^(34^) ^& "%LICOPRINT_DIR%\server.php" ^& chr^(34^)
-echo cmd = phpPath ^& " -S localhost:2026 -t " ^& serverDir ^& " " ^& serverFile
+echo cmd = Chr^(34^) ^& phpPath ^& Chr^(34^) ^& " -S localhost:2026 -t " ^& Chr^(34^) ^& licoprintDir ^& Chr^(34^) ^& " " ^& Chr^(34^) ^& licoprintDir ^& "\server.php" ^& Chr^(34^)
 echo WshShell.Run cmd, 0, False
-echo Set WshShell = Nothing
 ) > "%LICOPRINT_DIR%\start-silent.vbs"
+
+:: Script batch para inicio visible (debug)
+(
+echo @echo off
+echo cd /d "%LICOPRINT_DIR%"
+echo "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
+echo pause
+) > "%LICOPRINT_DIR%\start-debug.bat"
 
 :: Script para detener el servidor
 (
@@ -315,20 +328,6 @@ echo.
 
 :: Actualizar PATH (opcional)
 echo [7/7] Finalizando instalacion...
-
-:: Guardar la ruta de PHP para el script de inicio
-echo %PHP_EXE%> "%LICOPRINT_DIR%\php_path.txt"
-
-:: Recrear el VBS con la ruta correcta de PHP
-(
-echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo phpPath = chr^(34^) ^& "%PHP_EXE%" ^& chr^(34^)
-echo serverDir = chr^(34^) ^& "%LICOPRINT_DIR%" ^& chr^(34^)
-echo serverFile = chr^(34^) ^& "%LICOPRINT_DIR%\server.php" ^& chr^(34^)
-echo cmd = phpPath ^& " -S localhost:2026 -t " ^& serverDir ^& " " ^& serverFile
-echo WshShell.Run cmd, 0, False
-echo Set WshShell = Nothing
-) > "%LICOPRINT_DIR%\start-silent.vbs"
 
 echo.
 echo  ========================================
