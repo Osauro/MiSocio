@@ -32,7 +32,11 @@ class TicketController extends Controller
         $config = TenantConfig::getOrCreateForTenant(currentTenantId());
 
         $pdf = Pdf::loadView('pdf.ticket-venta', compact('venta', 'config'));
-        $pdf->setPaper([0, 0, 226.77, 850], 'portrait');
+
+        // Ajustar tamaño del papel según configuración
+        // 58mm = 164.41 puntos, 80mm = 226.77 puntos
+        $paperWidth = ($config->papel_tamano === '58mm') ? 164.41 : 226.77;
+        $pdf->setPaper([0, 0, $paperWidth, 850], 'portrait');
 
         return $pdf->stream('ticket-venta-' . $venta->numero_folio . '.pdf');
     }

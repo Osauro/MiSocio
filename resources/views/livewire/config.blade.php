@@ -238,108 +238,71 @@
                             @if($activeTab === 'impresion')
                             <div class="tab-pane fade show active">
                                 <div class="row">
-                                    <!-- Selección de Impresora -->
-                                    <div class="col-md-6 mb-3">
+                                    <!-- Configuración de Impresora Local (iframe) -->
+                                    <div class="col-md-8 mb-3">
                                         <div class="card border shadow-sm h-100">
                                             <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-print me-2"></i>
-                                                    Impresora
+                                                    Configuración de Impresora Local
                                                 </h5>
-                                                <button type="button" class="btn btn-sm btn-light" wire:click="detectarImpresoras"
-                                                    wire:loading.attr="disabled" title="Detectar impresoras del sistema">
-                                                    <span wire:loading.remove wire:target="detectarImpresoras">
-                                                        <i class="fa-solid fa-sync"></i> Detectar
-                                                    </span>
-                                                    <span wire:loading wire:target="detectarImpresoras">
-                                                        <i class="fa-solid fa-spinner fa-spin"></i> Buscando...
-                                                    </span>
-                                                </button>
+                                                <a href="http://localhost:2026" target="_blank" class="btn btn-sm btn-light" title="Abrir en nueva ventana">
+                                                    <i class="fa-solid fa-external-link-alt"></i>
+                                                </a>
                                             </div>
-                                            <div class="card-body">
-                                                <!-- Impresora seleccionada -->
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Impresora Seleccionada</label>
-                                                    <div class="input-group">
-                                                        <span class="input-group-text"><i class="fa-solid fa-print"></i></span>
-                                                        <input type="text" class="form-control" id="impresora_nombre"
-                                                            wire:model="impresora_nombre" placeholder="Nombre de la impresora">
-                                                    </div>
-                                                    @error('impresora_nombre') <span class="text-danger small">{{ $message }}</span> @enderror
+                                            <div class="card-body p-0">
+                                                <div class="alert alert-info m-3 mb-0">
+                                                    <i class="fa-solid fa-info-circle me-2"></i>
+                                                    <strong>Nota:</strong> Para usar la impresora local, asegúrate de tener el servicio de impresión corriendo en <code>localhost:2026</code>
                                                 </div>
-
-                                                <!-- Lista de impresoras detectadas -->
-                                                <div id="lista-impresoras-container" class="mb-3" style="display: none;">
-                                                    <label class="form-label fw-semibold small">
-                                                        <i class="fa-solid fa-list me-1"></i> Impresoras Disponibles
-                                                    </label>
-                                                    <div class="list-group list-group-flush" id="lista-impresoras" style="max-height: 200px; overflow-y: auto;">
-                                                        <!-- Se llena dinámicamente -->
-                                                    </div>
-                                                </div>
-
-                                                <!-- Agregar impresora de red -->
-                                                <div class="border-top pt-3">
-                                                    <button type="button" class="btn btn-sm btn-outline-secondary w-100"
-                                                        data-bs-toggle="collapse" data-bs-target="#agregarIpCollapse">
-                                                        <i class="fa-solid fa-network-wired me-1"></i>
-                                                        Agregar Impresora de Red (IP)
-                                                    </button>
-                                                    <div class="collapse mt-2" id="agregarIpCollapse">
-                                                        <div class="input-group input-group-sm">
-                                                            <span class="input-group-text">IP:</span>
-                                                            <input type="text" class="form-control" id="impresora_ip"
-                                                                placeholder="192.168.1.100">
-                                                            <input type="number" class="form-control" id="impresora_puerto"
-                                                                placeholder="9100" style="max-width: 80px;">
-                                                            <button type="button" class="btn btn-success" id="btn-agregar-ip">
-                                                                <i class="fa-solid fa-plus"></i>
-                                                            </button>
-                                                        </div>
-                                                        <small class="text-muted">Puerto por defecto: 9100 (RAW)</small>
-                                                    </div>
+                                                <iframe
+                                                    src="http://localhost:2026"
+                                                    style="width: 100%; height: 450px; border: none;"
+                                                    id="iframe-impresora"
+                                                    onload="document.getElementById('iframe-error').style.display='none';"
+                                                    onerror="document.getElementById('iframe-error').style.display='block';">
+                                                </iframe>
+                                                <div id="iframe-error" class="alert alert-warning m-3" style="display: none;">
+                                                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                                    <strong>No se pudo conectar</strong><br>
+                                                    <small>El servicio de impresora local no está disponible. Asegúrate de que esté ejecutándose en el puerto 2026.</small>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Tipo y Configuración -->
-                                    <div class="col-md-6 mb-3">
+                                    <!-- Configuración de Papel y Opciones -->
+                                    <div class="col-md-4 mb-3">
                                         <div class="card border shadow-sm">
                                             <div class="card-header bg-primary text-white">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-cog me-2"></i>
-                                                    Configuración
+                                                    Configuración de Papel
                                                 </h5>
                                             </div>
                                             <div class="card-body">
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Tipo</label>
-                                                            <select class="form-select" wire:model="impresora_tipo">
-                                                                <option value="termica">Térmica (POS)</option>
-                                                                <option value="laser">Láser</option>
-                                                                <option value="inyeccion">Inyección</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Tamaño Papel</label>
-                                                            <select class="form-select" wire:model="papel_tamano">
-                                                                <option value="58mm">58mm</option>
-                                                                <option value="80mm">80mm</option>
-                                                                <option value="carta">Carta</option>
-                                                                <option value="media-carta">Media Carta</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">Tipo de Impresora</label>
+                                                    <select class="form-select" wire:model="impresora_tipo">
+                                                        <option value="termica">Térmica (POS)</option>
+                                                        <option value="laser">Láser</option>
+                                                        <option value="inyeccion">Inyección</option>
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">Tamaño de Papel</label>
+                                                    <select class="form-select" wire:model="papel_tamano">
+                                                        <option value="58mm">58mm (Térmico pequeño)</option>
+                                                        <option value="80mm">80mm (Térmico estándar)</option>
+                                                        <option value="carta">Carta</option>
+                                                        <option value="media-carta">Media Carta</option>
+                                                    </select>
+                                                    <small class="text-muted">Selecciona según tu impresora térmica</small>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-6">
                                                         <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Ancho (caracteres)</label>
+                                                            <label class="form-label fw-semibold">Ancho (car.)</label>
                                                             <input type="number" class="form-control" wire:model="ancho_caracteres"
                                                                 min="32" max="80" placeholder="48">
                                                         </div>
@@ -367,23 +330,26 @@
                                                 <div class="form-check form-switch mb-2">
                                                     <input class="form-check-input" type="checkbox" wire:model="corte_automatico" id="corteAutomatico">
                                                     <label class="form-check-label" for="corteAutomatico">
-                                                        <i class="fa-solid fa-scissors me-1"></i> Corte automático de papel
+                                                        <i class="fa-solid fa-scissors me-1"></i> Corte automático
                                                     </label>
                                                 </div>
                                                 <div class="form-check form-switch mb-2">
                                                     <input class="form-check-input" type="checkbox" wire:model="abrir_cajon" id="abrirCajon">
                                                     <label class="form-check-label" for="abrirCajon">
-                                                        <i class="fa-solid fa-cash-register me-1"></i> Abrir cajón al imprimir
+                                                        <i class="fa-solid fa-cash-register me-1"></i> Abrir cajón
                                                     </label>
                                                 </div>
                                                 <div class="form-check form-switch mb-0">
                                                     <input class="form-check-input" type="checkbox" wire:model="sonido_apertura" id="sonidoApertura">
                                                     <label class="form-check-label" for="sonidoApertura">
-                                                        <i class="fa-solid fa-volume-high me-1"></i> Sonido al abrir cajón
+                                                        <i class="fa-solid fa-volume-high me-1"></i> Sonido apertura
                                                     </label>
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- Nombre de impresora (oculto pero funcional) -->
+                                        <input type="hidden" wire:model="impresora_nombre" id="impresora_nombre">
                                     </div>
                                 </div>
 

@@ -3,22 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>Ticket #{{ $venta->numero_folio }}</title>
+    @php
+        $is58mm = ($config->papel_tamano ?? '80mm') === '58mm';
+        $paperWidth = $is58mm ? '58mm' : '80mm';
+        $bodyWidth = $is58mm ? '52mm' : '74mm';
+        $logoWidth = $is58mm ? '35mm' : '50mm';
+        $logoHeight = $is58mm ? '18mm' : '25mm';
+        $fontBase = $is58mm ? '9px' : '11px';
+        $fontTienda = $is58mm ? '12px' : '16px';
+        $fontInfo = $is58mm ? '8px' : '10px';
+        $fontSeccion = $is58mm ? '10px' : '13px';
+        $fontItems = $is58mm ? '9px' : '11px';
+        $fontCant = $is58mm ? '8px' : '10px';
+        $fontTotales = $is58mm ? '10px' : '12px';
+        $fontTotal = $is58mm ? '11px' : '14px';
+        $fontMensaje = $is58mm ? '10px' : '12px';
+        $fontPie = $is58mm ? '7px' : '9px';
+        $cantWidth = $is58mm ? '40px' : '55px';
+        $precioWidth = $is58mm ? '45px' : '55px';
+        $totalWidth = $is58mm ? '55px' : '65px';
+        $labelWidth = $is58mm ? '55px' : '70px';
+        $nombreLimit = $is58mm ? 16 : 22;
+    @endphp
     <style>
         /* Reset */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         @page {
-            /* Ancho de papel térmico 80mm */
-            size: 80mm auto;
-            margin: 2mm 3mm;
+            /* Ancho de papel térmico dinámico */
+            size: {{ $paperWidth }} auto;
+            margin: {{ $is58mm ? '1mm 2mm' : '2mm 3mm' }};
         }
 
         body {
             font-family: 'Courier New', 'Lucida Console', monospace;
-            font-size: 11px;
-            line-height: 1.3;
+            font-size: {{ $fontBase }};
+            line-height: {{ $is58mm ? '1.2' : '1.3' }};
             color: #000;
-            width: 74mm;
+            width: {{ $bodyWidth }};
         }
 
         .center { text-align: center; }
@@ -27,76 +49,76 @@
 
         .logo {
             display: block;
-            margin: 0 auto 4px;
-            max-width: 50mm;
-            max-height: 25mm;
+            margin: 0 auto {{ $is58mm ? '2px' : '4px' }};
+            max-width: {{ $logoWidth }};
+            max-height: {{ $logoHeight }};
         }
 
         .nombre-tienda {
-            font-size: 16px;
+            font-size: {{ $fontTienda }};
             font-weight: bold;
             text-align: center;
-            margin-bottom: 2px;
+            margin-bottom: {{ $is58mm ? '1px' : '2px' }};
         }
 
         .info-tienda {
             text-align: center;
-            font-size: 10px;
-            margin-bottom: 2px;
+            font-size: {{ $fontInfo }};
+            margin-bottom: {{ $is58mm ? '1px' : '2px' }};
         }
 
         .linea {
             border: none;
             border-top: 1px dashed #000;
-            margin: 4px 0;
+            margin: {{ $is58mm ? '2px 0' : '4px 0' }};
         }
 
         .linea-doble {
             border: none;
-            border-top: 2px solid #000;
-            margin: 4px 0;
+            border-top: {{ $is58mm ? '1px' : '2px' }} solid #000;
+            margin: {{ $is58mm ? '2px 0' : '4px 0' }};
         }
 
         .titulo-seccion {
             text-align: center;
             font-weight: bold;
-            font-size: 13px;
-            letter-spacing: 2px;
-            margin: 2px 0;
+            font-size: {{ $fontSeccion }};
+            letter-spacing: {{ $is58mm ? '1px' : '2px' }};
+            margin: {{ $is58mm ? '1px 0' : '2px 0' }};
         }
 
         .datos-venta {
-            font-size: 11px;
+            font-size: {{ $fontItems }};
         }
 
         .datos-venta td {
-            padding: 1px 0;
+            padding: {{ $is58mm ? '0' : '1px 0' }};
             vertical-align: top;
         }
 
         .datos-venta .label {
             font-weight: bold;
-            width: 70px;
+            width: {{ $labelWidth }};
         }
 
         /* Tabla de items */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
-            margin: 2px 0;
+            font-size: {{ $fontItems }};
+            margin: {{ $is58mm ? '1px 0' : '2px 0' }};
         }
 
         .items-table td {
-            padding: 2px 0;
+            padding: {{ $is58mm ? '1px 0' : '2px 0' }};
             vertical-align: top;
         }
 
         .items-table .cant {
-            width: 55px;
+            width: {{ $cantWidth }};
             text-align: left;
             white-space: nowrap;
-            font-size: 10px;
+            font-size: {{ $fontCant }};
         }
 
         .items-table .nombre {
@@ -106,7 +128,7 @@
         }
 
         .items-table .precio {
-            width: 55px;
+            width: {{ $precioWidth }};
             text-align: right;
         }
 
@@ -114,41 +136,41 @@
         .totales-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: {{ $fontTotales }};
         }
 
         .totales-table td {
-            padding: 1px 0;
+            padding: {{ $is58mm ? '0' : '1px 0' }};
         }
 
         .totales-table .total-label {
             text-align: right;
             font-weight: bold;
-            padding-right: 8px;
+            padding-right: {{ $is58mm ? '4px' : '8px' }};
         }
 
         .totales-table .total-valor {
             text-align: right;
-            width: 65px;
+            width: {{ $totalWidth }};
         }
 
         .total-principal {
-            font-size: 14px;
+            font-size: {{ $fontTotal }};
             font-weight: bold;
         }
 
         .mensaje-final {
             text-align: center;
             font-weight: bold;
-            font-size: 12px;
-            margin: 6px 0 2px;
+            font-size: {{ $fontMensaje }};
+            margin: {{ $is58mm ? '3px 0 1px' : '6px 0 2px' }};
         }
 
         .pie {
             text-align: center;
-            font-size: 9px;
+            font-size: {{ $fontPie }};
             color: #555;
-            margin-top: 4px;
+            margin-top: {{ $is58mm ? '2px' : '4px' }};
         }
 
         /* Auto-print al abrir */
@@ -216,7 +238,7 @@
         @foreach($venta->ventaItems as $item)
             <tr>
                 <td class="cant">{{ $item->cantidad_formateada }}</td>
-                <td class="nombre">{{ Str::limit($item->producto->nombre ?? 'Producto', 22, '') }}</td>
+                <td class="nombre">{{ Str::limit($item->producto->nombre ?? 'Producto', $nombreLimit, '') }}</td>
                 <td class="precio">{{ number_format($item->subtotal, 2) }}</td>
             </tr>
         @endforeach
