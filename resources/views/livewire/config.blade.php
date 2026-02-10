@@ -237,133 +237,84 @@
                             <!-- Tab Impresión -->
                             @if($activeTab === 'impresion')
                             <div class="tab-pane fade show active">
-                                <div class="row">
-                                    <!-- Configuración de Impresora Local (iframe) -->
-                                    <div class="col-md-8 mb-3">
-                                        <div class="card border shadow-sm h-100">
-                                            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-print me-2"></i>
-                                                    Configuración de Impresora Local
-                                                </h5>
-                                                <a href="http://localhost:2026" target="_blank" class="btn btn-sm btn-light" title="Abrir en nueva ventana">
-                                                    <i class="fa-solid fa-external-link-alt"></i>
-                                                </a>
-                                            </div>
-                                            <div class="card-body p-0">
-                                                <div class="alert alert-info m-3 mb-0">
-                                                    <i class="fa-solid fa-info-circle me-2"></i>
-                                                    <strong>Nota:</strong> Para usar la impresora local, asegúrate de tener el servicio de impresión corriendo en <code>localhost:2026</code>
-                                                </div>
-                                                <iframe
-                                                    src="http://localhost:2026"
-                                                    style="width: 100%; height: 450px; border: none;"
-                                                    id="iframe-impresora"
-                                                    onload="document.getElementById('iframe-error').style.display='none';"
-                                                    onerror="document.getElementById('iframe-error').style.display='block';">
-                                                </iframe>
-                                                <div id="iframe-error" class="alert alert-warning m-3" style="display: none;">
-                                                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
-                                                    <strong>No se pudo conectar</strong><br>
-                                                    <small>El servicio de impresora local no está disponible. Asegúrate de que esté ejecutándose en el puerto 2026.</small>
-                                                </div>
-                                            </div>
-                                        </div>
+                                <!-- Botones de acción -->
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ asset('downloads/LicoPrint-Installer.exe') }}" class="btn btn-success" download>
+                                            <i class="fa-solid fa-download me-1"></i>
+                                            Descargar Instalador
+                                        </a>
+                                        <button type="button" class="btn btn-primary" onclick="window.open('licoprint://start', '_self')">
+                                            <i class="fa-solid fa-play me-1"></i>
+                                            Iniciar Servicio
+                                        </button>
                                     </div>
-
-                                    <!-- Configuración de Papel y Opciones -->
-                                    <div class="col-md-4 mb-3">
-                                        <div class="card border shadow-sm">
-                                            <div class="card-header bg-primary text-white">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-cog me-2"></i>
-                                                    Configuración de Papel
-                                                </h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Tipo de Impresora</label>
-                                                    <select class="form-select" wire:model="impresora_tipo">
-                                                        <option value="termica">Térmica (POS)</option>
-                                                        <option value="laser">Láser</option>
-                                                        <option value="inyeccion">Inyección</option>
-                                                    </select>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Tamaño de Papel</label>
-                                                    <select class="form-select" wire:model="papel_tamano">
-                                                        <option value="58mm">58mm (Térmico pequeño)</option>
-                                                        <option value="80mm">80mm (Térmico estándar)</option>
-                                                        <option value="carta">Carta</option>
-                                                        <option value="media-carta">Media Carta</option>
-                                                    </select>
-                                                    <small class="text-muted">Selecciona según tu impresora térmica</small>
-                                                </div>
-                                                <div class="row">
-                                                    <div class="col-6">
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Ancho (car.)</label>
-                                                            <input type="number" class="form-control" wire:model="ancho_caracteres"
-                                                                min="32" max="80" placeholder="48">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="mb-3">
-                                                            <label class="form-label fw-semibold">Copias</label>
-                                                            <input type="number" class="form-control"
-                                                                wire:model="papel_copias" min="1" max="5">
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Opciones de Impresora Térmica -->
-                                        <div class="card border shadow-sm mt-3">
-                                            <div class="card-header bg-info text-white">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-sliders me-2"></i>
-                                                    Opciones Extras
-                                                </h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="form-check form-switch mb-2">
-                                                    <input class="form-check-input" type="checkbox" wire:model="corte_automatico" id="corteAutomatico">
-                                                    <label class="form-check-label" for="corteAutomatico">
-                                                        <i class="fa-solid fa-scissors me-1"></i> Corte automático
-                                                    </label>
-                                                </div>
-                                                <div class="form-check form-switch mb-2">
-                                                    <input class="form-check-input" type="checkbox" wire:model="abrir_cajon" id="abrirCajon">
-                                                    <label class="form-check-label" for="abrirCajon">
-                                                        <i class="fa-solid fa-cash-register me-1"></i> Abrir cajón
-                                                    </label>
-                                                </div>
-                                                <div class="form-check form-switch mb-0">
-                                                    <input class="form-check-input" type="checkbox" wire:model="sonido_apertura" id="sonidoApertura">
-                                                    <label class="form-check-label" for="sonidoApertura">
-                                                        <i class="fa-solid fa-volume-high me-1"></i> Sonido apertura
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Nombre de impresora (oculto pero funcional) -->
-                                        <input type="hidden" wire:model="impresora_nombre" id="impresora_nombre">
-                                    </div>
+                                    <a href="http://localhost:2026" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
+                                        <i class="fa-solid fa-external-link-alt me-1"></i>
+                                        Abrir en ventana
+                                    </a>
                                 </div>
 
-                                <div class="mt-3 d-flex justify-content-between">
-                                    <button type="button" class="btn btn-outline-info" wire:click="impresionPrueba">
-                                        <i class="fa-solid fa-print me-1"></i>
-                                        Impresión de Prueba
-                                    </button>
-                                    <button class="btn btn-primary" wire:click="guardarImpresion">
-                                        <i class="fa-solid fa-save me-1"></i>
-                                        Guardar Configuración
-                                    </button>
+                                <!-- Frame de configuración de impresora -->
+                                <div class="card border shadow-sm">
+                                    <div class="card-header bg-dark text-white">
+                                        <h5 class="mb-0">
+                                            <i class="fa-solid fa-print me-2"></i>
+                                            Configuración de Impresora Local
+                                        </h5>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <iframe
+                                            src="http://localhost:2026"
+                                            style="width: 100%; height: 550px; border: none;"
+                                            id="iframe-impresora">
+                                        </iframe>
+                                        <div id="iframe-error" class="alert alert-warning m-3" style="display: none;">
+                                            <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                            <strong>Servicio no disponible</strong><br>
+                                            <p class="mb-2">El servicio de impresora local no está corriendo.</p>
+                                            <ol class="mb-0 ps-3">
+                                                <li>Descarga e instala el programa con el botón <strong>"Descargar Instalador"</strong></li>
+                                                <li>Haz clic en <strong>"Iniciar Servicio"</strong> para ejecutar LicoPrint</li>
+                                                <li>Recarga esta página</li>
+                                            </ol>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            @script
+                            <script>
+                                // Verificar si el iframe cargó correctamente
+                                const iframe = document.getElementById('iframe-impresora');
+                                const errorDiv = document.getElementById('iframe-error');
+
+                                // Timeout para detectar si el servicio no está disponible
+                                setTimeout(() => {
+                                    try {
+                                        // Intentar acceder al contenido del iframe
+                                        if (!iframe.contentWindow || !iframe.contentWindow.document.body.innerHTML) {
+                                            errorDiv.style.display = 'block';
+                                            iframe.style.display = 'none';
+                                        }
+                                    } catch (e) {
+                                        // Error de CORS significa que el iframe cargó algo
+                                        errorDiv.style.display = 'none';
+                                        iframe.style.display = 'block';
+                                    }
+                                }, 3000);
+
+                                iframe.onerror = function() {
+                                    errorDiv.style.display = 'block';
+                                    iframe.style.display = 'none';
+                                };
+
+                                iframe.onload = function() {
+                                    errorDiv.style.display = 'none';
+                                    iframe.style.display = 'block';
+                                };
+                            </script>
+                            @endscript
                             @endif
 
                             <!-- Tab WhatsApp -->
