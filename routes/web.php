@@ -17,10 +17,19 @@ use App\Livewire\Productos;
 use App\Livewire\Usuarios;
 use App\Livewire\Venta;
 use App\Livewire\Ventas;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Ruta temporal para limpiar caché en producción (borrar después de usar)
+Route::get('/clear-cache-7x9k', function () {
+    Artisan::call('route:clear');
+    Artisan::call('config:clear');
+    Artisan::call('view:clear');
+    return 'Cache limpiada correctamente ✅ — Ahora borra esta ruta del código.';
 });
 
 Route::get('/dashboard', function () {
