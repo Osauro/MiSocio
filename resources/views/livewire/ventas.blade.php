@@ -498,10 +498,76 @@
                 });
             });
 
-            // Abrir ticket PDF en nueva pestaña
+            // === IMPRESIÓN DIRECTA ESC/POS VÍA WEB SERIAL API ===
+            // Intenta enviar comandos ESC/POS directos a la impresora térmica USB.
+            // Si no soporta Web Serial o falla, abre el ticket HTML con auto-print.
+
+            let printerPort = null;
+
+            async function conectarImpresora() {
+                try {
+                    // Verificar si ya tenemos un puerto guardado
+                    const ports = await navigator.serial.getPorts();
+                    if (ports.length > 0) {
+                        printerPort = ports[0];
+                        if (!printerPort.readable) {
+                            await printerPort.open({ baudRate: 9600 });
+                        }
+                        return true;
+                    }
+                    // Pedir al usuario que seleccione el puerto
+                    printerPort = await navigator.serial.requestPort();
+                    await printerPort.open({ baudRate: 9600 });
+                    return true;
+                } catch (e) {
+                    console.warn('No se pudo conectar por Serial:', e.message);
+                    printerPort = null;
+                    return false;
+                }
+            }
+
+            async function imprimirEscpos(escposUrl, htmlUrl) {
+                // Verificar si Web Serial API está disponible
+                if (!('serial' in navigator)) {
+                    console.log('Web Serial API no disponible, usando HTML print');
+                    window.open(htmlUrl, '_blank');
+                    return;
+                }
+
+                try {
+                    // Conectar si no estamos conectados
+                    if (!printerPort || !printerPort.writable) {
+                        const ok = await conectarImpresora();
+                        if (!ok) {
+                            window.open(htmlUrl, '_blank');
+                            return;
+                        }
+                    }
+
+                    // Descargar datos ESC/POS raw del servidor
+                    const response = await fetch(escposUrl);
+                    if (!response.ok) throw new Error('Error al obtener datos ESC/POS');
+
+                    const arrayBuffer = await response.arrayBuffer();
+                    const data = new Uint8Array(arrayBuffer);
+
+                    // Enviar a la impresora
+                    const writer = printerPort.writable.getWriter();
+                    await writer.write(data);
+                    writer.releaseLock();
+
+                    console.log('Ticket impreso correctamente vía ESC/POS');
+                } catch (e) {
+                    console.warn('Error imprimiendo ESC/POS:', e.message);
+                    // Fallback: abrir HTML para imprimir desde navegador
+                    window.open(htmlUrl, '_blank');
+                }
+            }
+
+            // Escuchar evento de Livewire para imprimir
             $wire.on('abrir-ticket', (data) => {
                 const info = data[0] || data;
-                window.open(info.url, '_blank');
+                imprimirEscpos(info.escposUrl, info.htmlUrl);
             });
         </script>
     @endscript

@@ -50,6 +50,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Tickets PDF
     Route::get('ticket/venta/{ventaId}', [TicketController::class, 'venta'])->name('ticket.venta');
 
+    // Ticket HTML para impresión directa desde navegador (papel auto-ajustable)
+    Route::get('ticket/venta/{ventaId}/print', [TicketController::class, 'ventaHtml'])->name('ticket.venta.print');
+
+    // Ticket ESC/POS raw (datos binarios para impresora térmica vía mike42)
+    Route::get('ticket/venta/{ventaId}/escpos', [TicketController::class, 'ventaEscpos'])->name('ticket.venta.escpos');
+
     // Ruta de debug temporal - Solo para desarrollo
     Route::get('debug-user', function () {
         return view('debug-user');

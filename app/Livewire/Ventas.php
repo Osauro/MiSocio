@@ -422,8 +422,11 @@ class Ventas extends Component
 
     public function imprimirTicket($ventaId)
     {
-        // Abrir PDF del ticket en nueva pestaña
-        $this->dispatch('abrir-ticket', ['url' => route('ticket.venta', $ventaId)]);
+        // Enviar URLs para impresión ESC/POS directa o HTML como fallback
+        $this->dispatch('abrir-ticket', [
+            'escposUrl' => route('ticket.venta.escpos', $ventaId),
+            'htmlUrl' => route('ticket.venta.print', $ventaId),
+        ]);
     }
 
     public function render()

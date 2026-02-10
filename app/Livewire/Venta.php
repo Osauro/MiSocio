@@ -808,9 +808,10 @@ class Venta extends Component
 
             $this->toast('success', 'Venta completada exitosamente');
 
-            // Abrir ticket PDF en nueva pestaña y redirigir
+            // Imprimir ticket ESC/POS directo o HTML como fallback, y redirigir
             $this->dispatch('abrir-ticket-y-redirigir', [
-                'url' => route('ticket.venta', $this->venta->id),
+                'escposUrl' => route('ticket.venta.escpos', $this->venta->id),
+                'htmlUrl' => route('ticket.venta.print', $this->venta->id),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

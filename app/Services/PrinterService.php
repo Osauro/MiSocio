@@ -17,6 +17,158 @@ class PrinterService
     protected string $error = '';
 
     /**
+     * Generar datos raw ESC/POS para un ticket de venta.
+     * Captura los comandos binarios en un archivo temporal y los devuelve como string.
+     * El papel se ajusta automáticamente porque ESC/POS es rollo continuo (sin páginas).
+     */
+    public static function generarRawTicketVenta($venta, TenantConfig $config): string
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'escpos_');
+        $connector = new FilePrintConnector($tmpFile);
+        $printer = new Printer($connector);
+
+        $ancho = $config->ancho_caracteres ?? 32;
+        $tam = $config->papel_tamano ?? '80mm';
+        if ($tam === '58mm') {
+            $ancho = min($ancho, 32);
+        } elseif ($tam === '80mm' && $ancho < 42) {
+            $ancho = 42;
+        }
+
+        // === LOGO ===
+        if ($config->logo) {
+            $logoPath = storage_path('app/public/' . $config->logo);
+            if (file_exists($logoPath)) {
+                try {
+                    $logo = EscposImage::load($logoPath);
+                    $printer->setJustification(Printer::JUSTIFY_CENTER);
+                    $printer->bitImage($logo);
+                    $printer->feed(1);
+                } catch (\Exception $e) {
+                    // Continuar sin logo
+                }
+            }
+        }
+
+        // === ENCABEZADO ===
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->setTextSize(2, 2);
+        $printer->setEmphasis(true);
+        $printer->text(mb_strtoupper($config->nombre_tienda ?? 'MI TIENDA') . "\n");
+        $printer->setTextSize(1, 1);
+        $printer->setEmphasis(false);
+
+        if ($config->direccion) {
+            $printer->text($config->direccion . "\n");
+        }
+        if ($config->telefono) {
+            $printer->text("Tel: " . $config->telefono . "\n");
+        }
+        if ($config->nit) {
+            $printer->text("NIT: " . $config->nit . "\n");
+        }
+
+        $printer->text(str_repeat('=', $ancho) . "\n");
+        $printer->setEmphasis(true);
+        $printer->text("TICKET DE VENTA\n");
+        $printer->setEmphasis(false);
+        $printer->text(str_repeat('=', $ancho) . "\n");
+
+        // === DATOS DE LA VENTA ===
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $printer->text("Fecha: " . $venta->created_at->format('d/m/Y H:i') . "\n");
+        $printer->text("Vendedor: " . ($venta->user->name ?? '-') . "\n");
+        $printer->text("Cliente: " . ($venta->cliente->nombre ?? 'Sin cliente') . "\n");
+        $printer->text("Folio: #" . $venta->numero_folio . "\n");
+
+        $printer->text(str_repeat('-', $ancho) . "\n");
+
+        // === ITEMS ===
+        $printer->setEmphasis(true);
+        $hCant = "Cant";
+        $hTotal = "Total";
+        $espH = $ancho - mb_strlen($hCant) - mb_strlen($hTotal) - 2;
+        $printer->text($hCant . " " . str_pad("Producto", $espH) . " " . $hTotal . "\n");
+        $printer->setEmphasis(false);
+        $printer->text(str_repeat('-', $ancho) . "\n");
+
+        foreach ($venta->ventaItems as $item) {
+            $nombre = $item->producto->nombre ?? 'Producto';
+            $cant = (string) $item->cantidad;
+            $subtStr = number_format($item->subtotal, 2);
+
+            $espacio = $ancho - mb_strlen($cant) - mb_strlen($subtStr) - 2;
+            if ($espacio < 1) $espacio = 1;
+            if (mb_strlen($nombre) > $espacio) {
+                $nombre = mb_substr($nombre, 0, $espacio);
+            }
+            $nombre = str_pad($nombre, $espacio);
+
+            $printer->text($cant . " " . $nombre . " " . $subtStr . "\n");
+        }
+
+        $printer->text(str_repeat('-', $ancho) . "\n");
+
+        // === TOTALES ===
+        $totalVenta = $venta->efectivo + $venta->online + $venta->credito;
+
+        $printer->setJustification(Printer::JUSTIFY_RIGHT);
+        $printer->setEmphasis(true);
+        $printer->setTextSize(2, 1);
+        $printer->text("TOTAL: Bs." . number_format($totalVenta, 2) . "\n");
+        $printer->setTextSize(1, 1);
+        $printer->setEmphasis(false);
+
+        $printer->setJustification(Printer::JUSTIFY_LEFT);
+        $anchoLabel = $ancho - 12;
+
+        if ($venta->efectivo > 0) {
+            $printer->text(str_pad("Efectivo:", $anchoLabel) . "Bs." . number_format($venta->efectivo, 2) . "\n");
+        }
+        if ($venta->online > 0) {
+            $printer->text(str_pad("Online:", $anchoLabel) . "Bs." . number_format($venta->online, 2) . "\n");
+        }
+        if ($venta->credito > 0) {
+            $printer->text(str_pad("Credito:", $anchoLabel) . "Bs." . number_format($venta->credito, 2) . "\n");
+        }
+        if ($venta->cambio > 0) {
+            $printer->text(str_pad("Cambio:", $anchoLabel) . "Bs." . number_format($venta->cambio, 2) . "\n");
+        }
+
+        $printer->text(str_repeat('=', $ancho) . "\n");
+
+        // === PIE ===
+        $printer->setJustification(Printer::JUSTIFY_CENTER);
+        $printer->setEmphasis(true);
+        $printer->text("GRACIAS POR SU COMPRA\n");
+        $printer->setEmphasis(false);
+
+        if ($config->propietario_celular) {
+            $printer->text("Cel: " . $config->propietario_celular . "\n");
+        }
+
+        $printer->text($venta->created_at->format('d/m/Y H:i:s') . "\n");
+        $printer->feed(3);
+
+        // Corte automático
+        if ($config->corte_automatico ?? true) {
+            $printer->cut();
+        }
+
+        // Abrir cajón si está configurado
+        if ($config->abrir_cajon ?? false) {
+            $printer->pulse();
+        }
+
+        $printer->close();
+
+        $rawData = file_get_contents($tmpFile);
+        @unlink($tmpFile);
+
+        return $rawData;
+    }
+
+    /**
      * Conectar a la impresora según la configuración del tenant
      */
     public function connect(int $tenantId): bool
