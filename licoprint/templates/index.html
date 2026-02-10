@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LicoPrint - Configuración de Impresora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 15px;
+        }
+        .card-header {
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .form-control, .form-select {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(255,255,255,0.15);
+            border-color: #4CAF50;
+            color: #fff;
+            box-shadow: 0 0 0 0.25rem rgba(76, 175, 80, 0.25);
+        }
+        .form-select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            border: none;
+        }
+        .form-check-input:checked {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+        .printer-item {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .printer-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+        .printer-item.active {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4CAF50;
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo i {
+            color: #4CAF50;
+        }
+        .status-badge {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="logo">
+            <i class="fa-solid fa-print"></i> LicoPrint
+        </div>
+
+        <div class="row">
+            <!-- Impresoras -->
+            <div class="col-md-5 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-list me-2"></i>
+                            Impresoras Detectadas
+                        </h5>
+                        <button class="btn btn-sm btn-outline-light" onclick="refreshPrinters()">
+                            <i class="fa-solid fa-sync" id="refresh-icon"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="printers-list">
+                            {{range .Printers}}
+                            <div class="printer-item {{if eq $.Config.PrinterName .}}active{{end}}"
+                                 onclick="selectPrinter('{{.}}')">
+                                <i class="fa-solid fa-print me-2"></i>
+                                <span>{{.}}</span>
+                            </div>
+                            {{else}}
+                            <div class="text-center text-muted py-4">
+                                <i class="fa-solid fa-exclamation-circle fa-2x mb-2"></i>
+                                <p>No se detectaron impresoras</p>
+                                <small>Haz clic en actualizar para volver a buscar</small>
+                            </div>
+                            {{end}}
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label small">Impresora seleccionada:</label>
+                            <input type="text" class="form-control" id="printer_name"
+                                   value="{{.Config.PrinterName}}" placeholder="Nombre de la impresora">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración -->
+            <div class="col-md-7 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-cog me-2"></i>
+                            Configuración
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Impresora</label>
+                                <select class="form-select" id="printer_type">
+                                    <option value="thermal" {{if eq .Config.PrinterType "thermal"}}selected{{end}}>Térmica (POS)</option>
+                                    <option value="laser" {{if eq .Config.PrinterType "laser"}}selected{{end}}>Láser</option>
+                                    <option value="inkjet" {{if eq .Config.PrinterType "inkjet"}}selected{{end}}>Inyección</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tamaño de Papel</label>
+                                <select class="form-select" id="paper_size">
+                                    <option value="58mm" {{if eq .Config.PaperSize "58mm"}}selected{{end}}>58mm</option>
+                                    <option value="80mm" {{if eq .Config.PaperSize "80mm"}}selected{{end}}>80mm</option>
+                                    <option value="letter" {{if eq .Config.PaperSize "letter"}}selected{{end}}>Carta</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ancho de caracteres</label>
+                            <input type="number" class="form-control" id="char_width"
+                                   value="{{.Config.CharWidth}}" min="32" max="80">
+                            <small class="text-muted">32 para 58mm, 48 para 80mm</small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="auto_cut"
+                                           {{if .Config.AutoCut}}checked{{end}}>
+                                    <label class="form-check-label" for="auto_cut">
+                                        <i class="fa-solid fa-scissors me-1"></i> Corte automático
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="open_drawer"
+                                           {{if .Config.OpenDrawer}}checked{{end}}>
+                                    <label class="form-check-label" for="open_drawer">
+                                        <i class="fa-solid fa-cash-register me-1"></i> Abrir cajón
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary">
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-success" onclick="saveConfig()">
+                                <i class="fa-solid fa-save me-1"></i> Guardar
+                            </button>
+                            <button class="btn btn-primary" onclick="testPrint()">
+                                <i class="fa-solid fa-print me-1"></i> Imprimir Prueba
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado -->
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6><i class="fa-solid fa-info-circle me-2"></i>Estado del Servicio</h6>
+                        <p class="mb-1 small">
+                            <span class="badge bg-success">Activo</span>
+                            Puerto: 2026
+                        </p>
+                        <p class="mb-0 small text-muted">
+                            Este servicio permite imprimir desde LicoPOS a tu impresora local.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status-badge" class="status-badge bg-secondary" style="display: none;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function showStatus(message, type) {
+            const badge = document.getElementById('status-badge');
+            badge.textContent = message;
+            badge.className = 'status-badge bg-' + type;
+            badge.style.display = 'block';
+            setTimeout(() => { badge.style.display = 'none'; }, 3000);
+        }
+
+        function selectPrinter(name) {
+            document.getElementById('printer_name').value = name;
+            document.querySelectorAll('.printer-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.trim() === name) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        async function refreshPrinters() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('fa-spin');
+
+            try {
+                const res = await fetch('/api/printers?refresh=1');
+                const printers = await res.json();
+
+                const container = document.getElementById('printers-list');
+                const current = document.getElementById('printer_name').value;
+
+                if (printers.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="fa-solid fa-exclamation-circle fa-2x mb-2"></i>
+                            <p>No se detectaron impresoras</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = printers.map(p => `
+                        <div class="printer-item ${p === current ? 'active' : ''}"
+                             onclick="selectPrinter('${p}')">
+                            <i class="fa-solid fa-print me-2"></i>
+                            <span>${p}</span>
+                        </div>
+                    `).join('');
+                }
+
+                showStatus('Impresoras actualizadas', 'success');
+            } catch (e) {
+                showStatus('Error al actualizar', 'danger');
+            }
+
+            icon.classList.remove('fa-spin');
+        }
+
+        async function saveConfig() {
+            const config = {
+                printer_name: document.getElementById('printer_name').value,
+                printer_type: document.getElementById('printer_type').value,
+                paper_size: document.getElementById('paper_size').value,
+                char_width: parseInt(document.getElementById('char_width').value) || 48,
+                auto_cut: document.getElementById('auto_cut').checked,
+                open_drawer: document.getElementById('open_drawer').checked
+            };
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+
+                if (res.ok) {
+                    showStatus('Configuración guardada', 'success');
+                } else {
+                    showStatus('Error al guardar', 'danger');
+                }
+            } catch (e) {
+                showStatus('Error de conexión', 'danger');
+            }
+        }
+
+        async function testPrint() {
+            try {
+                const res = await fetch('/api/test');
+                const data = await res.json();
+
+                if (data.success) {
+                    showStatus('Impresión enviada', 'success');
+                } else {
+                    showStatus(data.error || 'Error al imprimir', 'danger');
+                }
+            } catch (e) {
+                showStatus('Error de conexión', 'danger');
+            }
+        }
+
+        // Auto-ajustar ancho según tamaño de papel
+        document.getElementById('paper_size').addEventListener('change', function() {
+            const charWidth = document.getElementById('char_width');
+            if (this.value === '58mm') {
+                charWidth.value = 32;
+            } else if (this.value === '80mm') {
+                charWidth.value = 48;
+            }
+        });
+    </script>
+</body>
+</html>

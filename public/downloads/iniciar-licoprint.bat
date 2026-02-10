@@ -1,51 +1,89 @@
 @echo off
+setlocal enabledelayedexpansion
 title LicoPrint - Iniciador
-echo ============================================
-echo           LicoPrint - Servicio Local
-echo ============================================
+color 0A
+
+echo.
+echo  ╔═════════════════════════════════════════╗
+echo  ║     LicoPrint - Servicio Local          ║
+echo  ║     http://localhost:2026               ║
+echo  ╚═════════════════════════════════════════╝
 echo.
 
-:: Verificar si LicoPrint está instalado
-if exist "%PROGRAMFILES%\LicoPrint\LicoPrint.exe" (
-    echo Iniciando LicoPrint desde Program Files...
-    start "" "%PROGRAMFILES%\LicoPrint\LicoPrint.exe"
-    goto :end
+set "LICOPRINT_DIR=%LOCALAPPDATA%\LicoPrint"
+
+:: Verificar si LicoPrint esta instalado
+if not exist "%LICOPRINT_DIR%\server.php" (
+    echo [ERROR] LicoPrint no esta instalado.
+    echo.
+    echo Por favor:
+    echo 1. Descarga el instalador desde la pagina de configuracion
+    echo 2. Ejecuta instalar-licoprint.bat
+    echo 3. Vuelve a ejecutar este archivo
+    echo.
+    pause
+    exit /b 1
 )
 
-if exist "%PROGRAMFILES(x86)%\LicoPrint\LicoPrint.exe" (
-    echo Iniciando LicoPrint desde Program Files (x86)...
-    start "" "%PROGRAMFILES(x86)%\LicoPrint\LicoPrint.exe"
-    goto :end
+:: Verificar si existe el script de inicio
+if exist "%LICOPRINT_DIR%\start.bat" (
+    echo Iniciando LicoPrint...
+    start "" "%LICOPRINT_DIR%\start.bat"
+    timeout /t 2 /nobreak >nul
+    start "" "http://localhost:2026"
+    echo.
+    echo LicoPrint iniciado en http://localhost:2026
+    timeout /t 3
+    exit /b 0
 )
 
-if exist "%LOCALAPPDATA%\LicoPrint\LicoPrint.exe" (
-    echo Iniciando LicoPrint desde AppData Local...
-    start "" "%LOCALAPPDATA%\LicoPrint\LicoPrint.exe"
-    goto :end
+:: Buscar PHP e iniciar manualmente
+set "PHP_EXE="
+
+:: Leer ruta de PHP guardada
+if exist "%LICOPRINT_DIR%\php_path.txt" (
+    set /p PHP_EXE=<"%LICOPRINT_DIR%\php_path.txt"
+    if exist "!PHP_EXE!" goto :START_PHP
 )
 
-if exist "%USERPROFILE%\LicoPrint\LicoPrint.exe" (
-    echo Iniciando LicoPrint desde carpeta de usuario...
-    start "" "%USERPROFILE%\LicoPrint\LicoPrint.exe"
-    goto :end
+:: Buscar PHP en ubicaciones comunes
+where php >nul 2>nul
+if %ERRORLEVEL% equ 0 (
+    for /f "tokens=*" %%i in ('where php') do (
+        set "PHP_EXE=%%i"
+        goto :START_PHP
+    )
 )
 
-:: Si no se encuentra, mostrar mensaje
-echo.
-echo [ERROR] LicoPrint no esta instalado.
-echo.
-echo Por favor:
-echo 1. Descarga el instalador desde la pagina de configuracion
-echo 2. Ejecuta el instalador
-echo 3. Vuelve a ejecutar este archivo
-echo.
+for /d %%i in (C:\laragon\bin\php\php-8.*) do (
+    if exist "%%i\php.exe" (
+        set "PHP_EXE=%%i\php.exe"
+        goto :START_PHP
+    )
+)
+
+if exist "C:\xampp\php\php.exe" (
+    set "PHP_EXE=C:\xampp\php\php.exe"
+    goto :START_PHP
+)
+
+if exist "%LICOPRINT_DIR%\php\php.exe" (
+    set "PHP_EXE=%LICOPRINT_DIR%\php\php.exe"
+    goto :START_PHP
+)
+
+echo [ERROR] PHP no encontrado.
+echo Por favor ejecuta el instalador nuevamente.
 pause
 exit /b 1
 
-:end
+:START_PHP
+echo Iniciando servidor PHP...
+echo PHP: %PHP_EXE%
 echo.
-echo LicoPrint iniciado correctamente.
-echo El servicio estara disponible en: http://localhost:2026
+start "" "%PHP_EXE%" -S localhost:2026 -t "%LICOPRINT_DIR%" "%LICOPRINT_DIR%\server.php"
+timeout /t 2 /nobreak >nul
+start "" "http://localhost:2026"
 echo.
-echo Puedes cerrar esta ventana.
-timeout /t 5
+echo LicoPrint iniciado en http://localhost:2026
+timeout /t 3

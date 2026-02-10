@@ -240,13 +240,13 @@
                                 <!-- Botones de acción -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex gap-2">
-                                        <a href="{{ asset('downloads/LicoPrint-Installer.exe') }}" class="btn btn-success" download>
+                                        <a href="{{ asset('downloads/instalar-licoprint.bat') }}" class="btn btn-success" download>
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
-                                        <a href="{{ asset('downloads/iniciar-licoprint.bat') }}" class="btn btn-primary" download>
+                                        <a href="{{ asset('downloads/iniciar-licoprint.bat') }}" class="btn btn-outline-primary" download>
                                             <i class="fa-solid fa-play me-1"></i>
-                                            Descargar Iniciador (.bat)
+                                            Iniciar Servicio
                                         </a>
                                     </div>
                                     <a href="http://localhost:2026" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">

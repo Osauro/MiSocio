@@ -1,22 +1,55 @@
-# Carpeta de Descargas - LicoPrint
+# LicoPrint - Servicio de Impresión Local
 
-Esta carpeta contiene los archivos descargables para el servicio de impresora local.
+Servicio que permite a LicoPOS comunicarse con impresoras térmicas locales.
 
-## Archivos necesarios:
+## Archivos
 
-1. **LicoPrint-Installer.exe** - Instalador del servicio de impresión local
-   - Debe ser creado/compilado por separado
-   - Es un servidor HTTP local que corre en el puerto 2026
-   - Permite configurar y enviar comandos a impresoras térmicas
+| Archivo | Descripción |
+|---------|-------------|
+| `instalar-licoprint.bat` | Instalador automático. Descarga PHP si es necesario, configura todo y crea accesos directos |
+| `iniciar-licoprint.bat` | Inicia el servicio si ya está instalado |
 
-2. **iniciar-licoprint.bat** - Script para iniciar el servicio
-   - Se genera automáticamente
-   - Busca LicoPrint en las ubicaciones comunes e inicia el servicio
+## Instalación
 
-## Estructura del servicio LicoPrint:
+1. Descarga `instalar-licoprint.bat`
+2. Ejecuta como administrador (clic derecho → Ejecutar como administrador)
+3. Sigue las instrucciones en pantalla
+4. Al finalizar, se creará un acceso directo en el Escritorio
 
-El servicio debe:
-- Correr un servidor HTTP en `localhost:2026`
-- Proveer una interfaz web para configurar impresoras
-- Recibir comandos de impresión vía API REST
-- Soportar impresoras térmicas (ESC/POS) de 58mm y 80mm
+## El instalador realiza:
+
+- ✅ Detecta si PHP está instalado (Laragon, XAMPP, o en PATH)
+- ✅ Si no hay PHP, lo descarga automáticamente
+- ✅ Crea la carpeta de instalación en `%LOCALAPPDATA%\LicoPrint`
+- ✅ Genera el servidor PHP con la API de impresión
+- ✅ Crea la interfaz web de configuración
+- ✅ Genera scripts de inicio
+- ✅ Crea acceso directo en el Escritorio
+
+## Uso
+
+1. Ejecuta `LicoPrint.bat` desde el Escritorio
+2. Se abre automáticamente `http://localhost:2026`
+3. Selecciona tu impresora de la lista
+4. Guarda la configuración
+5. Haz una prueba de impresión
+
+## API Endpoints
+
+| Endpoint | Método | Descripción |
+|----------|--------|-------------|
+| `/` | GET | Interfaz web de configuración |
+| `/api/config` | GET/POST | Obtener/guardar configuración |
+| `/api/printers` | GET | Lista de impresoras detectadas |
+| `/api/print` | POST | Enviar impresión |
+| `/api/test` | GET | Impresión de prueba |
+
+## Requisitos
+
+- Windows 10/11
+- PowerShell (incluido en Windows)
+- Conexión a internet (solo para instalación si no tienes PHP)
+
+## Desinstalación
+
+Elimina la carpeta: `%LOCALAPPDATA%\LicoPrint`
