@@ -808,10 +808,9 @@ class Venta extends Component
 
             $this->toast('success', 'Venta completada exitosamente');
 
-            // Imprimir ticket ESC/POS directo o HTML como fallback, y redirigir
+            // Imprimir ticket vía LicoPOS Printer local y redirigir
             $this->dispatch('abrir-ticket-y-redirigir', [
-                'escposUrl' => route('ticket.venta.escpos', $this->venta->id),
-                'htmlUrl' => route('ticket.venta.print', $this->venta->id),
+                'ventaId' => $this->venta->id,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();

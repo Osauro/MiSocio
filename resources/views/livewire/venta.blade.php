@@ -752,59 +752,29 @@
                 }, 50);
             });
 
-            // === IMPRESIÓN DIRECTA ESC/POS VÍA WEB SERIAL API ===
-            let printerPort = null;
+            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:2026) ===
+            const LICOPOS_URL = 'http://localhost:2026';
 
-            async function conectarImpresora() {
+            async function imprimirTicketLocal(ventaId) {
                 try {
-                    const ports = await navigator.serial.getPorts();
-                    if (ports.length > 0) {
-                        printerPort = ports[0];
-                        if (!printerPort.readable) {
-                            await printerPort.open({ baudRate: 9600 });
-                        }
-                        return true;
+                    const response = await fetch(`${LICOPOS_URL}/?venta=${ventaId}`, {
+                        method: 'GET',
+                        mode: 'cors',
+                    });
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(result.error || 'Error al imprimir');
                     }
-                    printerPort = await navigator.serial.requestPort();
-                    await printerPort.open({ baudRate: 9600 });
-                    return true;
                 } catch (e) {
-                    console.warn('No se pudo conectar por Serial:', e.message);
-                    printerPort = null;
-                    return false;
-                }
-            }
-
-            async function imprimirEscpos(escposUrl, htmlUrl) {
-                if (!('serial' in navigator)) {
-                    window.open(htmlUrl, '_blank');
-                    return;
-                }
-                try {
-                    if (!printerPort || !printerPort.writable) {
-                        const ok = await conectarImpresora();
-                        if (!ok) {
-                            window.open(htmlUrl, '_blank');
-                            return;
-                        }
-                    }
-                    const response = await fetch(escposUrl);
-                    if (!response.ok) throw new Error('Error fetch ESC/POS');
-                    const arrayBuffer = await response.arrayBuffer();
-                    const data = new Uint8Array(arrayBuffer);
-                    const writer = printerPort.writable.getWriter();
-                    await writer.write(data);
-                    writer.releaseLock();
-                } catch (e) {
-                    console.warn('Fallback a HTML print:', e.message);
-                    window.open(htmlUrl, '_blank');
+                    console.warn('LicoPOS Printer no disponible:', e.message);
+                    window.open(`/ticket/venta/${ventaId}/print`, '_blank');
                 }
             }
 
             // Al finalizar venta: imprimir ticket y redirigir a ventas
             $wire.on('abrir-ticket-y-redirigir', async (data) => {
                 const info = data[0] || data;
-                await imprimirEscpos(info.escposUrl, info.htmlUrl);
+                await imprimirTicketLocal(info.ventaId);
                 setTimeout(() => {
                     window.location.href = '{{ route("ventas") }}';
                 }, 500);

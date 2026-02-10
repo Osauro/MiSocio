@@ -17,19 +17,10 @@ use App\Livewire\Productos;
 use App\Livewire\Usuarios;
 use App\Livewire\Venta;
 use App\Livewire\Ventas;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-// Ruta temporal para limpiar caché en producción (borrar después de usar)
-Route::get('/clear-cache-7x9k', function () {
-    Artisan::call('route:clear');
-    Artisan::call('config:clear');
-    Artisan::call('view:clear');
-    return 'Cache limpiada correctamente ✅ — Ahora borra esta ruta del código.';
 });
 
 Route::get('/dashboard', function () {
@@ -56,14 +47,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Kardex - Todos los usuarios pueden ver
     Route::livewire('kardex', Kardex::class)->name('kardex');
 
-    // Tickets PDF
+    // Tickets
     Route::get('ticket/venta/{ventaId}', [TicketController::class, 'venta'])->name('ticket.venta');
-
-    // Ticket HTML para impresión directa desde navegador (papel auto-ajustable)
     Route::get('ticket/venta/{ventaId}/print', [TicketController::class, 'ventaHtml'])->name('ticket.venta.print');
-
-    // Ticket ESC/POS raw (datos binarios para impresora térmica vía mike42)
-    Route::get('ticket/venta/{ventaId}/escpos', [TicketController::class, 'ventaEscpos'])->name('ticket.venta.escpos');
 
     // Ruta de debug temporal - Solo para desarrollo
     Route::get('debug-user', function () {

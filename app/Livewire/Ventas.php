@@ -422,10 +422,9 @@ class Ventas extends Component
 
     public function imprimirTicket($ventaId)
     {
-        // Enviar URLs para impresión ESC/POS directa o HTML como fallback
+        // Enviar ventaId al JS para imprimir via LicoPOS Printer local
         $this->dispatch('abrir-ticket', [
-            'escposUrl' => route('ticket.venta.escpos', $ventaId),
-            'htmlUrl' => route('ticket.venta.print', $ventaId),
+            'ventaId' => $ventaId,
         ]);
     }
 
