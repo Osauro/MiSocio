@@ -244,10 +244,10 @@
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
-                                        <button type="button" class="btn btn-primary" onclick="window.open('licoprint://start', '_self')">
+                                        <a href="{{ asset('downloads/iniciar-licoprint.bat') }}" class="btn btn-primary" download>
                                             <i class="fa-solid fa-play me-1"></i>
-                                            Iniciar Servicio
-                                        </button>
+                                            Descargar Iniciador (.bat)
+                                        </a>
                                     </div>
                                     <a href="http://localhost:2026" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
                                         <i class="fa-solid fa-external-link-alt me-1"></i>
