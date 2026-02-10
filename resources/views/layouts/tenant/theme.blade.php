@@ -164,8 +164,6 @@
     <script src="{{ asset('assets/js/toasts-custom.js') }}"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- QZ Tray para impresión directa -->
-    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ asset('assets/js/custom.js') }}"></script>
 

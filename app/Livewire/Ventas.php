@@ -422,53 +422,8 @@ class Ventas extends Component
 
     public function imprimirTicket($ventaId)
     {
-        $venta = Venta::with(['cliente', 'user', 'ventaItems.producto' => function ($query) {
-            $query->withTrashed();
-        }])
-            ->findOrFail($ventaId);
-
-        $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
-
-        $ticketData = [
-            // Datos de la tienda
-            'nombre_tienda' => $config->nombre_tienda ?? 'Mi Tienda',
-            'direccion' => $config->direccion ?? '',
-            'telefono' => $config->telefono ?? '',
-            'nit' => $config->nit ?? '',
-            'logo_url' => $config->logo ? asset('storage/' . $config->logo) : '',
-
-            // Datos de la venta
-            'folio' => $venta->numero_folio,
-            'fecha' => $venta->created_at->format('d/m/Y H:i:s'),
-            'usuario' => $venta->user->name ?? 'Usuario',
-            'cliente' => $venta->cliente->nombre ?? 'Consumidor Final',
-
-            // Items
-            'items' => $venta->ventaItems->map(function ($item) {
-                return [
-                    'cantidad' => $item->cantidad,
-                    'nombre' => $item->producto->nombre ?? 'Producto',
-                    'precio' => $item->precio,
-                    'subtotal' => $item->subtotal,
-                ];
-            })->toArray(),
-
-            // Totales
-            'total' => round($venta->ventaItems->sum('subtotal'), 2),
-            'efectivo' => round($venta->efectivo, 2),
-            'online' => round($venta->online, 2),
-            'credito' => round($venta->credito, 2),
-            'cambio' => round($venta->cambio, 2),
-
-            // Config de impresora
-            'impresora' => $config->impresora_nombre ?? '',
-            'papel' => $config->papel_tamano ?? '80mm',
-            'ancho' => $config->ancho_caracteres ?? 48,
-            'corte' => $config->corte_automatico ?? true,
-            'abrir_cajon' => $config->abrir_cajon ?? false,
-        ];
-
-        $this->dispatch('imprimir-ticket-venta', $ticketData);
+        // Abrir PDF del ticket en nueva pestaña
+        $this->dispatch('abrir-ticket', ['url' => route('ticket.venta', $ventaId)]);
     }
 
     public function render()

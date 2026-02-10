@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TicketController;
 use App\Livewire\Categorias;
 use App\Livewire\Clientes;
 use App\Livewire\Compra;
@@ -45,6 +46,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     // Kardex - Todos los usuarios pueden ver
     Route::livewire('kardex', Kardex::class)->name('kardex');
+
+    // Tickets PDF
+    Route::get('ticket/venta/{ventaId}', [TicketController::class, 'venta'])->name('ticket.venta');
 
     // Ruta de debug temporal - Solo para desarrollo
     Route::get('debug-user', function () {
