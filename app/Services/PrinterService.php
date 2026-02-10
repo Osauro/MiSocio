@@ -94,7 +94,7 @@ class PrinterService
 
         foreach ($venta->ventaItems as $item) {
             $nombre = $item->producto->nombre ?? 'Producto';
-            $cant = (string) $item->cantidad;
+            $cant = $item->cantidad_formateada; // Ej: 10p - 4u
             $subtStr = number_format($item->subtotal, 2);
 
             $espacio = $ancho - mb_strlen($cant) - mb_strlen($subtStr) - 2;

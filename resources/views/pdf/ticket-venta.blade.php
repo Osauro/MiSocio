@@ -93,12 +93,16 @@
         }
 
         .items-table .cant {
-            width: 25px;
+            width: 55px;
             text-align: left;
+            white-space: nowrap;
+            font-size: 10px;
         }
 
         .items-table .nombre {
             text-align: left;
+            overflow: hidden;
+            white-space: nowrap;
         }
 
         .items-table .precio {
@@ -211,8 +215,8 @@
     <table class="items-table">
         @foreach($venta->ventaItems as $item)
             <tr>
-                <td class="cant">{{ $item->cantidad }}u</td>
-                <td class="nombre">{{ $item->producto->nombre ?? 'Producto' }}</td>
+                <td class="cant">{{ $item->cantidad_formateada }}</td>
+                <td class="nombre">{{ Str::limit($item->producto->nombre ?? 'Producto', 22, '') }}</td>
                 <td class="precio">{{ number_format($item->subtotal, 2) }}</td>
             </tr>
         @endforeach
