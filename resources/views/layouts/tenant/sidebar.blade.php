@@ -103,13 +103,13 @@
                 </li>
             @endif
 
-            <!-- Reportes - Solo Admins -->
+            <!-- Suscripción - Solo Admins -->
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="#">
-                        <i class="fa-solid fa-chart-pie fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
-                        <h6 class="f-w-600">Reportes</h6>
+                    <a class="sidebar-link" href="{{ route('suscripcion') }}">
+                        <i class="fa-solid fa-credit-card fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                        <h6 class="f-w-600">Suscripción</h6>
                     </a>
                 </li>
             @endif

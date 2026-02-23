@@ -11,13 +11,25 @@ class Membresia extends Model
 {
     protected $fillable = [
         'tenant_id',
+        'plan_nombre',
+        'duracion_meses',
+        'fecha_inicio',
+        'fecha_fin',
         'monto',
+        'estado_pago',
+        'comprobante_url',
+        'verificado_por',
+        'verificado_at',
+        'notas_verificacion',
         'stripe_id',
         'datos_pago',
     ];
 
     protected $casts = [
         'monto' => 'decimal:2',
+        'fecha_inicio' => 'date',
+        'fecha_fin' => 'date',
+        'verificado_at' => 'datetime',
     ];
 
     /**
@@ -38,5 +50,13 @@ class Membresia extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Obtener el usuario que verificó el pago.
+     */
+    public function verificadoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verificado_por');
     }
 }

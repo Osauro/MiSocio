@@ -33,6 +33,15 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'celular' => ['required', 'string', 'digits:8', 'unique:'.User::class],
             'password' => ['required', 'string', 'digits:4', 'confirmed'],
+        ], [
+            'name.required' => 'El nombre es obligatorio.',
+            'name.max' => 'El nombre no debe tener más de 255 caracteres.',
+            'celular.required' => 'El celular es obligatorio.',
+            'celular.digits' => 'El celular debe tener exactamente 8 dígitos.',
+            'celular.unique' => 'El celular ya ha sido registrado.',
+            'password.required' => 'El PIN es obligatorio.',
+            'password.digits' => 'El PIN debe tener exactamente 4 dígitos.',
+            'password.confirmed' => 'La confirmación del PIN no coincide.',
         ]);
 
         $user = User::create([
@@ -45,6 +54,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // Redirigir a la página de suscripción para crear su primer tenant
+        return redirect()->route('suscripcion')->with('success', '¡Bienvenido! Crea tu primera tienda para comenzar.');
     }
 }

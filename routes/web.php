@@ -7,16 +7,22 @@ use App\Livewire\Clientes;
 use App\Livewire\Compra;
 use App\Livewire\Compras;
 use App\Livewire\Config;
+use App\Livewire\CrearTenant;
 use App\Livewire\HomeLandlord;
 use App\Livewire\HomeTenant;
 use App\Livewire\Kardex;
+use App\Livewire\Landlord\PagosManager;
+use App\Livewire\Landlord\TenantsManager;
 use App\Livewire\Movimientos;
 use App\Livewire\Prestamo;
 use App\Livewire\Prestamos;
 use App\Livewire\Productos;
+use App\Livewire\Suscripcion;
 use App\Livewire\Usuarios;
 use App\Livewire\Venta;
 use App\Livewire\Ventas;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -24,13 +30,32 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    // Verificar si el usuario tiene tenants
+    $userId = Auth::id();
+    $tieneTenant = DB::table('tenant_user')->where('user_id', $userId)->exists();
+
+    // Si es landlord (super admin), siempre puede ir al panel de admin
+    if (isLandlord()) {
+        return redirect()->route('admin.home');
+    }
+
+    // Si no es landlord y no tiene tenant, redirigir a crear tienda
+    if (!$tieneTenant) {
+        return redirect()->route('suscripcion.create')
+            ->with('info', 'Necesitas crear tu primera tienda para continuar.');
+    }
+
+    // Si tiene tenant, ir al panel de tenant
+    return redirect()->route('home');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Crear tienda - Accesible sin tener un tenant (para crear el primero)
+    Route::livewire('crear-tienda', CrearTenant::class)->name('suscripcion.create');
 });
 
 // Rutas que requieren autenticación Y tenant activo
@@ -80,12 +105,17 @@ Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
 
     // Configuración del sistema - Solo administradores
     Route::livewire('config', Config::class)->name('config');
+
+    // Suscripción - Solo administradores
+    Route::livewire('suscripcion', Suscripcion::class)->name('suscripcion');
 });
 
 // Rutas para landlord - Solo Landlords
 Route::middleware(['auth', 'landlord'])->prefix('admin')->group(function () {
     Route::livewire('home', HomeLandlord::class)->name('admin.home');
-    // Aquí irán futuras rutas de gestión de tenants, suscripciones, pagos
+    Route::livewire('tenants', TenantsManager::class)->name('admin.tenants');
+    Route::livewire('planes', \App\Livewire\Landlord\PlanesSuscripcion::class)->name('admin.planes');
+    Route::livewire('pagos', PagosManager::class)->name('admin.pagos');
 });
 
 require __DIR__.'/auth.php';

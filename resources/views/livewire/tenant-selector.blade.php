@@ -10,7 +10,7 @@
                 </button>
             </div>
 
-            <div class="tenants-grid" data-count="{{ count($tenants) }}">
+            <div class="tenants-grid" data-count="{{ count($tenants) + 1 }}">
                 @foreach($tenants as $tenant)
                 <button type="button"
                         class="tenant-btn {{ $tenant->id == $currentTenantId ? 'active' : '' }}"
@@ -33,13 +33,31 @@
 
                     <div class="tenant-btn-body">
                         <h4>{{ $tenant->name }}</h4>
+                        @if($tenant->pivot)
                         <span class="tenant-role-badge">
                             <i class="fa-solid fa-user-tag"></i>
                             {{ ucfirst($tenant->pivot->role) }}
                         </span>
+                        @endif
                     </div>
                 </button>
                 @endforeach
+
+                <!-- Botón para crear nueva tienda -->
+                <a href="{{ route('suscripcion.create') }}" class="tenant-btn tenant-btn-create">
+                    <div class="tenant-btn-header tenant-btn-header-create">
+                        <i class="fa-solid fa-plus-circle"></i>
+                    </div>
+                    <div class="tenant-btn-body">
+                        <h4>Crear Nueva Tienda</h4>
+                        @if(count($tenants) == 0)
+                        <span class="tenant-role-badge tenant-role-badge-create">
+                            <i class="fa-solid fa-gift"></i>
+                            Demo Gratis
+                        </span>
+                        @endif
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -150,6 +168,7 @@
             text-align: left;
             padding: 0;
             width: 100%;
+            text-decoration: none;
         }
 
         .tenant-btn:hover {
@@ -164,12 +183,40 @@
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
 
+        .tenant-btn-create {
+            border: 3px dashed #4CAF50;
+            background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e9 100%);
+        }
+
+        .tenant-btn-create:hover {
+            border-color: #4CAF50;
+            background: linear-gradient(135deg, #e8f5e9 0%, #dcedc8 100%);
+            transform: translateY(-8px) scale(1.02);
+        }
+
         .tenant-btn-header {
             padding: 40px 20px;
             text-align: center;
             color: white;
             position: relative;
             background: linear-gradient(135deg, var(--tenant-color) 0%, var(--tenant-color) 100%);
+        }
+
+        .tenant-btn-header-create {
+            background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%) !important;
+        }
+
+        .tenant-btn-header-create i {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
         }
 
         .tenant-btn-header i {
@@ -241,6 +288,10 @@
             line-height: 1.3;
         }
 
+        .tenant-btn-create .tenant-btn-body h4 {
+            color: #2e7d32;
+        }
+
         .tenant-role-badge {
             display: inline-flex;
             align-items: center;
@@ -257,6 +308,11 @@
 
         .tenant-role-badge i {
             font-size: 12px;
+        }
+
+        .tenant-role-badge-create {
+            background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+            color: white;
         }
 
         @media (max-width: 1200px) {

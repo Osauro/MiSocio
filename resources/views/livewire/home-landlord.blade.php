@@ -71,7 +71,7 @@
                         <div class="d-flex align-items-center justify-content-between">
                             <div>
                                 <h6 class="text-muted mb-2">Tenants Activos</h6>
-                                <h3 class="mb-0">{{ \App\Models\Tenant::where('status', 'active')->count() }}</h3>
+                                <h3 class="mb-0">{{ \App\Models\Tenant::where('status', 1)->count() }}</h3>
                             </div>
                             <div class="avatar-sm">
                                 <span class="avatar-title bg-info-subtle text-info rounded-circle fs-3">

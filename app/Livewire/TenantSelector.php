@@ -21,7 +21,18 @@ class TenantSelector extends Component
     public function loadTenants()
     {
         if (Auth::check()) {
-            $this->tenants = Auth::user()->tenants()->wherePivot('is_active', true)->get();
+            // Cargar todos los tenants del usuario con su relación pivot
+            $allTenants = Auth::user()->tenants()->get();
+
+            // Filtrar: mostrar si is_active=true en pivot O si el tenant está activo (status=1)
+            $this->tenants = $allTenants->filter(function($tenant) {
+                // Verificar que pivot exista para evitar errores
+                if (!$tenant->pivot) {
+                    return false;
+                }
+                return $tenant->pivot->is_active || $tenant->status == 1;
+            });
+
             $this->currentTenantId = currentTenantId();
         }
     }

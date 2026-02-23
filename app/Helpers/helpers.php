@@ -49,12 +49,16 @@ if (!function_exists('getThemeColor')) {
     function getThemeColor(?int $themeNumber = null): string
     {
         $colors = [
-            1 => '#308e87', // Color 1 - Default verde
+            1 => '#308e87', // Color 1 - Verde azulado
             2 => '#57375d', // Color 2 - Púrpura
             3 => '#0766ad', // Color 3 - Azul
-            4 => '#025464', // Color 4 - Verde azulado
+            4 => '#025464', // Color 4 - Verde azulado oscuro
             5 => '#884a39', // Color 5 - Marrón
             6 => '#0c356a', // Color 6 - Azul oscuro
+            7 => '#c7253e', // Color 7 - Rojo
+            8 => '#16423c', // Color 8 - Verde bosque
+            9 => '#5c469c', // Color 9 - Púrpura oscuro
+            10 => '#1a1a40', // Color 10 - Azul marino
         ];
 
         if ($themeNumber === null) {

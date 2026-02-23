@@ -4,36 +4,45 @@
         <ul class="sidebar-menu" id="simple-bar">
             <li class="pin-title sidebar-main-title">
                 <div>
-                    <h5 class="sidebar-title f-w-700">Pinned</h5>
+                    <h5 class="sidebar-title f-w-700">Panel de Administración</h5>
                 </div>
             </li>
 
-            <li class="sidebar-list"> <i class="fa-solid fa-thumbtack"></i><a class="sidebar-link" href="#">
-                    <svg class="stroke-icon">
-                        <use href="../assets/svg/iconly-sprite.svg#Profile"></use>
-                    </svg>
+            <!-- Dashboard -->
+            <li class="sidebar-list">
+                <i class="fa-solid fa-thumbtack"></i>
+                <a class="sidebar-link" href="{{ route('admin.home') }}">
+                    <i class="fa-solid fa-home fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                     <h6 class="f-w-600">Dashboard</h6>
                 </a>
             </li>
 
-            <li class="sidebar-list"> <i class="fa-solid fa-thumbtack"></i><a class="sidebar-link" href="#">
-                    <svg class="stroke-icon">
-                        <use href="../assets/svg/iconly-sprite.svg#Profile"></use>
-                    </svg>
-                    <h6 class="f-w-600">Inquilinos</h6>
+            <!-- Tenants -->
+            <li class="sidebar-list">
+                <i class="fa-solid fa-thumbtack"></i>
+                <a class="sidebar-link" href="{{ route('admin.tenants') }}">
+                    <i class="fa-solid fa-store fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                    <h6 class="f-w-600">Tenants</h6>
                 </a>
             </li>
 
-            <li class="sidebar-list"> <i class="fa-solid fa-thumbtack"></i><a class="sidebar-link" href="#">
-                    <svg class="stroke-icon">
-                        <use href="../assets/svg/icon-sprite.svg#dolar"></use>
-                    </svg>
+            <!-- Planes de Suscripción -->
+            <li class="sidebar-list">
+                <i class="fa-solid fa-thumbtack"></i>
+                <a class="sidebar-link" href="{{ route('admin.planes') }}">
+                    <i class="fa-solid fa-layer-group fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                    <h6 class="f-w-600">Planes</h6>
+                </a>
+            </li>
+
+            <!-- Pagos -->
+            <li class="sidebar-list">
+                <i class="fa-solid fa-thumbtack"></i>
+                <a class="sidebar-link" href="{{ route('admin.pagos') }}">
+                    <i class="fa-solid fa-money-check-dollar fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                     <h6 class="f-w-600">Pagos</h6>
-                </a></li>
-
-
-
-
+                </a>
+            </li>
 
         </ul>
     </div>

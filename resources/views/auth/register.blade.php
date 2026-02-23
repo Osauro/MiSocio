@@ -1,56 +1,98 @@
 <x-guest-layout>
+    <h1 class="auth-title">Registrarse</h1>
+
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
         <!-- Name -->
-        <div>
-            <x-input-label for="name" value="Nombre Completo" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            <x-input-error :messages="$errors->get('name')" class="mt-2" />
+        <div class="mb-4">
+            <label for="name" class="form-label">Nombre Completo</label>
+            <input
+                id="name"
+                type="text"
+                class="form-control @error('name') is-invalid @enderror"
+                name="name"
+                value="{{ old('name') }}"
+                required
+                autofocus
+                autocomplete="name"
+                placeholder="Ingresa tu nombre completo"
+            />
+            @error('name')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Celular -->
-        <div class="mt-4">
-            <x-input-label for="celular" value="Celular" />
-            <x-text-input id="celular" class="block mt-1 w-full" type="text" name="celular" :value="old('celular')" required autocomplete="tel" maxlength="8" />
-            <x-input-error :messages="$errors->get('celular')" class="mt-2" />
+        <div class="mb-4">
+            <label for="celular" class="form-label">Celular</label>
+            <input
+                id="celular"
+                type="text"
+                class="form-control @error('celular') is-invalid @enderror"
+                name="celular"
+                value="{{ old('celular') }}"
+                required
+                autocomplete="tel"
+                maxlength="8"
+                placeholder="Número de celular (8 dígitos)"
+            />
+            @error('celular')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Password (PIN) -->
-        <div class="mt-4">
-            <x-input-label for="password" value="PIN (4 dígitos)" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password"
-                            maxlength="4"
-                            inputmode="numeric" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="mb-4">
+            <label for="password" class="form-label">PIN (4 dígitos)</label>
+            <input
+                id="password"
+                type="password"
+                class="form-control @error('password') is-invalid @enderror"
+                name="password"
+                required
+                autocomplete="new-password"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="Crea un PIN de 4 dígitos"
+            />
+            @error('password')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
         <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" value="Confirmar PIN" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password"
-                            maxlength="4"
-                            inputmode="numeric" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div class="mb-5">
+            <label for="password_confirmation" class="form-label">Confirmar PIN</label>
+            <input
+                id="password_confirmation"
+                type="password"
+                class="form-control @error('password_confirmation') is-invalid @enderror"
+                name="password_confirmation"
+                required
+                autocomplete="new-password"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="Confirma tu PIN"
+            />
+            @error('password_confirmation')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                ¿Ya tienes cuenta?
-            </a>
-
-            <x-primary-button class="ms-4">
+        <!-- Submit Button -->
+        <div class="mb-4">
+            <button type="submit" class="btn-primary-custom">
                 Registrarse
-            </x-primary-button>
+            </button>
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center mt-5">
+            <span class="text-muted">¿Ya tienes cuenta?</span>
+            <a href="{{ route('login') }}" class="auth-link ms-1">
+                Inicia sesión aquí
+            </a>
         </div>
     </form>
 </x-guest-layout>

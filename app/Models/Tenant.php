@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Tenant extends Model
@@ -13,6 +14,7 @@ class Tenant extends Model
         'name',
         'theme_number',
         'domain',
+        'plan_suscripcion_id',
         'subscription_type',
         'amount',
         'bill_date',
@@ -72,6 +74,14 @@ class Tenant extends Model
     public function membresias(): HasMany
     {
         return $this->hasMany(Membresia::class);
+    }
+
+    /**
+     * Obtener el plan de suscripción del tenant.
+     */
+    public function planSuscripcion(): BelongsTo
+    {
+        return $this->belongsTo(PlanSuscripcion::class);
     }
 
     /**

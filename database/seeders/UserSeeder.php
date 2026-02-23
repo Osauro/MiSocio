@@ -14,56 +14,16 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Usuario principal - Super Admin del sistema
-        $diego = User::create([
-            'name' => 'Diego Alejandro Quinta Rios',
+        // Usuario Landlord - Super Admin del sistema
+        // Este usuario gestiona el sistema completo (tenants, pagos, planes)
+        User::create([
+            'name' => 'Administrador LicoPOS',
             'celular' => '73010688',
             'password' => Hash::make('5421'),
-            'is_super_admin' => true, // Super Admin del sistema
+            'is_super_admin' => true, // Landlord/Super Admin
         ]);
 
-        // Asociar Diego a los 10 tenants como admin (tenant)
-        for ($i = 1; $i <= 10; $i++) {
-            $diego->tenants()->attach($i, [
-                'role' => 'tenant', // Admin en todos sus tenants
-                'is_active' => true,
-            ]);
-        }
-
-        // Usuario adicional - Solo en El Paceño
-        $maria = User::create([
-            'name' => 'María González',
-            'celular' => '70123456',
-            'password' => Hash::make('password'),
-        ]);
-
-        $maria->tenants()->attach(1, [
-            'role' => 'user',
-            'is_active' => true,
-        ]);
-
-        // Usuario adicional - Solo en Illimani
-        $juan = User::create([
-            'name' => 'Juan Pérez',
-            'celular' => '71234567',
-            'password' => Hash::make('password'),
-        ]);
-
-        $juan->tenants()->attach(2, [
-            'role' => 'user',
-            'is_active' => true,
-        ]);
-
-        // Usuario adicional - En ambos tenants
-        $carlos = User::create([
-            'name' => 'Carlos Rodríguez',
-            'celular' => '72345678',
-            'password' => Hash::make('password'),
-        ]);
-
-        $carlos->tenants()->attach([
-            1 => ['role' => 'user', 'is_active' => true],
-            2 => ['role' => 'tenant', 'is_active' => true],
-        ]);
+        // Sistema limpio - Sin tenants ni usuarios adicionales
+        // Los usuarios y tenants se crearán según las suscripciones
     }
 }

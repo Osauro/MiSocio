@@ -55,6 +55,9 @@ class AuthenticatedSessionController extends Controller
                 // Administradores del tenant van al dashboard
                 return redirect()->route('home');
             }
+        } else {
+            // Si no tiene tenants, redirigir a suscripción para crear uno
+            return redirect()->route('suscripcion.create');
         }
 
         // Fallback por defecto

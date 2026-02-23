@@ -108,7 +108,8 @@ class Config extends Component
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
 
         // General - Tienda
-        $this->nombre_tienda = $config->nombre_tienda;
+        // Si no hay nombre en config, cargar desde el tenant
+        $this->nombre_tienda = $config->nombre_tienda ?: currentTenant()?->name;
         $this->direccion = $config->direccion;
         $this->telefono = $config->telefono;
         $this->email = $config->email;
@@ -196,6 +197,14 @@ class Config extends Component
             'ip_local' => $this->ip_local,
             'logo' => $logoPath,
         ]);
+
+        // Actualizar nombre del tenant si cambió
+        if ($this->nombre_tienda) {
+            $tenant = currentTenant();
+            if ($tenant && $tenant->name !== $this->nombre_tienda) {
+                $tenant->update(['name' => $this->nombre_tienda]);
+            }
+        }
 
         $this->alertSuccess('Configuración general guardada correctamente');
     }

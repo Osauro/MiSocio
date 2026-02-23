@@ -33,6 +33,21 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [
+            'celular.required' => 'El celular es obligatorio.',
+            'celular.digits' => 'El celular debe tener exactamente 8 dígitos.',
+            'password.required' => 'El PIN es obligatorio.',
+            'password.digits' => 'El PIN debe tener exactamente 4 dígitos.',
+        ];
+    }
+
+    /**
      * Attempt to authenticate the request's credentials.
      *
      * @throws \Illuminate\Validation\ValidationException

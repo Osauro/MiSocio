@@ -19,7 +19,11 @@
         <div class="nav-right">
             <ul class="header-right">
                 <!-- Botón para volver al modo Tenant (solo si tiene tenants) -->
-                @if(Auth::user()->tenants()->wherePivot('is_active', true)->count() > 0)
+                @php
+                    $userId = Auth::id();
+                    $tieneTenants = DB::table('tenant_user')->where('user_id', $userId)->exists();
+                @endphp
+                @if($tieneTenants)
                     <li class="d-none d-md-block">
                         <a href="{{ route('home') }}"
                            class="btn btn-mode-switch-tenant"
