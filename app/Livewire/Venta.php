@@ -360,6 +360,7 @@ class Venta extends Component
         // Determinar qué precio usar según si hay enteros o solo unidades
         $enteros = $this->items[$index]['enteros'];
         $unidades = $this->items[$index]['unidades'];
+        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
 
         // Calcular subtotal basado en enteros y unidades
         $subtotalCalculado = 0;
@@ -379,8 +380,8 @@ class Venta extends Component
             // Solo hay unidades sueltas - Venta por menor
             $subtotalCalculado = $unidades * $producto->precio_por_menor;
 
-            // Mostrar precio por menor
-            $this->items[$index]['precio'] = $producto->precio_por_menor;
+            // Mostrar precio por menor * cantidad del paquete
+            $this->items[$index]['precio'] = $producto->precio_por_menor * $cantidadPorMedida;
         }
 
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
@@ -388,7 +389,6 @@ class Venta extends Component
         // Guardar precio de compra del producto y calcular beneficio
         // beneficio = ((precio / producto.cantidad) - (precio_compra / producto.cantidad)) * cantidad
         $precioCompra = $producto->precio_de_compra;
-        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
         $beneficio = (($this->items[$index]['precio'] / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadTotal;
 
         // Actualizar en base de datos
