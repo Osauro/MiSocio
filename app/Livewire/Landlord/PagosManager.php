@@ -79,7 +79,7 @@ class PagosManager extends Component
                 // Actualizar fecha de próximo pago del tenant
                 $tenant = $pago->tenant;
                 $fechaInicio = $pago->fecha_inicio ?? now();
-                $fechaFin = $fechaInicio->copy()->addMonths($pago->duracion_meses);
+                $fechaFin = $fechaInicio->copy()->addMonths((int) $pago->duracion_meses);
 
                 $pago->update([
                     'fecha_inicio' => $fechaInicio,

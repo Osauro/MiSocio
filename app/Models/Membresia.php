@@ -27,6 +27,7 @@ class Membresia extends Model
 
     protected $casts = [
         'monto' => 'decimal:2',
+        'duracion_meses' => 'integer',
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
         'verificado_at' => 'datetime',
