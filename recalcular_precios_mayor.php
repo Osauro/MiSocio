@@ -21,12 +21,12 @@ $correctos = 0;
 
 foreach ($productos as $producto) {
     $precioCalculado = $producto->cantidad * $producto->precio_por_menor;
-    
+
     if (abs($producto->precio_por_mayor - $precioCalculado) > 0.01) {
         DB::table('productos')
             ->where('id', $producto->id)
             ->update(['precio_por_mayor' => $precioCalculado]);
-        
+
         echo "✓ {$producto->nombre}\n";
         echo "  Cantidad: {$producto->cantidad} | Precio por menor: Bs. {$producto->precio_por_menor}\n";
         echo "  Anterior: Bs. {$producto->precio_por_mayor} → Nuevo: Bs. {$precioCalculado}\n\n";

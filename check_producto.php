@@ -14,7 +14,7 @@ $venta = DB::table('ventas')->where('numero_folio', 9)->first(['id']);
 
 if ($venta) {
     echo "Venta ID: {$venta->id}\n\n";
-    
+
     // Obtener items de la venta
     $items = DB::table('venta_items')
         ->join('productos', 'venta_items.producto_id', '=', 'productos.id')
@@ -30,7 +30,7 @@ if ($venta) {
             'venta_items.subtotal'
         )
         ->get();
-    
+
     foreach ($items as $item) {
         echo "=== PRODUCTO ===\n";
         echo "ID: {$item->id}\n";
