@@ -129,7 +129,7 @@
                                                                     <input type="number"
                                                                         class="form-control form-control-sm text-end"
                                                                         wire:model.live="items.{{ $index }}.precio"
-                                                                        wire:change="actualizarItem({{ $index }})"
+                                                                        wire:change="actualizarPrecio({{ $index }})"
                                                                         onclick="this.select()"
                                                                         step="0.01"
                                                                         min="0"

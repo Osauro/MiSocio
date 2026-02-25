@@ -427,21 +427,70 @@ class Venta extends Component
         $enteros = $item['enteros'];
         $unidades = $item['unidades'];
         $cantidadTotal = ($enteros * $item['cantidad_por_medida']) + $unidades;
+        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
 
         if ($cantidadTotal > 0) {
             // Aplicar redondeo al subtotal modificado manualmente
             $this->items[$index]['subtotal'] = $this->redondearSubtotal($item['subtotal']);
 
-            // NO sobrescribir el precio - respetar edición manual
-            // El precio se mantiene tal como el usuario lo ingresó
+            // Recalcular precio basado en el subtotal
+            // Precio = (subtotal / cantidadTotal) * cantidad_por_medida
+            $this->items[$index]['precio'] = round(($this->items[$index]['subtotal'] / $cantidadTotal) * $cantidadPorMedida, 2);
+        } else {
+            $this->items[$index]['subtotal'] = 0;
+            $this->items[$index]['precio'] = 0;
+        }
+
+        // Guardar precio de compra del producto y calcular beneficio
+        $precioCompra = $producto->precio_de_compra;
+        $beneficio = (($this->items[$index]['precio'] / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadTotal;
+
+        VentaItem::find($item['id'])->update([
+            'precio_compra' => $precioCompra,
+            'precio' => $this->items[$index]['precio'],
+            'beneficio' => $beneficio,
+            'subtotal' => $this->items[$index]['subtotal'],
+        ]);
+
+        $this->actualizarTotales();
+
+        // Devolver el foco al buscador
+        $this->dispatch('focusBuscador');
+    }
+
+    public function actualizarPrecio($index)
+    {
+        $item = $this->items[$index];
+
+        // Obtener producto de la base de datos
+        $producto = Producto::find($item['producto_id']);
+
+        // cantidad = (enteros * producto.cantidad) + unidades
+        $enteros = $item['enteros'];
+        $unidades = $item['unidades'];
+        $cantidadTotal = ($enteros * $item['cantidad_por_medida']) + $unidades;
+        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
+
+        if ($cantidadTotal > 0) {
+            // Recalcular subtotal basado en el precio
+            if ($enteros > 0) {
+                // Venta por mayor: subtotal = enteros * precio + unidades * precio_por_menor
+                $subtotalCalculado = $enteros * $this->items[$index]['precio'];
+                if ($unidades > 0) {
+                    $subtotalCalculado += $unidades * $producto->precio_por_menor;
+                }
+            } else {
+                // Venta por menor: subtotal = unidades * (precio / cantidad_por_medida)
+                $subtotalCalculado = $unidades * ($this->items[$index]['precio'] / $cantidadPorMedida);
+            }
+
+            $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
         } else {
             $this->items[$index]['subtotal'] = 0;
         }
 
         // Guardar precio de compra del producto y calcular beneficio
-        // beneficio = ((precio / producto.cantidad) - (precio_compra / producto.cantidad)) * cantidad
         $precioCompra = $producto->precio_de_compra;
-        $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
         $beneficio = (($this->items[$index]['precio'] / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadTotal;
 
         VentaItem::find($item['id'])->update([
