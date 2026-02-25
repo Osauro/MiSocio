@@ -259,31 +259,41 @@ class Venta extends Component
             return;
         }
 
-        // Precio de venta del producto (por mayor por defecto)
-        $precioVenta = $producto->precio_por_mayor ?? 0;
         $cantidadPorMedida = $producto->cantidad ?? 1;
 
         // Validar stock disponible considerando stock comprometido
         $stockComprometido = $this->calcularStockComprometido($productoId);
         $stockDisponible = $producto->stock - $stockComprometido;
 
-        if ($cantidadPorMedida > $stockDisponible) {
-            $stockDisponibleFormateado = $this->formatearCantidad($stockDisponible, $producto);
-            $stockComprometidoFormateado = $this->formatearCantidad($stockComprometido, $producto);
-            $this->toast('error', 'Stock insuficiente. Disponible: ' . $stockDisponibleFormateado . ' (Comprometido: ' . $stockComprometidoFormateado . ')');
+        if ($stockDisponible <= 0) {
+            $this->toast('error', 'No hay stock disponible');
             return;
         }
 
-        // Cantidad inicial: 1 entero (1 caja/paquete)
-        // El subtotal inicial es el precio_por_mayor (precio de 1 caja)
-        $cantidadInicial = $cantidadPorMedida;
-        $subtotalInicial = $this->redondearSubtotal($precioVenta);
+        // Determinar cantidad inicial según stock disponible
+        $entrerosInicial = 0;
+        $unidadesInicial = 0;
+        $precioVenta = 0;
+        $cantidadInicial = 0;
+        $subtotalInicial = 0;
 
-        // Recalcular precio basado en el subtotal redondeado
-        $precioVenta = $subtotalInicial;
+        if ($stockDisponible >= $cantidadPorMedida) {
+            // Hay suficiente stock para 1 paquete completo - Venta por mayor
+            $entrerosInicial = 1;
+            $unidadesInicial = 0;
+            $cantidadInicial = $cantidadPorMedida;
+            $precioVenta = $producto->precio_por_mayor;
+            $subtotalInicial = $this->redondearSubtotal($precioVenta);
+        } else {
+            // Solo hay unidades sueltas - Venta por menor
+            $entrerosInicial = 0;
+            $unidadesInicial = $stockDisponible;
+            $cantidadInicial = $stockDisponible;
+            $precioVenta = $producto->precio_por_menor * $cantidadPorMedida;
+            $subtotalInicial = $this->redondearSubtotal($stockDisponible * $producto->precio_por_menor);
+        }
 
         // Guardar precio de compra del producto y calcular beneficio
-        // beneficio = ((precio / producto.cantidad) - (precio_compra / producto.cantidad)) * cantidad
         $precioCompra = $producto->precio_de_compra;
         $beneficio = (($precioVenta / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadInicial;
 
@@ -306,8 +316,8 @@ class Venta extends Component
             'imagen' => $producto->photo_url,
             'medida' => $producto->medida ?? 'u',
             'cantidad_por_medida' => $cantidadPorMedida,
-            'enteros' => 1,
-            'unidades' => 0,
+            'enteros' => $entrerosInicial,
+            'unidades' => $unidadesInicial,
             'precio' => $precioVenta,
             'subtotal' => $subtotalInicial,
         ];
