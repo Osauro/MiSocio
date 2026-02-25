@@ -123,6 +123,16 @@ class Venta extends Component
             $enteros = intdiv($item->cantidad, $cantidadPorMedida);
             $unidades = $item->cantidad % $cantidadPorMedida;
 
+            // Calcular precio a mostrar según si hay enteros o solo unidades
+            $precioMostrar = 0;
+            if ($enteros > 0) {
+                // Si hay enteros, calcular precio proporcional
+                $precioMostrar = ($item->subtotal / $item->cantidad) * $cantidadPorMedida;
+            } else if ($unidades > 0) {
+                // Solo unidades, mostrar precio del paquete completo
+                $precioMostrar = $item->producto->precio_por_mayor ?? $item->precio;
+            }
+
             return [
                 'id' => $item->id,
                 'producto_id' => $item->producto_id,
@@ -132,7 +142,7 @@ class Venta extends Component
                 'cantidad_por_medida' => $cantidadPorMedida,
                 'enteros' => $enteros,
                 'unidades' => $unidades,
-                'precio' => $item->producto->precio_por_mayor ?? $item->precio, // Siempre mostrar precio_por_mayor
+                'precio' => round($precioMostrar, 2),
                 'subtotal' => $item->subtotal,
             ];
         })->toArray();
@@ -363,22 +373,28 @@ class Venta extends Component
 
         // Calcular subtotal basado en enteros y unidades
         $subtotalCalculado = 0;
+        $precioMostrar = 0;
 
         if ($enteros > 0) {
-            // Hay enteros (cajas/paquetes), usar precio_por_mayor
+            // Hay enteros (cajas/paquetes)
             $subtotalCalculado = $enteros * $producto->precio_por_mayor;
 
             // Si también hay unidades sueltas, agregarlas al precio por menor
             if ($unidades > 0) {
                 $subtotalCalculado += $unidades * $producto->precio_por_menor;
             }
+
+            // Calcular precio por paquete: (subtotal / (enteros * producto.cantidad)) * producto.cantidad
+            $cantidadTotal = ($enteros * $item['cantidad_por_medida']) + $unidades;
+            $precioMostrar = ($subtotalCalculado / $cantidadTotal) * $item['cantidad_por_medida'];
         } else if ($unidades > 0) {
-            // Solo hay unidades sueltas, calcular subtotal con precio por menor
+            // Solo hay unidades sueltas
             $subtotalCalculado = $unidades * $producto->precio_por_menor;
+            // Mostrar precio del paquete completo (precio_por_mayor)
+            $precioMostrar = $producto->precio_por_mayor;
         }
 
-        // Siempre mostrar el precio_por_mayor en el campo "Precio" (precio del paquete completo)
-        $this->items[$index]['precio'] = $producto->precio_por_mayor;
+        $this->items[$index]['precio'] = round($precioMostrar, 2);
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
 
         // Guardar precio de compra del producto y calcular beneficio
@@ -418,8 +434,14 @@ class Venta extends Component
             // Aplicar redondeo al subtotal modificado manualmente
             $this->items[$index]['subtotal'] = $this->redondearSubtotal($item['subtotal']);
 
-            // Siempre mostrar el precio_por_mayor (precio del paquete completo)
-            $this->items[$index]['precio'] = $producto->precio_por_mayor;
+            // Recalcular precio basado en el subtotal ajustado
+            if ($enteros > 0) {
+                // Si hay enteros, calcular: (subtotal / (enteros * producto.cantidad)) * producto.cantidad
+                $this->items[$index]['precio'] = ($this->items[$index]['subtotal'] / $cantidadTotal) * $item['cantidad_por_medida'];
+            } else if ($unidades > 0) {
+                // Solo unidades, mostrar precio del paquete completo
+                $this->items[$index]['precio'] = $producto->precio_por_mayor;
+            }
         } else {
             $this->items[$index]['subtotal'] = 0;
         }

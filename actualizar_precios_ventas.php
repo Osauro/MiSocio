@@ -31,7 +31,7 @@ foreach ($ventaItems as $item) {
         DB::table('venta_items')
             ->where('id', $item->item_id)
             ->update(['precio' => $item->precio_por_mayor]);
-        
+
         echo "✓ Venta #{$item->numero_folio} - {$item->producto_nombre}: ";
         echo "Precio actualizado de Bs. {$item->precio_actual} a Bs. {$item->precio_por_mayor}\n";
         $actualizados++;
