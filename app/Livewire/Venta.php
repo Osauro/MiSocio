@@ -132,7 +132,7 @@ class Venta extends Component
                 'cantidad_por_medida' => $cantidadPorMedida,
                 'enteros' => $enteros,
                 'unidades' => $unidades,
-                'precio' => $item->producto->precio_por_mayor ?? $item->precio, // Siempre mostrar precio_por_mayor
+                'precio' => $item->precio, // Usar precio guardado en BD
                 'subtotal' => $item->subtotal,
             ];
         })->toArray();
@@ -365,20 +365,24 @@ class Venta extends Component
         $subtotalCalculado = 0;
 
         if ($enteros > 0) {
-            // Hay enteros (cajas/paquetes)
+            // Hay enteros (cajas/paquetes) - Venta por mayor
             $subtotalCalculado = $enteros * $producto->precio_por_mayor;
 
             // Si también hay unidades sueltas, agregarlas al precio por menor
             if ($unidades > 0) {
                 $subtotalCalculado += $unidades * $producto->precio_por_menor;
             }
+
+            // Mostrar precio por mayor
+            $this->items[$index]['precio'] = $producto->precio_por_mayor;
         } else if ($unidades > 0) {
-            // Solo hay unidades sueltas
+            // Solo hay unidades sueltas - Venta por menor
             $subtotalCalculado = $unidades * $producto->precio_por_menor;
+
+            // Mostrar precio por menor
+            $this->items[$index]['precio'] = $producto->precio_por_menor;
         }
 
-        // Siempre mostrar el precio_por_mayor (precio del paquete completo)
-        $this->items[$index]['precio'] = $producto->precio_por_mayor;
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
 
         // Guardar precio de compra del producto y calcular beneficio
