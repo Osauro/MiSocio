@@ -100,14 +100,14 @@
                                                                     <i class="fa-solid fa-trash"></i>
                                                                 </button>
                                                             @else
-                                                                @if($venta->user_id === auth()->id())
+                                                                @if($venta->user_id === auth()->id() || auth()->user()->canManageCurrentTenant())
                                                                     <a href="{{ route('venta', ['ventaId' => $venta->id]) }}"
                                                                         class="btn btn-sm btn-success"
                                                                         title="Continuar venta">
                                                                         <i class="fa-solid fa-arrow-right"></i>
                                                                     </a>
                                                                 @endif
-                                                                @if($venta->user_id === auth()->id())
+                                                                @if($venta->user_id === auth()->id() || auth()->user()->canManageCurrentTenant())
                                                                     <button class="btn btn-sm btn-danger"
                                                                         wire:click="$dispatch('confirm-delete', { id: {{ $venta->id }}, message: '¿Está seguro de eliminar la venta #{{ $venta->numero_folio }}?' })"
                                                                         title="Cancelar">

@@ -48,18 +48,64 @@ class Venta extends Component
 
     public function mount($ventaId = null)
     {
+        Log::info('=== MOUNT VENTA INICIADO ===', [
+            'ventaId' => $ventaId,
+            'user_id' => Auth::id(),
+            'tenant_id' => currentTenantId(),
+            'canManageTenant' => canManageTenant()
+        ]);
+
         if (!$ventaId) {
             // Si no viene ID, redirigir a ventas
+            Log::error('No se especificó ID de venta');
+            session()->flash('error', 'No se especificó ID de venta');
             return redirect()->route('ventas');
         }
 
         // Cargar la venta
-        $this->venta = VentaModel::findOrFail($ventaId);
+        try {
+            $this->venta = VentaModel::withoutGlobalScopes()->find($ventaId);
+            
+            if (!$this->venta) {
+                Log::error('Venta no encontrada', ['ventaId' => $ventaId]);
+                session()->flash('error', 'La venta no existe');
+                return redirect()->route('ventas');
+            }
 
-        // Verificar que sea del usuario actual y esté pendiente
-        if ($this->venta->user_id !== Auth::id() || $this->venta->estado !== 'Pendiente') {
+            Log::info('Venta encontrada', [
+                'venta_id' => $this->venta->id,
+                'estado' => $this->venta->estado,
+                'user_id' => $this->venta->user_id,
+                'tenant_id' => $this->venta->tenant_id
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al buscar venta', [
+                'ventaId' => $ventaId,
+                'error' => $e->getMessage()
+            ]);
+            session()->flash('error', 'La venta no existe');
             return redirect()->route('ventas');
         }
+
+        // Verificar que esté pendiente
+        if ($this->venta->estado !== 'Pendiente') {
+            Log::error('Venta no está pendiente', ['estado' => $this->venta->estado]);
+            session()->flash('error', 'Solo se pueden editar ventas pendientes');
+            return redirect()->route('ventas');
+        }
+
+        // Verificar que sea del usuario actual O que el usuario pueda gestionar el tenant
+        if ($this->venta->user_id !== Auth::id() && !canManageTenant()) {
+            Log::error('Sin permiso para editar venta', [
+                'venta_user_id' => $this->venta->user_id,
+                'auth_user_id' => Auth::id(),
+                'canManageTenant' => canManageTenant()
+            ]);
+            session()->flash('error', 'No tienes permiso para editar esta venta');
+            return redirect()->route('ventas');
+        }
+
+        Log::info('=== MOUNT VENTA EXITOSO ===');
 
         $this->ventaId = $this->venta->id;
         $this->fechaVenta = now()->format('Y-m-d');

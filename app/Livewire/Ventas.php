@@ -11,6 +11,7 @@ use App\Traits\SweetAlertTrait;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Ventas extends Component
 {
@@ -244,6 +245,11 @@ class Ventas extends Component
 
     public function crearVenta()
     {
+        Log::info('=== CREAR VENTA INICIADO ===', [
+            'user_id' => auth()->id(),
+            'tenant_id' => currentTenantId()
+        ]);
+
         // Verificar si el usuario ya tiene una venta pendiente en este tenant
         $ventaPendiente = Venta::where('user_id', auth()->id())
             ->where('tenant_id', currentTenantId())
@@ -251,6 +257,9 @@ class Ventas extends Component
             ->first();
 
         if ($ventaPendiente) {
+            Log::info('Venta pendiente encontrada, redirigiendo', [
+                'venta_id' => $ventaPendiente->id
+            ]);
             // Redirigir a la venta pendiente
             return redirect()->route('venta', ['ventaId' => $ventaPendiente->id]);
         }
@@ -264,6 +273,14 @@ class Ventas extends Component
             'online' => 0,
             'credito' => 0,
             'cambio' => 0,
+        ]);
+
+        Log::info('Nueva venta creada', [
+            'venta_id' => $nuevaVenta->id,
+            'numero_folio' => $nuevaVenta->numero_folio,
+            'estado' => $nuevaVenta->estado,
+            'user_id' => $nuevaVenta->user_id,
+            'tenant_id' => $nuevaVenta->tenant_id
         ]);
 
         // Redirigir a la nueva venta

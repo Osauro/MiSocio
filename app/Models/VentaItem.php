@@ -87,7 +87,7 @@ class VentaItem extends Model
         }
 
         $cantidadPorMedida = $this->producto->cantidad ?? 1;
-        
+
         // Si la cantidad es <= 1, es unitario, retornar el precio tal cual
         if ($cantidadPorMedida <= 1) {
             return $this->precio_compra;
@@ -110,7 +110,7 @@ class VentaItem extends Model
         }
 
         $cantidadPorMedida = $this->producto->cantidad ?? 1;
-        
+
         // Si la cantidad es <= 1, es unitario, retornar el precio tal cual
         if ($cantidadPorMedida <= 1) {
             return $this->precio;
@@ -130,7 +130,7 @@ class VentaItem extends Model
         }
 
         $cantidadPorMedida = $this->producto->cantidad ?? 1;
-        
+
         if ($cantidadPorMedida <= 1) {
             return $this->beneficio;
         }

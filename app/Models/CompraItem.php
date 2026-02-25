@@ -83,7 +83,7 @@ class CompraItem extends Model
         }
 
         $cantidadPorMedida = $this->producto->cantidad ?? 1;
-        
+
         // Si la cantidad es <= 1, es unitario, retornar el precio tal cual
         if ($cantidadPorMedida <= 1) {
             return $this->precio;
