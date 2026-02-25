@@ -132,7 +132,7 @@ class Venta extends Component
                 'cantidad_por_medida' => $cantidadPorMedida,
                 'enteros' => $enteros,
                 'unidades' => $unidades,
-                'precio' => $item->precio,
+                'precio' => $item->producto->precio_por_mayor ?? $item->precio, // Siempre mostrar precio_por_mayor
                 'subtotal' => $item->subtotal,
             ];
         })->toArray();
@@ -367,18 +367,18 @@ class Venta extends Component
         if ($enteros > 0) {
             // Hay enteros (cajas/paquetes), usar precio_por_mayor
             $subtotalCalculado = $enteros * $producto->precio_por_mayor;
-            $this->items[$index]['precio'] = $producto->precio_por_mayor;
 
             // Si también hay unidades sueltas, agregarlas al precio por menor
             if ($unidades > 0) {
                 $subtotalCalculado += $unidades * $producto->precio_por_menor;
             }
         } else if ($unidades > 0) {
-            // Solo hay unidades sueltas, usar precio_por_menor
+            // Solo hay unidades sueltas, calcular subtotal con precio por menor
             $subtotalCalculado = $unidades * $producto->precio_por_menor;
-            $this->items[$index]['precio'] = $producto->precio_por_menor;
         }
 
+        // Siempre mostrar el precio_por_mayor en el campo "Precio" (precio del paquete completo)
+        $this->items[$index]['precio'] = $producto->precio_por_mayor;
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
 
         // Guardar precio de compra del producto y calcular beneficio
@@ -418,14 +418,8 @@ class Venta extends Component
             // Aplicar redondeo al subtotal modificado manualmente
             $this->items[$index]['subtotal'] = $this->redondearSubtotal($item['subtotal']);
 
-            // Recalcular precio basado en si hay enteros o solo unidades
-            if ($enteros > 0) {
-                // Usar precio_por_mayor
-                $this->items[$index]['precio'] = $producto->precio_por_mayor;
-            } else if ($unidades > 0) {
-                // Usar precio_por_menor
-                $this->items[$index]['precio'] = $producto->precio_por_menor;
-            }
+            // Siempre mostrar el precio_por_mayor (precio del paquete completo)
+            $this->items[$index]['precio'] = $producto->precio_por_mayor;
         } else {
             $this->items[$index]['subtotal'] = 0;
         }
