@@ -221,11 +221,23 @@
                                                 <small class="mb-0 fw-bold" style="font-size: 0.65rem;">
                                                     #{{ $pago->id }}
                                                 </small>
-                                                <button class="btn btn-light btn-sm p-0 text-dark" style="font-size: 0.6rem; width: 22px; height: 22px;"
-                                                    wire:click="verComprobante({{ $pago->id }})"
-                                                    title="Ver detalles">
-                                                    <i class="fa-solid fa-eye"></i>
-                                                </button>
+                                                <div class="d-flex gap-1">
+                                                    @if($pago->comprobante_url)
+                                                        <a href="{{ Storage::url($pago->comprobante_url) }}"
+                                                           target="_blank"
+                                                           class="btn btn-light btn-sm p-0 text-dark"
+                                                           style="font-size: 0.6rem; width: 22px; height: 22px;"
+                                                           title="Ver comprobante">
+                                                            <i class="fa-solid fa-image"></i>
+                                                        </a>
+                                                    @endif
+                                                    <button class="btn btn-light btn-sm p-0 text-dark"
+                                                            style="font-size: 0.6rem; width: 22px; height: 22px;"
+                                                            wire:click="verComprobante({{ $pago->id }})"
+                                                            title="Ver detalles">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -370,9 +382,40 @@
                                         <i class="fa-solid fa-image me-2"></i>
                                         Comprobante de Pago
                                     </h6>
+
+                                    <!-- Botones de acción para el comprobante -->
+                                    <div class="mb-3 d-flex gap-2">
+                                        <a href="{{ Storage::url($pago->comprobante_url) }}"
+                                           target="_blank"
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fa-solid fa-external-link-alt me-1"></i>
+                                            Ver en Nueva Pestaña
+                                        </a>
+                                        <a href="{{ Storage::url($pago->comprobante_url) }}"
+                                           download="comprobante-pago-{{ $pago->id }}.jpg"
+                                           class="btn btn-success btn-sm">
+                                            <i class="fa-solid fa-download me-1"></i>
+                                            Descargar
+                                        </a>
+                                    </div>
+
                                     <div class="text-center">
-                                        <img src="{{ Storage::url($pago->comprobante_url) }}" alt="Comprobante"
-                                            class="img-fluid rounded" style="max-height: 400px;">
+                                        <img src="{{ Storage::url($pago->comprobante_url) }}"
+                                             alt="Comprobante"
+                                             class="img-fluid rounded border"
+                                             style="max-height: 400px; cursor: pointer;"
+                                             onclick="window.open('{{ Storage::url($pago->comprobante_url) }}', '_blank')">
+                                        <p class="text-muted small mt-2">
+                                            <i class="fa-solid fa-info-circle me-1"></i>
+                                            Haz clic en la imagen para verla en tamaño completo
+                                        </p>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="col-12 mt-3">
+                                    <div class="alert alert-warning">
+                                        <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                        No se ha subido ningún comprobante de pago
                                     </div>
                                 </div>
                             @endif

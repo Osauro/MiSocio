@@ -7,11 +7,13 @@ use App\Traits\SweetAlertTrait;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class PlanesSuscripcion extends Component
 {
-    use WithPagination, SweetAlertTrait;
+    use WithPagination, SweetAlertTrait, WithFileUploads;
 
     public $search = '';
     public $perPage = 10;
@@ -31,6 +33,11 @@ class PlanesSuscripcion extends Component
     public $caracteristicas = [];
     public $nuevaCaracteristica = '';
 
+    // QR para pago
+    public $qr_imagen;
+    public $qr_imagen_existente;
+    public $eliminar_qr = false;
+
     protected $rules = [
         'nombre' => 'required|string|max:255',
         'slug' => 'required|string|max:255|unique:planes_suscripcion,slug',
@@ -39,6 +46,7 @@ class PlanesSuscripcion extends Component
         'descripcion' => 'nullable|string',
         'activo' => 'boolean',
         'orden' => 'integer|min:0',
+        'qr_imagen' => 'nullable|image|max:2048', // máximo 2MB
     ];
 
     public function updatingSearch()
@@ -48,7 +56,7 @@ class PlanesSuscripcion extends Component
 
     public function create()
     {
-        $this->reset(['planId', 'nombre', 'slug', 'duracion_meses', 'precio', 'descripcion', 'activo', 'orden', 'caracteristicas']);
+        $this->reset(['planId', 'nombre', 'slug', 'duracion_meses', 'precio', 'descripcion', 'activo', 'orden', 'caracteristicas', 'qr_imagen', 'qr_imagen_existente', 'eliminar_qr']);
         $this->activo = true;
         $this->orden = PlanSuscripcion::max('orden') + 1;
         $this->modalOpen = true;
@@ -66,6 +74,9 @@ class PlanesSuscripcion extends Component
         $this->caracteristicas = $plan->caracteristicas ?? [];
         $this->activo = $plan->activo;
         $this->orden = $plan->orden;
+        $this->qr_imagen_existente = $plan->qr_imagen;
+        $this->qr_imagen = null;
+        $this->eliminar_qr = false;
         $this->modalOpen = true;
     }
 
@@ -109,17 +120,39 @@ class PlanesSuscripcion extends Component
             'orden' => $this->orden,
         ];
 
+        // Manejo del QR
         if ($this->planId) {
             $plan = PlanSuscripcion::findOrFail($this->planId);
+
+            // Si se marcó para eliminar el QR
+            if ($this->eliminar_qr && $plan->qr_imagen) {
+                Storage::disk('public')->delete($plan->qr_imagen);
+                $data['qr_imagen'] = null;
+            }
+            // Si se cargó un nuevo QR
+            elseif ($this->qr_imagen) {
+                // Eliminar el QR anterior si existe
+                if ($plan->qr_imagen) {
+                    Storage::disk('public')->delete($plan->qr_imagen);
+                }
+                // Guardar el nuevo QR
+                $data['qr_imagen'] = $this->qr_imagen->store('qr_pagos', 'public');
+            }
+
             $plan->update($data);
             $mensaje = 'Plan de suscripción actualizado correctamente';
         } else {
+            // Guardar QR si se cargó uno nuevo
+            if ($this->qr_imagen) {
+                $data['qr_imagen'] = $this->qr_imagen->store('qr_pagos', 'public');
+            }
+
             PlanSuscripcion::create($data);
             $mensaje = 'Plan de suscripción creado correctamente';
         }
 
         $this->modalOpen = false;
-        $this->reset(['planId', 'nombre', 'slug', 'duracion_meses', 'precio', 'descripcion', 'caracteristicas', 'activo', 'orden']);
+        $this->reset(['planId', 'nombre', 'slug', 'duracion_meses', 'precio', 'descripcion', 'caracteristicas', 'activo', 'orden', 'qr_imagen', 'qr_imagen_existente', 'eliminar_qr']);
         $this->alertSuccess($mensaje);
     }
 
@@ -133,6 +166,12 @@ class PlanesSuscripcion extends Component
         $this->alertSuccess("Plan {$estado} correctamente");
     }
 
+    public function eliminarQr()
+    {
+        $this->eliminar_qr = true;
+        $this->qr_imagen_existente = null;
+    }
+
     public function delete($id)
     {
         // Verificar si hay tenants usando este plan
@@ -141,6 +180,11 @@ class PlanesSuscripcion extends Component
         if ($plan->tenants_count > 0) {
             $this->alertError("No se puede eliminar el plan porque hay {$plan->tenants_count} tenant(s) usando este plan");
             return;
+        }
+
+        // Eliminar imagen QR si existe
+        if ($plan->qr_imagen) {
+            Storage::disk('public')->delete($plan->qr_imagen);
         }
 
         $plan->delete();

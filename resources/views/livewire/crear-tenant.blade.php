@@ -178,30 +178,22 @@
                                                     <h5 class="mb-0"><i class="fa-solid fa-qrcode me-2"></i>Escanea para Pagar</h5>
                                                 </div>
                                                 <div class="card-body text-center">
-                                                    <!-- QR Code - Puedes reemplazar con imagen real -->
+                                                    <!-- QR Code -->
                                                     <div class="qr-container mb-3">
-                                                        <img src="{{ asset('assets/images/qr-pago.png') }}"
-                                                             alt="QR de Pago"
-                                                             class="img-fluid"
-                                                             style="max-width: 300px; border: 3px solid #007bff; border-radius: 12px; padding: 10px; background: white;"
-                                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                                        <div class="qr-placeholder" style="display: none; width: 300px; height: 300px; border: 3px dashed #007bff; border-radius: 12px; align-items: center; justify-content: center; background: #f8f9fa; margin: 0 auto;">
-                                                            <div class="text-center p-4">
-                                                                <i class="fa-solid fa-qrcode fa-5x text-primary mb-3"></i>
-                                                                <p class="text-muted"><strong>QR de Pago</strong></p>
-                                                                <small class="text-muted">Escanea con tu app de banco</small>
+                                                        @if($planData && $planData->qr_imagen)
+                                                            <img src="{{ Storage::url($planData->qr_imagen) }}"
+                                                                 alt="QR de Pago"
+                                                                 class="img-fluid"
+                                                                 style="max-width: 300px; border: 3px solid #007bff; border-radius: 12px; padding: 10px; background: white;">
+                                                        @else
+                                                            <div class="qr-placeholder" style="display: flex; width: 300px; height: 300px; border: 3px dashed #007bff; border-radius: 12px; align-items: center; justify-content: center; background: #f8f9fa; margin: 0 auto;">
+                                                                <div class="text-center p-4">
+                                                                    <i class="fa-solid fa-qrcode fa-5x text-primary mb-3"></i>
+                                                                    <p class="text-muted"><strong>QR de Pago</strong></p>
+                                                                    <small class="text-muted">Escanea con tu app de banco</small>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="payment-info mt-3">
-                                                        <div class="alert alert-info">
-                                                            <p class="mb-2"><strong>Datos de transferencia:</strong></p>
-                                                            <p class="mb-1"><i class="fa-solid fa-building-columns me-2"></i><strong>Banco:</strong> Banco Union</p>
-                                                            <p class="mb-1"><i class="fa-solid fa-hashtag me-2"></i><strong>Cuenta:</strong> 1234567890</p>
-                                                            <p class="mb-1"><i class="fa-solid fa-user me-2"></i><strong>Titular:</strong> LicoPOS SRL</p>
-                                                            <p class="mb-0"><i class="fa-solid fa-money-bill me-2"></i><strong>Monto:</strong> Bs. {{ number_format($planData?->precio ?? 0, 2) }}</p>
-                                                        </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>

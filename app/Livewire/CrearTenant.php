@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Tenant;
 use App\Models\PlanSuscripcion;
+use App\Models\Membresia;
 use App\Traits\SweetAlertTrait;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -164,6 +165,8 @@ class CrearTenant extends Component
         ]);
 
         try {
+            DB::beginTransaction();
+
             // Obtener datos del plan
             $plan = PlanSuscripcion::find($this->planSeleccionado);
             if (!$plan) {
@@ -180,19 +183,28 @@ class CrearTenant extends Component
             // Guardar comprobante
             $comprobanteUrl = $this->comprobante->store('comprobantes', 'public');
 
-            // Actualizar la membresía con el comprobante
-            $membresia = $tenant->membresias()->latest()->first();
-            if ($membresia) {
-                $membresia->update([
-                    'comprobante_url' => $comprobanteUrl,
-                ]);
+            // Actualizar la membresía con el comprobante (sin scope global)
+            $membresia = Membresia::withoutGlobalScope('tenant')
+                ->where('tenant_id', $tenant->id)
+                ->latest()
+                ->first();
+
+            if (!$membresia) {
+                throw new \Exception('No se pudo obtener la membresía del tenant');
             }
+
+            $membresia->update([
+                'comprobante_url' => $comprobanteUrl,
+            ]);
+
+            DB::commit();
 
             $this->alertSuccess('¡Pago enviado exitosamente! Tu tienda será activada una vez verificado el pago.');
 
             // Redirigir a la página de login o home
             return redirect()->route('login')->with('message', 'Tu pago está en revisión. Te notificaremos cuando sea verificado.');
         } catch (\Exception $e) {
+            DB::rollBack();
             $this->alertError('Error al procesar el pago', $e->getMessage());
         }
     }

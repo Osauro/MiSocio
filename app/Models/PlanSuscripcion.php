@@ -16,6 +16,7 @@ class PlanSuscripcion extends Model
         'precio',
         'descripcion',
         'caracteristicas',
+        'qr_imagen',
         'activo',
         'orden',
     ];

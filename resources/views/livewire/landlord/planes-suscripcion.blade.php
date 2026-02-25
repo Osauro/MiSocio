@@ -114,6 +114,15 @@
                                                     @endif
                                                 </div>
                                             @endif
+
+                                            <!-- Indicador de QR -->
+                                            @if($plan->qr_imagen)
+                                                <div class="text-center mt-2 py-1 bg-light rounded">
+                                                    <small class="text-success" style="font-size: 0.65rem;">
+                                                        <i class="fa-solid fa-qrcode"></i> QR disponible
+                                                    </small>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -202,6 +211,62 @@
                                     <label class="form-label">Descripción</label>
                                     <textarea wire:model="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="3"></textarea>
                                     @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                </div>
+
+                                <!-- QR de Pago -->
+                                <div class="col-12 mb-3">
+                                    <label class="form-label">QR para Pago</label>
+
+                                    @if($qr_imagen_existente && !$eliminar_qr)
+                                        <div class="card mb-2">
+                                            <div class="card-body p-2">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <img src="{{ Storage::url($qr_imagen_existente) }}"
+                                                         alt="QR de pago"
+                                                         class="img-thumbnail"
+                                                         style="max-width: 150px; max-height: 150px;">
+                                                    <div class="flex-grow-1">
+                                                        <p class="mb-1 text-success">
+                                                            <i class="fa-solid fa-check-circle"></i> QR cargado
+                                                        </p>
+                                                        <button type="button" wire:click="eliminarQr" class="btn btn-sm btn-danger">
+                                                            <i class="fa-solid fa-trash"></i> Eliminar QR
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if(!$qr_imagen_existente || $eliminar_qr)
+                                        <input type="file"
+                                               wire:model="qr_imagen"
+                                               class="form-control @error('qr_imagen') is-invalid @enderror"
+                                               accept="image/*">
+                                        @error('qr_imagen') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                        <small class="text-muted">Sube una imagen del código QR para pagos (máximo 2MB)</small>
+                                    @else
+                                        <div class="mt-2">
+                                            <input type="file"
+                                                   wire:model="qr_imagen"
+                                                   class="form-control @error('qr_imagen') is-invalid @enderror"
+                                                   accept="image/*">
+                                            @error('qr_imagen') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                            <small class="text-muted">Cargar un nuevo QR (reemplazará el actual)</small>
+                                        </div>
+                                    @endif
+
+                                    @if($qr_imagen)
+                                        <div class="mt-2">
+                                            <p class="text-success mb-1">
+                                                <i class="fa-solid fa-check-circle"></i> Nuevo QR seleccionado - Preview:
+                                            </p>
+                                            <img src="{{ $qr_imagen->temporaryUrl() }}"
+                                                 alt="Preview QR"
+                                                 class="img-thumbnail"
+                                                 style="max-width: 150px; max-height: 150px;">
+                                        </div>
+                                    @endif
                                 </div>
 
                                 <!-- Características -->
