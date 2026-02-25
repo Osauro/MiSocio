@@ -48,31 +48,64 @@ class Compra extends Component
 
     public function mount($compraId = null)
     {
+        Log::info('=== MOUNT COMPRA INICIADO ===', [
+            'compraId' => $compraId,
+            'user_id' => Auth::id(),
+            'tenant_id' => currentTenantId(),
+            'canManageTenant' => canManageTenant()
+        ]);
+
         if (!$compraId) {
             // Si no viene ID, redirigir a compras
+            Log::error('No se especificó ID de compra');
             session()->flash('error', 'No se especificó ID de compra');
             return redirect()->route('compras');
         }
 
         // Cargar la compra
         try {
-            $this->compra = CompraModel::findOrFail($compraId);
+            $this->compra = CompraModel::withoutGlobalScopes()->find($compraId);
+
+            if (!$this->compra) {
+                Log::error('Compra no encontrada', ['compraId' => $compraId]);
+                session()->flash('error', 'La compra no existe');
+                return redirect()->route('compras');
+            }
+
+            Log::info('Compra encontrada', [
+                'compra_id' => $this->compra->id,
+                'estado' => $this->compra->estado,
+                'user_id' => $this->compra->user_id,
+                'tenant_id' => $this->compra->tenant_id
+            ]);
         } catch (\Exception $e) {
+            Log::error('Error al buscar compra', [
+                'compraId' => $compraId,
+                'error' => $e->getMessage()
+            ]);
             session()->flash('error', 'La compra no existe');
             return redirect()->route('compras');
         }
 
         // Verificar que esté pendiente
         if ($this->compra->estado !== 'Pendiente') {
+            Log::error('Compra no está pendiente', ['estado' => $this->compra->estado]);
             session()->flash('error', 'Solo se pueden editar compras pendientes');
             return redirect()->route('compras');
         }
 
         // Verificar que sea del usuario actual O que el usuario pueda gestionar el tenant
         if ($this->compra->user_id !== Auth::id() && !canManageTenant()) {
+            Log::error('Sin permiso para editar compra', [
+                'compra_user_id' => $this->compra->user_id,
+                'auth_user_id' => Auth::id(),
+                'canManageTenant' => canManageTenant()
+            ]);
             session()->flash('error', 'No tienes permiso para editar esta compra');
             return redirect()->route('compras');
         }
+
+        Log::info('=== MOUNT COMPRA EXITOSO ===');
 
         $this->compraId = $this->compra->id;
         $this->fechaCompra = now()->format('Y-m-d');

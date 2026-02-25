@@ -11,6 +11,7 @@ use App\Traits\SweetAlertTrait;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Compras extends Component
 {
@@ -246,6 +247,11 @@ class Compras extends Component
 
     public function crearCompra()
     {
+        Log::info('=== CREAR COMPRA INICIADO ===', [
+            'user_id' => auth()->id(),
+            'tenant_id' => currentTenantId()
+        ]);
+
         // Verificar si el usuario ya tiene una compra pendiente en este tenant
         $compraPendiente = Compra::where('user_id', auth()->id())
             ->where('tenant_id', currentTenantId())
@@ -253,6 +259,9 @@ class Compras extends Component
             ->first();
 
         if ($compraPendiente) {
+            Log::info('Compra pendiente encontrada, redirigiendo', [
+                'compra_id' => $compraPendiente->id
+            ]);
             // Redirigir a la compra pendiente
             return redirect()->route('compra', ['compraId' => $compraPendiente->id]);
         }
@@ -264,6 +273,14 @@ class Compras extends Component
             'estado' => 'Pendiente',
             'efectivo' => 0,
             'credito' => 0,
+        ]);
+
+        Log::info('Nueva compra creada', [
+            'compra_id' => $nuevaCompra->id,
+            'numero_folio' => $nuevaCompra->numero_folio,
+            'estado' => $nuevaCompra->estado,
+            'user_id' => $nuevaCompra->user_id,
+            'tenant_id' => $nuevaCompra->tenant_id
         ]);
 
         // Redirigir a la nueva compra
