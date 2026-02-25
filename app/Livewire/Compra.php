@@ -50,14 +50,27 @@ class Compra extends Component
     {
         if (!$compraId) {
             // Si no viene ID, redirigir a compras
+            session()->flash('error', 'No se especificó ID de compra');
             return redirect()->route('compras');
         }
 
         // Cargar la compra
-        $this->compra = CompraModel::findOrFail($compraId);
+        try {
+            $this->compra = CompraModel::findOrFail($compraId);
+        } catch (\Exception $e) {
+            session()->flash('error', 'La compra no existe');
+            return redirect()->route('compras');
+        }
 
-        // Verificar que sea del usuario actual y esté pendiente
-        if ($this->compra->user_id !== Auth::id() || $this->compra->estado !== 'Pendiente') {
+        // Verificar que esté pendiente
+        if ($this->compra->estado !== 'Pendiente') {
+            session()->flash('error', 'Solo se pueden editar compras pendientes');
+            return redirect()->route('compras');
+        }
+
+        // Verificar que sea del usuario actual O que el usuario pueda gestionar el tenant
+        if ($this->compra->user_id !== Auth::id() && !canManageTenant()) {
+            session()->flash('error', 'No tienes permiso para editar esta compra');
             return redirect()->route('compras');
         }
 
