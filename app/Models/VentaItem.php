@@ -74,4 +74,73 @@ class VentaItem extends Model
             return "{$unidades}u";
         }
     }
+
+    /**
+     * Obtiene el precio de compra por paquete/medida completa
+     * Si el producto tiene cantidad > 1, muestra el precio del paquete
+     * Si es unitario, muestra el precio unitario
+     */
+    public function getPrecioCompraPorPaqueteAttribute(): float
+    {
+        if (!$this->producto) {
+            return $this->precio_compra;
+        }
+
+        $cantidadPorMedida = $this->producto->cantidad ?? 1;
+        
+        // Si la cantidad es <= 1, es unitario, retornar el precio tal cual
+        if ($cantidadPorMedida <= 1) {
+            return $this->precio_compra;
+        }
+
+        // Si hay paquetes, calcular el precio por paquete
+        // El precio está guardado como el precio del paquete completo
+        return $this->precio_compra;
+    }
+
+    /**
+     * Obtiene el precio de venta por paquete/medida completa
+     * Si el producto tiene cantidad > 1, muestra el precio del paquete
+     * Si es unitario, muestra el precio unitario
+     */
+    public function getPrecioPorPaqueteAttribute(): float
+    {
+        if (!$this->producto) {
+            return $this->precio;
+        }
+
+        $cantidadPorMedida = $this->producto->cantidad ?? 1;
+        
+        // Si la cantidad es <= 1, es unitario, retornar el precio tal cual
+        if ($cantidadPorMedida <= 1) {
+            return $this->precio;
+        }
+
+        // Si hay paquetes, el precio ya está guardado como precio por paquete
+        return $this->precio;
+    }
+
+    /**
+     * Obtiene el beneficio por paquete/medida completa
+     */
+    public function getBeneficioPorPaqueteAttribute(): float
+    {
+        if (!$this->producto) {
+            return $this->beneficio;
+        }
+
+        $cantidadPorMedida = $this->producto->cantidad ?? 1;
+        
+        if ($cantidadPorMedida <= 1) {
+            return $this->beneficio;
+        }
+
+        // Calcular beneficio por paquete
+        $totalPaquetes = floor($this->cantidad / $cantidadPorMedida);
+        if ($totalPaquetes <= 0) {
+            return 0;
+        }
+
+        return $this->beneficio / $totalPaquetes;
+    }
 }

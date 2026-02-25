@@ -258,11 +258,11 @@
                                             </td>
                                             <td class="text-end align-middle" style="width: 35px;">{{ $item->cantidad_formateada }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
-                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_compra, 2) }}</td>
+                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_compra_por_paquete, 2) }}</td>
                                             @endif
-                                            <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio, 2) }}</td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_por_paquete, 2) }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
-                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->beneficio, 2) }}</td>
+                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->beneficio_por_paquete, 2) }}</td>
                                             @endif
                                             <td class="text-end align-middle text-truncate" style="max-width: 130px;"><strong>Bs. {{ number_format($item->subtotal, 2) }}</strong></td>
                                         </tr>

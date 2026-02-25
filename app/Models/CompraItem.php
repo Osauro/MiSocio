@@ -70,4 +70,26 @@ class CompraItem extends Model
             return "{$unidades}u";
         }
     }
+
+    /**
+     * Obtiene el precio de compra por paquete/medida completa
+     * Si el producto tiene cantidad > 1, muestra el precio del paquete
+     * Si es unitario, muestra el precio unitario
+     */
+    public function getPrecioPorPaqueteAttribute(): float
+    {
+        if (!$this->producto) {
+            return $this->precio;
+        }
+
+        $cantidadPorMedida = $this->producto->cantidad ?? 1;
+        
+        // Si la cantidad es <= 1, es unitario, retornar el precio tal cual
+        if ($cantidadPorMedida <= 1) {
+            return $this->precio;
+        }
+
+        // Si hay paquetes, el precio ya está guardado como precio por paquete
+        return $this->precio;
+    }
 }

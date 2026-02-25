@@ -260,7 +260,7 @@
                                                 <span class="badge bg-info text-dark">{{ $item->cantidad }}</span>
                                             </td>
                                             <td class="text-end align-middle text-truncate">Bs.
-                                                {{ number_format($item->precio, 2) }}</td>
+                                                {{ number_format($item->precio_por_paquete, 2) }}</td>
                                             <td class="text-end align-middle text-truncate">
                                                 <strong>Bs. {{ number_format($item->subtotal, 2) }}</strong>
                                             </td>
