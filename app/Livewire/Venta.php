@@ -418,8 +418,8 @@ class Venta extends Component
             // Aplicar redondeo al subtotal modificado manualmente
             $this->items[$index]['subtotal'] = $this->redondearSubtotal($item['subtotal']);
 
-            // Siempre mostrar el precio_por_mayor (precio del paquete completo)
-            $this->items[$index]['precio'] = $producto->precio_por_mayor;
+            // NO sobrescribir el precio - respetar edición manual
+            // El precio se mantiene tal como el usuario lo ingresó
         } else {
             $this->items[$index]['subtotal'] = 0;
         }
