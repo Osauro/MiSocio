@@ -65,7 +65,7 @@ class Venta extends Component
         // Cargar la venta
         try {
             $this->venta = VentaModel::withoutGlobalScopes()->find($ventaId);
-            
+
             if (!$this->venta) {
                 Log::error('Venta no encontrada', ['ventaId' => $ventaId]);
                 session()->flash('error', 'La venta no existe');
