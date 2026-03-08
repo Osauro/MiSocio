@@ -66,11 +66,6 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
-                                                                <button class="btn btn-sm btn-secondary"
-                                                                    wire:click="generarPDF({{ $venta->id }})"
-                                                                    title="Generar PDF">
-                                                                    <i class="fa-solid fa-file-pdf"></i>
-                                                                </button>
                                                             @elseif ($venta->estado === 'Completo')
                                                                 <button class="btn btn-sm btn-info"
                                                                     wire:click="verDetalles({{ $venta->id }})"
@@ -89,16 +84,6 @@
                                                                         <i class="fa-solid fa-money-bill"></i>
                                                                     </button>
                                                                 @endif
-                                                                <button class="btn btn-sm btn-secondary"
-                                                                    wire:click="generarPDF({{ $venta->id }})"
-                                                                    title="Generar PDF">
-                                                                    <i class="fa-solid fa-file-pdf"></i>
-                                                                </button>
-                                                                <button class="btn btn-sm btn-danger"
-                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $venta->id }}, message: '¿Está seguro de eliminar la venta #{{ $venta->numero_folio }}?' })"
-                                                                    title="Cancelar">
-                                                                    <i class="fa-solid fa-trash"></i>
-                                                                </button>
                                                             @else
                                                                 @if($venta->user_id === auth()->id() || auth()->user()->canManageCurrentTenant())
                                                                     <a href="{{ route('venta', ['ventaId' => $venta->id]) }}"
@@ -199,8 +184,18 @@
                         <h5 class="modal-title mb-0">
                             <i class="fa-solid fa-shopping-cart me-2"></i>Venta #{{ $ventaSeleccionada->numero_folio }}
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
-                            aria-label="Cerrar"></button>
+                        <div class="d-flex gap-1 align-items-center">
+                            <button class="btn btn-sm btn-secondary" wire:click="generarPDF({{ $ventaSeleccionada->id }})" title="Generar PDF">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </button>
+                            @if ($ventaSeleccionada->estado !== 'Eliminado')
+                                <button class="btn btn-sm btn-danger" wire:click="$dispatch('confirm-delete', { id: {{ $ventaSeleccionada->id }}, message: '¿Está seguro de eliminar la venta #{{ $ventaSeleccionada->numero_folio }}?' })" title="Cancelar">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            @endif
+                            <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
+                                aria-label="Cerrar"></button>
+                        </div>
                     </div>
 
                     <div class="modal-body p-0">

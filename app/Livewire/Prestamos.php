@@ -196,6 +196,20 @@ class Prestamos extends Component
         return redirect()->route('prestamo', ['prestamoId' => $prestamo->id]);
     }
 
+    public function generarPDF($prestamoId)
+    {
+        $prestamo = Prestamo::with(['cliente', 'user', 'prestamoItems.producto' => function ($query) {
+            $query->withTrashed();
+        }])
+            ->findOrFail($prestamoId);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.prestamo', compact('prestamo'));
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf->output();
+        }, 'prestamo-' . $prestamo->id . '.pdf');
+    }
+
     public function render()
     {
         $query = Prestamo::with(['cliente', 'user', 'prestamoItems.producto'])

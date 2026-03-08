@@ -66,11 +66,6 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
-                                                                <button class="btn btn-sm btn-secondary"
-                                                                    wire:click="generarPDF({{ $compra->id }})"
-                                                                    title="Generar PDF">
-                                                                    <i class="fa-solid fa-file-pdf"></i>
-                                                                </button>
                                                             @elseif ($compra->estado === 'Completo')
                                                                 <button class="btn btn-sm btn-info"
                                                                     wire:click="verDetalles({{ $compra->id }})"
@@ -84,16 +79,6 @@
                                                                         <i class="fa-solid fa-money-bill"></i>
                                                                     </button>
                                                                 @endif
-                                                                <button class="btn btn-sm btn-secondary"
-                                                                    wire:click="generarPDF({{ $compra->id }})"
-                                                                    title="Generar PDF">
-                                                                    <i class="fa-solid fa-file-pdf"></i>
-                                                                </button>
-                                                                <button class="btn btn-sm btn-danger"
-                                                                    wire:click="$dispatch('confirm-delete', { id: {{ $compra->id }}, message: '¿Está seguro de eliminar la compra #{{ $compra->numero_folio }}?' })"
-                                                                    title="Cancelar">
-                                                                    <i class="fa-solid fa-trash"></i>
-                                                                </button>
                                                             @else
                                                                 <a href="{{ route('compra', ['compraId' => $compra->id]) }}"
                                                                     class="btn btn-sm btn-success"
@@ -186,8 +171,18 @@
                         <h5 class="modal-title mb-0">
                             <i class="fa-solid fa-shopping-cart me-2"></i>Compra #{{ $compraSeleccionada->id }}
                         </h5>
-                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
-                            aria-label="Cerrar"></button>
+                        <div class="d-flex gap-1 align-items-center">
+                            <button class="btn btn-sm btn-secondary" wire:click="generarPDF({{ $compraSeleccionada->id }})" title="Generar PDF">
+                                <i class="fa-solid fa-file-pdf"></i>
+                            </button>
+                            @if ($compraSeleccionada->estado !== 'Eliminado')
+                                <button class="btn btn-sm btn-danger" wire:click="$dispatch('confirm-delete', { id: {{ $compraSeleccionada->id }}, message: '¿Está seguro de eliminar la compra #{{ $compraSeleccionada->numero_folio }}?' })" title="Cancelar">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            @endif
+                            <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
+                                aria-label="Cerrar"></button>
+                        </div>
                     </div>
 
                     <div class="modal-body p-0">

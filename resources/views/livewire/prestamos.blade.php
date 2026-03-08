@@ -81,6 +81,11 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
+                                                                <button class="btn btn-sm btn-success"
+                                                                    wire:click="generarPDF({{ $prestamo->id }})"
+                                                                    title="Generar PDF">
+                                                                    <i class="fa-solid fa-print"></i>
+                                                                </button>
                                                             @endif
                                                         </div>
                                                     </div>
