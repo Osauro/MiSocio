@@ -39,6 +39,8 @@ class Ventas extends Component
     public function mount()
     {
         $this->perPage = isset($_COOKIE['paginateVentas']) ? (int)$_COOKIE['paginateVentas'] : 12;
+        $this->fecha_inicio = now()->format('Y-m-d');
+        $this->fecha_fin    = now()->format('Y-m-d');
     }
 
     public function updatedMontoPagoEfectivo($value)

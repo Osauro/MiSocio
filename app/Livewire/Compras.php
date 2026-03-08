@@ -41,6 +41,8 @@ class Compras extends Component
     public function mount()
     {
         $this->perPage = isset($_COOKIE['paginateCompras']) ? (int)$_COOKIE['paginateCompras'] : 12;
+        $this->fecha_inicio = now()->startOfMonth()->format('Y-m-d');
+        $this->fecha_fin    = now()->endOfMonth()->format('Y-m-d');
     }
 
     public function verDetalles($compraId)
