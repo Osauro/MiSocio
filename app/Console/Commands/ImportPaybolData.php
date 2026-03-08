@@ -66,9 +66,11 @@ class ImportPaybolData extends Command
             $this->importarMovimientos($defaultUserId);
             $this->importarPrestamos($defaultUserId);
             $this->importarPrestamoItems();
-            $this->importarKardex($defaultUserId);
 
             DB::commit();
+
+            // Kardex se procesa fuera de la transacción para evitar problemas de memoria
+            $this->importarKardex($defaultUserId);
 
             $this->newLine();
             $this->info("===========================================");
@@ -241,7 +243,7 @@ class ImportPaybolData extends Command
                 'precio_de_compra' => $prod->precio_de_compra ?? 0,
                 'precio_por_mayor' => $prod->precio_por_mayor ?? 0,
                 'precio_por_menor' => $prod->precio_por_menor ?? 0,
-                'stock' => $prod->cantidad ?? 0,
+                'stock' => $prod->stock ?? 0,
                 'created_at' => $prod->created_at,
                 'updated_at' => $prod->updated_at,
             ]);
@@ -273,10 +275,8 @@ class ImportPaybolData extends Command
     {
         $this->info("Importando ventas...");
 
-        // Solo importar ventas de tienda_id = 1 (la tienda principal)
         $ventas = DB::connection('paybol')
             ->table('ventas')
-            ->where('tienda_id', 1)
             ->get();
 
         $bar = $this->output->createProgressBar(count($ventas));
@@ -321,7 +321,6 @@ class ImportPaybolData extends Command
         $items = DB::connection('paybol')
             ->table('venta_items')
             ->join('productos', 'venta_items.producto_id', '=', 'productos.id')
-            ->where('venta_items.tienda_id', 1)
             ->select('venta_items.*', 'productos.cantidad as cantidad_paquete')
             ->get();
 
@@ -366,11 +365,8 @@ class ImportPaybolData extends Command
     {
         $this->info("Importando compras...");
 
-        // Solo importar compras de tienda_id = 1
         $compras = DB::connection('paybol')
             ->table('compras')
-            ->where('tienda_id', 1)
-            ->orWhereNull('tienda_id')
             ->get();
 
         $bar = $this->output->createProgressBar(count($compras));
@@ -409,10 +405,6 @@ class ImportPaybolData extends Command
         $items = DB::connection('paybol')
             ->table('compra_items')
             ->join('productos', 'compra_items.producto_id', '=', 'productos.id')
-            ->where(function($query) {
-                $query->where('compra_items.tienda_id', 1)
-                      ->orWhereNull('compra_items.tienda_id');
-            })
             ->select('compra_items.*', 'productos.cantidad as cantidad_paquete')
             ->get();
 
@@ -457,7 +449,6 @@ class ImportPaybolData extends Command
 
         $movimientos = DB::connection('paybol')
             ->table('movimientos')
-            ->where('tienda_id', 1)
             ->get();
 
         $bar = $this->output->createProgressBar(count($movimientos));
@@ -489,8 +480,6 @@ class ImportPaybolData extends Command
 
         $prestamos = DB::connection('paybol')
             ->table('prestamos')
-            ->where('tienda_id', 1)
-            ->orWhereNull('tienda_id')
             ->get();
 
         $bar = $this->output->createProgressBar(count($prestamos));
@@ -568,42 +557,67 @@ class ImportPaybolData extends Command
 
     protected function importarKardex($defaultUserId)
     {
-        $this->info("Importando kardex...");
+        $this->info("Importando kardex (puede tardar varios minutos)...");
 
-        // En paybol_fadi la tabla se llama 'kardexes'
-        $kardexes = DB::connection('paybol')
-            ->table('kardexes')
-            ->where('tienda_id', 1)
-            ->get();
-
-        $bar = $this->output->createProgressBar(count($kardexes));
+        // Contar total de registros
+        $total = DB::connection('paybol')->table('kardexes')->count();
+        $bar = $this->output->createProgressBar($total);
         $bar->start();
 
         $importados = 0;
-        foreach ($kardexes as $k) {
-            // Solo importar si tenemos el producto mapeado
-            if (!isset($this->productoMap[$k->producto_id])) {
-                $bar->advance();
-                continue;
-            }
+        $batchSize = 500; // Insertar en lotes de 500
+        $batch = [];
 
-            DB::table('kardex')->insert([
-                'tenant_id' => $this->tenantId,
-                'user_id' => $defaultUserId,
-                'producto_id' => $this->productoMap[$k->producto_id],
-                'entrada' => $k->entrada ?? 0,
-                'salida' => $k->salida ?? 0,
-                'anterior' => $k->anterior ?? 0,
-                'saldo' => $k->saldo ?? 0,
-                'precio' => $k->precio ?? 0,
-                'total' => $k->total ?? 0,
-                'obs' => $k->obs,
-                'created_at' => $k->created_at,
-                'updated_at' => $k->updated_at,
-            ]);
+        // Procesar en chunks para evitar problemas de memoria
+        DB::connection('paybol')
+            ->table('kardexes')
+            ->orderBy('id')
+            ->chunk(1000, function ($kardexes) use ($defaultUserId, &$importados, &$batch, $batchSize, $bar) {
+                foreach ($kardexes as $k) {
+                    // Solo importar si tenemos el producto mapeado
+                    if (!isset($this->productoMap[$k->producto_id])) {
+                        $bar->advance();
+                        continue;
+                    }
 
-            $importados++;
-            $bar->advance();
+                    $batch[] = [
+                        'tenant_id' => $this->tenantId,
+                        'user_id' => $defaultUserId,
+                        'producto_id' => $this->productoMap[$k->producto_id],
+                        'entrada' => $k->entrada ?? 0,
+                        'salida' => $k->salida ?? 0,
+                        'anterior' => $k->anterior ?? 0,
+                        'saldo' => $k->saldo ?? 0,
+                        'precio' => $k->precio ?? 0,
+                        'total' => $k->total ?? 0,
+                        'obs' => $k->obs,
+                        'created_at' => $k->created_at,
+                        'updated_at' => $k->updated_at,
+                    ];
+
+                    // Insertar cuando el batch alcance el tamaño deseado
+                    if (count($batch) >= $batchSize) {
+                        DB::table('kardex')->insert($batch);
+                        $importados += count($batch);
+                        $bar->advance(count($batch));
+                        $batch = [];
+                    }
+                }
+
+                // Insertar registros restantes del chunk
+                if (!empty($batch)) {
+                    DB::table('kardex')->insert($batch);
+                    $importados += count($batch);
+                    $bar->advance(count($batch));
+                    $batch = [];
+                }
+            });
+
+        // Insertar últimos registros si quedan
+        if (!empty($batch)) {
+            DB::table('kardex')->insert($batch);
+            $importados += count($batch);
+            $bar->advance(count($batch));
         }
 
         $bar->finish();

@@ -337,6 +337,8 @@
             setInterval(restrictFutureDates, 1000);
         })();
     </script>
+
+    @stack('scripts')
 </body>
 
 </html>

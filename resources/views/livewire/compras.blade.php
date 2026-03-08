@@ -174,25 +174,22 @@
     <footer class="fixed-footer shadow-sm py-2">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com"
-                        target="_blank">DieguitoSoft.com</a></small>
-                <div class="d-flex align-items-center gap-2">
-                    <div x-data="{
-                        init() {
-                            const saved = localStorage.getItem('paginateCompras') || document.cookie.split('; ').find(row => row.startsWith('paginateCompras='))?.split('=')[1];
-                            if (saved) {
-                                $wire.set('perPage', parseInt(saved));
-                            }
+                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
+                <div class="d-flex align-items-center gap-2" x-data="{
+                    init() {
+                        const saved = localStorage.getItem('paginateCompras') || document.cookie.split('; ').find(row => row.startsWith('paginateCompras='))?.split('=')[1];
+                        if (saved) {
+                            $wire.set('perPage', parseInt(saved));
                         }
-                    }">
-                        <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
-                            wire:model.live="perPage" min="1" max="100" title="Registros por página"
-                            onfocus="this.select()"
-                            @input="
-                                   localStorage.setItem('paginateCompras', $event.target.value);
-                                   document.cookie = 'paginateCompras=' + $event.target.value + '; path=/; max-age=31536000';
-                               ">
-                    </div>
+                    }
+                }">
+                    <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
+                        wire:model.live="perPage" min="1" max="100" title="Registros por página"
+                        onfocus="this.select()"
+                        @input="
+                               localStorage.setItem('paginateCompras', $event.target.value);
+                               document.cookie = 'paginateCompras=' + $event.target.value + '; path=/; max-age=31536000';
+                           ">
                     {{ $compras->links() }}
                 </div>
             </div>
