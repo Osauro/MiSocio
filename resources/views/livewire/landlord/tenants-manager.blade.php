@@ -38,7 +38,7 @@
                         <div class="row g-1">
                             @forelse($tenants as $tenant)
                                 @php
-                                    $diasRestantes = $tenant->bill_date ? \Carbon\Carbon::now()->diffInDays($tenant->bill_date, false) : null;
+                                    $diasRestantes = $tenant->bill_date ? (int) \Carbon\Carbon::now()->diffInDays($tenant->bill_date, false) : null;
                                     $badgeColor = $diasRestantes === null ? 'secondary' : ($diasRestantes < 0 ? 'danger' : ($diasRestantes <= 7 ? 'warning' : 'success'));
                                 @endphp
                                 <div class="col-12 col-sm-6 col-md-4 col-lg-3 col-xl-3">
@@ -149,19 +149,7 @@
         </div>
     </div>
 
-    <!-- Footer fijo con paginado -->
-    <footer class="fixed-footer shadow-sm py-2">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
-                        wire:model.live="perPage" min="1" max="100" title="Registros por página">
-                    {{ $tenants->links() }}
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.paginate-bar', ['results' => $tenants, 'storageKey' => 'tenants'])
 
     <!-- Modal para Crear/Editar -->
     @if ($modalOpen)

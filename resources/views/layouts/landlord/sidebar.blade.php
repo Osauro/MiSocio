@@ -11,7 +11,7 @@
             <!-- Dashboard -->
             <li class="sidebar-list">
                 <i class="fa-solid fa-thumbtack"></i>
-                <a class="sidebar-link" href="{{ route('admin.home') }}">
+                <a class="sidebar-link" href="{{ route('admin.dashboard') }}">
                     <i class="fa-solid fa-home fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                     <h6 class="f-w-600">Dashboard</h6>
                 </a>

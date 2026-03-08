@@ -38,6 +38,11 @@ class Compras extends Component
     public $montoAñadirCaja = 0;
     public $procesandoPago = false;
 
+    public function mount()
+    {
+        $this->perPage = isset($_COOKIE['paginateCompras']) ? (int)$_COOKIE['paginateCompras'] : 12;
+    }
+
     public function verDetalles($compraId)
     {
         $this->compraSeleccionada = Compra::with(['proveedor', 'user', 'compraItems.producto' => function ($query) {

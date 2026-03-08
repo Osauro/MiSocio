@@ -29,25 +29,34 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    // Verificar si el usuario tiene tenants
-    $userId = Auth::id();
-    $tieneTenant = DB::table('tenant_user')->where('user_id', $userId)->exists();
+// Manifest PWA dinámico (color según tenant activo)
+Route::get('/manifest.json', function () {
+    $color = getThemeColor();
+    return response()->json([
+        'name'            => 'MiSocio',
+        'short_name'      => 'MiSocio',
+        'description'     => 'Sistema de gestión para tu negocio',
+        'start_url'       => '/',
+        'scope'           => '/',
+        'display'         => 'standalone',
+        'orientation'     => 'portrait-primary',
+        'background_color'=> '#ffffff',
+        'theme_color'     => $color,
+        'handle_links'    => 'preferred',
+        'prefer_related_applications' => false,
+        'icons'           => [
+            ['src' => '/assets/images/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/assets/images/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => '/assets/images/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'maskable'],
+        ],
+        'shortcuts' => [
+            ['name' => 'Nueva Venta', 'url' => '/venta', 'description' => 'Ir a nueva venta'],
+            ['name' => 'Dashboard',   'url' => '/dashboard', 'description' => 'Ir al dashboard'],
+        ],
+    ])->header('Content-Type', 'application/manifest+json');
+});
 
-    // Si es landlord (super admin), siempre puede ir al panel de admin
-    if (isLandlord()) {
-        return redirect()->route('admin.home');
-    }
 
-    // Si no es landlord y no tiene tenant, redirigir a crear tienda
-    if (!$tieneTenant) {
-        return redirect()->route('suscripcion.create')
-            ->with('info', 'Necesitas crear tu primera tienda para continuar.');
-    }
-
-    // Si tiene tenant, ir al panel de tenant
-    return redirect()->route('home');
-})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -58,8 +67,10 @@ Route::middleware('auth')->group(function () {
     Route::livewire('crear-tienda', CrearTenant::class)->name('suscripcion.create');
 });
 
-// Rutas que requieren autenticación Y tenant activo
-Route::middleware(['auth', 'tenant'])->group(function () {
+// Rutas que requieren autenticación Y tenant activo (no vencido)
+Route::middleware(['auth', 'tenant', 'tenant.active'])->group(function () {
+    // Pantalla de bloqueo para operadores cuando el tenant está vencido
+    Route::view('tenant-expirado', 'tenant-expirado')->name('tenant.expirado');
     // Ventas - Todos los usuarios pueden acceder
     Route::livewire('ventas', Ventas::class)->name('ventas');
 
@@ -83,9 +94,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 });
 
 // Rutas de administración del tenant - Solo Landlord y Tenant Admin
-Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
+Route::middleware(['auth', 'tenant', 'tenant.active', 'tenant.manage'])->group(function () {
     // Dashboard - Solo administradores
-    Route::livewire('home', HomeTenant::class)->name('home');
+    Route::livewire('dashboard', HomeTenant::class)->name('dashboard');
 
     // Gestión de recursos
     Route::livewire('productos', Productos::class)->name('productos');
@@ -112,7 +123,7 @@ Route::middleware(['auth', 'tenant', 'tenant.manage'])->group(function () {
 
 // Rutas para landlord - Solo Landlords
 Route::middleware(['auth', 'landlord'])->prefix('admin')->group(function () {
-    Route::livewire('home', HomeLandlord::class)->name('admin.home');
+    Route::livewire('dashboard', HomeLandlord::class)->name('admin.dashboard');
     Route::livewire('tenants', TenantsManager::class)->name('admin.tenants');
     Route::livewire('planes', \App\Livewire\Landlord\PlanesSuscripcion::class)->name('admin.planes');
     Route::livewire('pagos', PagosManager::class)->name('admin.pagos');

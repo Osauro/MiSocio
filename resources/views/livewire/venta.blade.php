@@ -255,11 +255,14 @@
     <div class="modal fade show d-block" tabindex="-1" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); overflow-y: auto; z-index: 9999;">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 600px;">
             <div class="modal-content shadow-lg">
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="modal-title">
                         <i class="fa-solid fa-calendar me-2"></i>
                         Paso 1: Fecha de Venta
                     </h5>
+                    <button type="button" wire:click="cancelarPagoEnProceso"
+                        style="background:none;border:none;color:#fff;font-size:1.3rem;line-height:1;padding:0 4px;"
+                        title="Cerrar">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -271,14 +274,14 @@
                             max="{{ date('Y-m-d') }}">
                         <small class="text-muted">
                             <i class="fa-solid fa-info-circle me-1"></i>
-                            Presiona Enter para continuar
+                            <kbd>Enter</kbd> para continuar &nbsp;·&nbsp; <kbd>Ctrl</kbd>+<kbd>Enter</kbd> para Pago Rápido
                         </small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" wire:click="cancelarPagoEnProceso">
-                        <i class="fa-solid fa-times me-1"></i>
-                        Cancelar
+                    <button type="button" class="btn btn-success me-auto" wire:click="pagoRapido">
+                        <i class="fa-solid fa-bolt me-1"></i>
+                        Pago Rápido
                     </button>
                     <button type="button" class="btn btn-primary" wire:click="avanzarPaso1">
                         <i class="fa-solid fa-arrow-right me-1"></i>
@@ -704,7 +707,10 @@
 
                 // Paso 1: Fecha
                 if ($wire.pasoActual === 1) {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        $wire.call('pagoRapido');
+                    } else if (e.key === 'Enter' && !e.ctrlKey) {
                         e.preventDefault();
                         $wire.call('avanzarPaso1');
                     }
@@ -766,15 +772,13 @@
                         throw new Error(result.error || 'Error al imprimir');
                     }
                 } catch (e) {
-                    console.warn('LicoPOS Printer no disponible:', e.message);
+                    console.warn('MiSocio Printer no disponible:', e.message);
                     window.open(`/ticket/venta/${ventaId}/print`, '_blank');
                 }
             }
 
-            // Al finalizar venta: imprimir ticket y redirigir a ventas
+            // Al finalizar venta: redirigir a ventas (sin impresión automática)
             $wire.on('abrir-ticket-y-redirigir', async (data) => {
-                const info = data[0] || data;
-                await imprimirTicketLocal(info.ventaId);
                 setTimeout(() => {
                     window.location.href = '{{ route("ventas") }}';
                 }, 500);

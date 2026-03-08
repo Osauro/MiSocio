@@ -11,6 +11,7 @@ class Membresia extends Model
 {
     protected $fillable = [
         'tenant_id',
+        'plan_suscripcion_id',
         'plan_nombre',
         'duracion_meses',
         'fecha_inicio',
@@ -51,6 +52,11 @@ class Membresia extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function planSuscripcion(): BelongsTo
+    {
+        return $this->belongsTo(PlanSuscripcion::class, 'plan_suscripcion_id');
     }
 
     /**

@@ -56,7 +56,7 @@ class EnsureUserHasTenant
         }
 
         // Redirigir usuarios (operadores) directamente a ventas si intentan acceder al dashboard
-        if ($request->routeIs('home') && isUser()) {
+        if ($request->routeIs('dashboard') && isUser()) {
             return redirect()->route('ventas');
         }
 

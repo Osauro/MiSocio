@@ -129,7 +129,7 @@
     @endif
     <div class="header">
         <h1>VENTA #{{ $venta->numero_folio }}</h1>
-        <p style="margin: 5px 0;">{{ currentTenant()->name ?? 'LicoPOS' }}</p>
+        <p style="margin: 5px 0;">{{ currentTenant()->name ?? 'MiSocio' }}</p>
     </div>
 
     <div class="info-section">
@@ -203,7 +203,7 @@
     </table>
 
     <div class="footer">
-        <p>Generado el {{ now()->format('d/m/Y H:i:s') }} | LicoPOS - Sistema de Gestión</p>
+        <p>Generado el {{ now()->format('d/m/Y H:i:s') }} | MiSocio - Sistema de Gestión</p>
     </div>
 </body>
 </html>

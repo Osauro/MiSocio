@@ -139,19 +139,7 @@
         </div>
     </div>
 
-    <!-- Footer fijo con paginado -->
-    <footer class="fixed-footer shadow-sm py-2">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
-                        wire:model.live="perPage" min="1" max="100" title="Registros por página">
-                    {{ $planes->links() }}
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.paginate-bar', ['results' => $planes, 'storageKey' => 'planes'])
 
     <!-- Modal para crear/editar plan -->
     @if($modalOpen)

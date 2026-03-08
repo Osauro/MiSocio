@@ -245,7 +245,7 @@
                                         <div class="card-body p-2" style="font-size: 0.7rem;">
                                             <!-- Tenant + Monto en una línea -->
                                             <div class="d-flex justify-content-between align-items-start mb-1">
-                                                <strong class="text-truncate" style="font-size: 0.75rem; max-width: 60%;">{{ $pago->tenant->name }}</strong>
+                                                <strong class="text-truncate" style="font-size: 0.75rem; max-width: 60%;">{{ $pago->tenant?->name ?? '(sin tienda)' }}</strong>
                                                 <span class="text-success fw-bold" style="font-size: 0.85rem;">{{ number_format($pago->monto, 0) }}</span>
                                             </div>
 
@@ -296,19 +296,7 @@
             </div>
         </div>
 
-    <!-- Footer fijo con paginado -->
-    <footer class="fixed-footer shadow-sm py-2">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
-                <div class="d-flex align-items-center gap-2">
-                    <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
-                        wire:model.live="perPage" min="1" max="100" title="Registros por página">
-                    {{ $pagos->links() }}
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.paginate-bar', ['results' => $pagos, 'storageKey' => 'pagos'])
 
     <!-- Modal de Verificación -->
     @if ($modalOpen && $pago)
@@ -332,10 +320,10 @@
                                 </h6>
                             </div>
                             <div class="col-md-6">
-                                <strong>Tenant:</strong> {{ $pago->tenant->name }}
+                                <strong>Tenant:</strong> {{ $pago->tenant?->name ?? '(sin tienda)' }}
                             </div>
                             <div class="col-md-6">
-                                <strong>Dominio:</strong> {{ $pago->tenant->domain ?? 'Sin dominio' }}
+                                <strong>Dominio:</strong> {{ $pago->tenant?->domain ?? 'Sin dominio' }}
                             </div>
 
                             <!-- Información del Pago -->

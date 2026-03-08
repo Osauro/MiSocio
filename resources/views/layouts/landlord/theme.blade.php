@@ -10,11 +10,19 @@
     <meta name="keywords"
         content="admin template, Admiro admin template, best javascript admin, dashboard template, bootstrap admin template, responsive admin template, web app" />
     <meta name="author" content="pixelstrap" />
-    <title>{{ config('app.name', 'LicoPOS') }}</title>
+    <title>{{ config('app.name', 'MiSocio') }}</title>
     <!-- Favicon icon-->
     <link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />
-    <!-- Google font-->
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/assets/images/icon-192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MiSocio" />
+    @php $landlordThemeColor = getThemeColor(config('app.landlord_theme', 1)); @endphp
+    <meta name="theme-color" content="{{ $landlordThemeColor }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
     <link
@@ -37,7 +45,7 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick-theme.css') }}" />
     <!-- App css -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" />
-    <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-1.css') }}" media="screen" />
+    <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-' . config('app.landlord_theme', 1) . '.css') }}" media="screen" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
 
@@ -136,12 +144,64 @@
     <!-- Custom JS -->
     <script src="{{ asset('assets/js/custom.js') }}"></script>
 
+    @stack('scripts')
+
     <script>
         $(document).ready(function () {
             localStorage.setItem("color", 'color-5');
             localStorage.setItem("primary", '#0766AD');
             localStorage.setItem("secondary", '#29ADB2');
         })
+    </script>
+
+    <!-- PWA: Service Worker + Banner Instalación -->
+    <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;
+        background:#1a472a;color:#fff;padding:12px 20px;
+        display:none;align-items:center;justify-content:space-between;gap:12px;
+        box-shadow:0 -2px 12px rgba(0,0,0,0.3);font-family:inherit;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <img src="/assets/images/favicon.png" style="width:32px;height:32px;border-radius:6px;">
+            <div>
+                <div style="font-weight:700;font-size:.95rem;">Instalar MiSocio</div>
+                <div style="font-size:.78rem;opacity:.85;">Accede más rápido desde tu dispositivo</div>
+            </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button id="pwa-install-btn" style="background:#fff;color:#1a472a;border:none;border-radius:6px;
+                padding:8px 16px;font-weight:700;cursor:pointer;font-size:.85rem;">Instalar</button>
+            <button id="pwa-dismiss-btn" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);
+                border-radius:6px;padding:8px 12px;cursor:pointer;font-size:.85rem;">✕</button>
+        </div>
+    </div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+        let deferredPrompt = null;
+        const banner = document.getElementById('pwa-banner');
+        const installBtn = document.getElementById('pwa-install-btn');
+        const dismissBtn = document.getElementById('pwa-dismiss-btn');
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (!localStorage.getItem('pwa-dismissed')) {
+                banner.style.display = 'flex';
+            }
+        });
+        if (installBtn) installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            banner.style.display = 'none';
+        });
+        if (dismissBtn) dismissBtn.addEventListener('click', () => {
+            banner.style.display = 'none';
+            localStorage.setItem('pwa-dismissed', '1');
+        });
+        window.addEventListener('appinstalled', () => {
+            banner.style.display = 'none';
+        });
     </script>
 </body>
 

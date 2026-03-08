@@ -18,32 +18,11 @@
                     </div>
 
                     <div class="card-body pt-3">
-                        @if($yaExisteDemo)
-                            <div class="alert alert-warning mb-3">
-                                <i class="fa-solid fa-info-circle me-2"></i>
-                                <strong>Nota:</strong> El plan Demo solo está disponible para nuevos usuarios sin tiendas activas. Puedes crear tiendas adicionales con planes de pago.
-                            </div>
-                        @else
-                            <div class="alert alert-success mb-3">
-                                <i class="fa-solid fa-gift me-2"></i>
-                                <strong>¡Tienes disponible 1 tienda Demo gratuita!</strong> Créala para probar el sistema por 15 días.
-                            </div>
-                        @endif
-
-                        <!-- Mis Tiendas -->
-                        <div class="card border shadow-sm mb-4">
-                            <div class="card-header bg-secondary text-white">
-                                <h5 class="mb-0">
-                                    <i class="fa-solid fa-building me-2"></i>
-                                    Todas Mis Tiendas ({{ $misTenants->count() }})
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                @if($misTenants->count() > 0)
+                        @if($misTenants->count() > 0)
                                     <div class="row">
                                         @foreach($misTenants as $t)
                                             @php
-                                                $diasRestantesTenant = $t->bill_date ? now()->diffInDays($t->bill_date, false) : null;
+                                                $diasRestantesTenant = $t->bill_date ? (int) now()->diffInDays($t->bill_date, false) : null;
                                                 $estadoTenant = $diasRestantesTenant < 0 ? 'vencida' :
                                                     ($diasRestantesTenant <= 7 ? 'por-vencer' : 'activa');
                                                 $colorTenant = $estadoTenant === 'activa' ? 'success' :
@@ -52,7 +31,13 @@
                                             @endphp
 
                                             <div class="col-md-6 col-lg-4 mb-3">
-                                                <div class="card h-100 {{ $esActual ? 'border-primary border-3' : '' }} shadow-sm">
+                                                @php
+                                                    $themeColor = getThemeColor($t->theme_number);
+                                                    $cardStyle = $esActual
+                                                        ? "border: 1.5px solid {$themeColor}; background-color: {$themeColor}18;"
+                                                        : "border: 1px solid #dee2e6;";
+                                                @endphp
+                                                <div class="card h-100 shadow-sm" style="{{ $cardStyle }}">
                                                     <div class="card-body">
                                                         <div class="d-flex justify-content-between align-items-start mb-2">
                                                             <div class="flex-grow-1">
@@ -60,11 +45,7 @@
                                                                     <i class="fa-solid fa-store" style="color: {{ getThemeColor($t->theme_number) }}; font-size: 1.5rem;"></i>
                                                                     <h5 class="mb-0">{{ $t->name }}</h5>
                                                                 </div>
-                                                                @if($esActual)
-                                                                    <span class="badge bg-primary mt-1">
-                                                                        <i class="fa-solid fa-circle-check"></i> Tienda Activa
-                                                                    </span>
-                                                                @endif
+
                                                             </div>
                                                             <span class="badge bg-{{ $colorTenant }}">
                                                                 {{ ucfirst($estadoTenant) }}
@@ -81,7 +62,10 @@
                                                         <div class="mb-2">
                                                             <small class="text-muted">
                                                                 <i class="fa-solid fa-coins"></i>
-                                                                <strong>Bs. {{ number_format($t->amount, 2) }}</strong>
+                                                                <strong>Bs. {{ number_format($t->planSuscripcion->precio ?? $t->amount, 2) }}</strong>
+                                                                @if($t->planSuscripcion)
+                                                                    <span class="text-muted">/ {{ $t->subscription_type }}</span>
+                                                                @endif
                                                             </small>
                                                         </div>
 
@@ -92,7 +76,7 @@
                                                                     Vence: {{ $t->bill_date->format('d/m/Y') }}
                                                                     @if($diasRestantesTenant >= 0)
                                                                         <span class="badge bg-{{ $colorTenant }} ms-1">
-                                                                            {{ $diasRestantesTenant }} días
+                                                                            {{ (int) $diasRestantesTenant }} días
                                                                         </span>
                                                                     @endif
                                                                 </small>
@@ -106,18 +90,27 @@
                                                             </small>
                                                         </div>
 
-                                                        <div class="mt-3">
-                                                            @if(!$esActual)
-                                                                <button wire:click="cambiarTenant({{ $t->id }})"
-                                                                    class="btn btn-sm btn-outline-primary w-100">
-                                                                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                                                                    Cambiar a esta tienda
+                                                        <div class="mt-3 d-flex flex-column gap-2">
+                                                            @if(in_array($estadoTenant, ['vencida', 'por-vencer']))
+                                                                <button wire:click="abrirModalRenovar({{ $t->id }})"
+                                                                    class="btn btn-sm {{ $estadoTenant === 'vencida' ? 'btn-danger' : 'btn-warning' }} w-100">
+                                                                    <i class="fa-solid fa-rotate me-1"></i>
+                                                                    Renovar Suscripción
                                                                 </button>
-                                                            @else
-                                                                <a href="{{ route('home') }}" class="btn btn-sm btn-primary w-100">
-                                                                    <i class="fa-solid fa-house"></i>
-                                                                    Ir al Dashboard
-                                                                </a>
+                                                            @endif
+                                                            @if($estadoTenant !== 'vencida')
+                                                                @if(!$esActual)
+                                                                    <button wire:click="cambiarTenant({{ $t->id }})"
+                                                                        class="btn btn-sm btn-outline-primary w-100">
+                                                                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                                                                        Cambiar a esta tienda
+                                                                    </button>
+                                                                @else
+                                                                    <a href="{{ route('dashboard') }}" class="btn btn-sm btn-primary w-100">
+                                                                        <i class="fa-solid fa-house"></i>
+                                                                        Ir al Dashboard
+                                                                    </a>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                     </div>
@@ -125,34 +118,18 @@
                                             </div>
                                         @endforeach
                                     </div>
-                                @else
-                                    <div class="text-center py-5">
-                                        <i class="fa-solid fa-store-slash fa-5x mb-3 text-muted"></i>
-                                        <h5 class="text-muted">No tienes tiendas creadas</h5>
-                                        <p class="text-muted">Crea tu primera tienda para comenzar</p>
-                                        <button wire:click="crearTenant" class="btn btn-primary">
-                                            <i class="fa-solid fa-plus me-1"></i>
-                                            Crear Mi Primera Tienda
-                                        </button>
-                                    </div>
-                                @endif
+                        @else
+                            <div class="text-center py-5">
+                                <i class="fa-solid fa-store-slash fa-5x mb-3 text-muted"></i>
+                                <h5 class="text-muted">No tienes tiendas creadas</h5>
+                                <p class="text-muted">Crea tu primera tienda para comenzar</p>
+                                <button wire:click="crearTenant" class="btn btn-primary">
+                                    <i class="fa-solid fa-plus me-1"></i>
+                                    Crear Mi Primera Tienda
+                                </button>
                             </div>
-                        </div>
+                        @endif
 
-                        <!-- Información -->
-                        <div class="alert alert-light border">
-                            <h6 class="alert-heading">
-                                <i class="fa-solid fa-lightbulb me-2"></i>
-                                Información Importante
-                            </h6>
-                            <hr>
-                            <ul class="mb-0">
-                                <li><strong>Tienda Demo:</strong> Puedes crear 1 tienda gratis por 15 días para probar todas las funcionalidades.</li>
-                                <li><strong>Planes de Pago:</strong> Crea tiendas ilimitadas eligiendo un plan mensual, trimestral, semestral o anual.</li>
-                                <li><strong>Cambio de Tienda:</strong> Puedes cambiar entre tus tiendas en cualquier momento desde aquí.</li>
-                                <li><strong>Renovación:</strong> Las tiendas de pago se renuevan automáticamente si el pago está verificado.</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -291,6 +268,280 @@
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- ════════════════════════════════════════════════════════
+         OVERLAY WIZARD: RENOVAR SUSCRIPCIÓN (2 PASOS)
+         ════════════════════════════════════════════════════════ --}}
+    @if($renovarModalOpen)
+        @php $tenantRenovar = $misTenants->firstWhere('id', $renovarTenantId); @endphp
+
+        <div style="position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0.72);"
+             class="d-flex align-items-center justify-content-center p-2">
+
+            <div style="background:#fff; border-radius:18px; width:100%; max-width:960px;
+                        max-height:92vh; overflow-y:auto;
+                        box-shadow:0 24px 70px rgba(0,0,0,0.45);">
+
+                {{-- ── HEADER ──────────────────────────────────────────── --}}
+                <div class="d-flex align-items-center justify-content-between px-4 py-3"
+                     style="background:linear-gradient(135deg,#f5a623,#e07b00); border-radius:18px 18px 0 0;">
+                    <div>
+                        <h4 class="text-white fw-bold mb-0">
+                            <i class="fa-solid fa-rotate me-2"></i>Renovar Suscripción
+                        </h4>
+                        @if($tenantRenovar)
+                            <small class="text-white" style="opacity:.8;">{{ $tenantRenovar->name }}</small>
+                        @endif
+                    </div>
+                    <button class="btn btn-light btn-sm px-3" wire:click="closeRenovarModal">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+
+                {{-- ── STEP INDICATOR ──────────────────────────────────── --}}
+                <div class="px-4 pt-3">
+                    <div class="d-flex align-items-center">
+
+                        {{-- Paso 1 --}}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                 style="width:34px; height:34px; font-size:.85rem;
+                                        background:{{ $renovarPaso > 1 ? '#198754' : '#0d6efd' }};
+                                        color:#fff;">
+                                @if($renovarPaso > 1)
+                                    <i class="fa-solid fa-check" style="font-size:.75rem;"></i>
+                                @else
+                                    1
+                                @endif
+                            </div>
+                            <span class="fw-semibold {{ $renovarPaso === 1 ? 'text-primary' : 'text-success' }}"
+                                  style="font-size:.9rem;">Seleccionar Plan</span>
+                        </div>
+
+                        {{-- Línea conectora --}}
+                        <div class="flex-grow-1 mx-3"
+                             style="height:3px; border-radius:2px;
+                                    background:{{ $renovarPaso >= 2 ? '#0d6efd' : '#dee2e6' }};"></div>
+
+                        {{-- Paso 2 --}}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                 style="width:34px; height:34px; font-size:.85rem;
+                                        background:{{ $renovarPaso === 2 ? '#0d6efd' : '#dee2e6' }};
+                                        color:{{ $renovarPaso === 2 ? '#fff' : '#6c757d' }};">
+                                2
+                            </div>
+                            <span class="fw-semibold {{ $renovarPaso === 2 ? 'text-primary' : 'text-muted' }}"
+                                  style="font-size:.9rem;">Pago y Comprobante</span>
+                        </div>
+
+                    </div>
+                    <hr class="mt-3 mb-0">
+                </div>
+
+                {{-- ── BODY ────────────────────────────────────────────── --}}
+                <div class="p-4">
+
+                    {{-- ════ PASO 1: Seleccionar Plan ════ --}}
+                    @if($renovarPaso === 1)
+
+                        <p class="text-muted mb-4">
+                            <i class="fa-solid fa-hand-pointer me-1"></i>
+                            Elige el plan con el que deseas renovar. Puedes cambiar a cualquier plan disponible.
+                        </p>
+
+                        <div class="row g-3 mb-3">
+                            @foreach($planes as $plan)
+                                @php $sel = ($renovarPlanId == $plan->id); @endphp
+                                <div class="col-6 col-md-4 col-lg-3">
+                                    <div class="card h-100 {{ $sel ? 'border-primary border-3 shadow' : 'border' }}"
+                                         wire:click="$set('renovarPlanId', {{ $plan->id }})"
+                                         style="cursor:pointer; transition:all .15s;
+                                                {{ $sel ? 'box-shadow:0 0 0 3px rgba(13,110,253,.25) !important;' : '' }}">
+                                        <div class="card-body text-center py-3 px-2">
+                                            <div style="height:24px;" class="mb-1">
+                                                @if($sel)
+                                                    <span class="badge bg-primary small">
+                                                        <i class="fa-solid fa-check me-1"></i>Seleccionado
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            <h6 class="fw-bold mb-1">{{ $plan->nombre }}</h6>
+                                            <h4 class="fw-bold mb-0" style="color:var(--theme-default,#0d6efd);">
+                                                Bs. {{ number_format($plan->precio, 2) }}
+                                            </h4>
+                                            <small class="text-muted">{{ $plan->duracion_texto }}</small>
+                                            @if($plan->descripcion)
+                                                <p class="text-muted mt-2 mb-0" style="font-size:.76rem;">{{ $plan->descripcion }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        @error('renovarPlanId')
+                            <div class="alert alert-danger py-2 mb-3">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>{{ $message }}
+                            </div>
+                        @enderror
+
+                    {{-- ════ PASO 2: QR + Comprobante ════ --}}
+                    @elseif($renovarPaso === 2)
+
+                        {{-- Resumen del plan elegido --}}
+                        @if($planRenovar)
+                            <div class="alert alert-success d-flex align-items-center gap-3 py-2 mb-4">
+                                <i class="fa-solid fa-circle-check fa-xl"></i>
+                                <div>
+                                    <span class="fw-bold">{{ $planRenovar->nombre }}</span>
+                                    &nbsp;&mdash;&nbsp;Bs. <strong>{{ number_format($planRenovar->precio, 2) }}</strong>
+                                    &nbsp;&mdash;&nbsp;{{ $planRenovar->duracion_texto }}
+                                </div>
+                            </div>
+                        @endif
+
+                        <div class="row g-4">
+
+                            {{-- QR de pago --}}
+                            <div class="col-md-5">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header text-white fw-bold"
+                                         style="background:#0d6efd; border-radius:8px 8px 0 0;">
+                                        <i class="fa-solid fa-qrcode me-2"></i>Escanea para Pagar
+                                    </div>
+                                    <div class="card-body d-flex flex-column align-items-center
+                                                justify-content-center text-center py-4">
+                                        @if($planRenovar && $planRenovar->qr_imagen)
+                                            <img src="{{ Storage::url($planRenovar->qr_imagen) }}"
+                                                 alt="QR de Pago"
+                                                 class="img-fluid"
+                                                 style="max-width:260px; border:3px solid #0d6efd;
+                                                        border-radius:12px; padding:8px; background:#fff;">
+                                        @else
+                                            <div style="width:220px; height:220px; border:3px dashed #0d6efd;
+                                                        border-radius:12px; display:flex; align-items:center;
+                                                        justify-content:center; background:#f8f9fa;">
+                                                <div class="text-center p-3">
+                                                    <i class="fa-solid fa-qrcode fa-4x text-primary mb-2"></i>
+                                                    <p class="text-muted small mb-0">Sin QR configurado</p>
+                                                </div>
+                                            </div>
+                                        @endif
+                                        <small class="text-muted mt-3">
+                                            <i class="fa-solid fa-mobile-screen me-1"></i>
+                                            Escanea con tu app bancaria
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Comprobante + notas --}}
+                            <div class="col-md-7">
+                                <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card-header bg-success text-white fw-bold"
+                                         style="border-radius:8px 8px 0 0;">
+                                        <i class="fa-solid fa-file-arrow-up me-2"></i>Sube tu Comprobante
+                                    </div>
+                                    <div class="card-body">
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">
+                                                Comprobante de Pago <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="file"
+                                                   class="form-control @error('renovarComprobante') is-invalid @enderror"
+                                                   wire:model="renovarComprobante"
+                                                   accept="image/*">
+                                            @error('renovarComprobante')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                            <small class="text-muted">JPG, PNG. Máximo 2 MB.</small>
+                                        </div>
+
+                                        {{-- Preview comprobante --}}
+                                        @if($renovarComprobante)
+                                            <div class="mb-3 text-center">
+                                                <img src="{{ $renovarComprobante->temporaryUrl() }}"
+                                                     class="img-fluid rounded shadow-sm"
+                                                     style="max-height:160px; border:2px solid #198754;">
+                                            </div>
+                                        @endif
+
+                                        {{-- Spinner upload --}}
+                                        <div wire:loading wire:target="renovarComprobante" class="text-center mb-3">
+                                            <div class="spinner-border spinner-border-sm text-primary me-1"></div>
+                                            <small class="text-muted">Subiendo imagen...</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">
+                                                Referencia / Notas
+                                                <span class="text-muted fw-normal">(opcional)</span>
+                                            </label>
+                                            <textarea wire:model="renovarNotas" class="form-control" rows="2"
+                                                placeholder="Ej: Transferencia #12345, banco XYZ, 08/03/2026..."></textarea>
+                                        </div>
+
+                                        <div class="alert alert-warning py-2 mb-0">
+                                            <small>
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                                Tu solicitud será revisada. La suscripción se activará una vez que el administrador verifique el pago.
+                                            </small>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    @endif
+
+                </div>
+
+                {{-- ── FOOTER / NAVEGACIÓN ─────────────────────────────── --}}
+                <div class="d-flex justify-content-between align-items-center px-4 pb-4 pt-2"
+                     style="border-top:1px solid #dee2e6;">
+
+                    {{-- Botón izquierdo: Cancelar (paso 1) o Volver (paso 2) --}}
+                    @if($renovarPaso === 1)
+                        <button type="button" class="btn btn-secondary" wire:click="closeRenovarModal">
+                            <i class="fa-solid fa-times me-1"></i>Cancelar
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-outline-secondary"
+                                wire:click="$set('renovarPaso', 1)">
+                            <i class="fa-solid fa-arrow-left me-1"></i>Volver
+                        </button>
+                    @endif
+
+                    {{-- Botón derecho: Continuar (paso 1) o Enviar (paso 2) --}}
+                    @if($renovarPaso === 1)
+                        <button type="button" class="btn btn-primary btn-lg fw-bold"
+                                wire:click="renovarAvanzarPaso"
+                                {{ !$renovarPlanId ? 'disabled' : '' }}>
+                            Continuar
+                            <i class="fa-solid fa-arrow-right ms-2"></i>
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-success btn-lg fw-bold"
+                                wire:click="confirmarRenovacion"
+                                wire:loading.attr="disabled"
+                                wire:target="confirmarRenovacion">
+                            <span wire:loading.remove wire:target="confirmarRenovacion">
+                                <i class="fa-solid fa-paper-plane me-2"></i>Enviar Solicitud
+                            </span>
+                            <span wire:loading wire:target="confirmarRenovacion">
+                                <span class="spinner-border spinner-border-sm me-2"></span>Enviando...
+                            </span>
+                        </button>
+                    @endif
+
+                </div>
+
             </div>
         </div>
     @endif

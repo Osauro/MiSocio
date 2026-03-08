@@ -290,7 +290,7 @@
     @endif
 
     <div class="pie">
-        {{ now()->format('d/m/Y H:i:s') }} | LicoPOS
+        {{ now()->format('d/m/Y H:i:s') }} | MiSocio
     </div>
 </body>
 </html>

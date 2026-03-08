@@ -19,7 +19,7 @@
                                 @if($paso === 1)
                                     Elige el plan que mejor se adapte a tus necesidades
                                 @elseif($paso === 2)
-                                    Estás a un paso de comenzar con LicoPOS
+                                    Estás a un paso de comenzar con MiSocio
                                 @else
                                     Realiza el pago y sube tu comprobante para activar tu tienda
                                 @endif

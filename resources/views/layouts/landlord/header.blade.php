@@ -25,7 +25,7 @@
                 @endphp
                 @if($tieneTenants)
                     <li class="d-none d-md-block">
-                        <a href="{{ route('home') }}"
+                        <a href="{{ route('dashboard') }}"
                            class="btn btn-mode-switch-tenant"
                            title="Ir a modo Tenant (Trabajar en una tienda)">
                             <i class="fa-solid fa-store"></i>

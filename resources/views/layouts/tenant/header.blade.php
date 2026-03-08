@@ -20,7 +20,7 @@
 
         <!-- Botón de modo Landlord (solo para Super Admins) -->
         @if (Auth::user()->isSuperAdmin())
-            <a href="{{ route('admin.home') }}" class="btn btn-mode-switch ms-2"
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-mode-switch ms-2"
                 title="Ir a modo Landlord (Gestión del Sistema)">
                 <i class="fa-solid fa-crown"></i>
             </a>

@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureUserHasTenant;
 use App\Http\Middleware\EnsureUserIsLandlord;
 use App\Http\Middleware\EnsureUserCanManageTenant;
+use App\Http\Middleware\EnsureTenantIsActive;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => EnsureUserHasTenant::class,
             'landlord' => EnsureUserIsLandlord::class,
             'tenant.manage' => EnsureUserCanManageTenant::class,
+            'tenant.active' => EnsureTenantIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

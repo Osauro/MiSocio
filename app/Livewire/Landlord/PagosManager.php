@@ -28,6 +28,11 @@ class PagosManager extends Component
 
     protected $queryString = ['search', 'soloPendientes'];
 
+    public function mount()
+    {
+        $this->perPage = isset($_COOKIE['paginatePagos']) ? (int)$_COOKIE['paginatePagos'] : 15;
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -87,8 +92,11 @@ class PagosManager extends Component
                 ]);
 
                 $tenant->update([
-                    'bill_date' => $fechaFin,
-                    'status' => 1
+                    'bill_date'           => $fechaFin,
+                    'status'              => 1,
+                    'plan_suscripcion_id' => $pago->plan_suscripcion_id ?? $tenant->plan_suscripcion_id,
+                    'subscription_type'   => optional($pago->planSuscripcion)->slug ?? $tenant->subscription_type,
+                    'amount'              => $pago->monto,
                 ]);
 
                 // Activar el acceso de todos los usuarios al tenant

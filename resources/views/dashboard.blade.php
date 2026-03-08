@@ -2,8 +2,8 @@
     $role = Auth::user()->roleInCurrentTenant();
 
     if ($role === 'landlord') {
-        redirect()->route('admin.home')->send();
+        redirect()->route('admin.dashboard')->send();
     } else {
-        redirect()->route('home')->send();
+        redirect()->route('dashboard')->send();
     }
 @endphp

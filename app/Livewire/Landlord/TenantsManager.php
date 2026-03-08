@@ -63,6 +63,11 @@ class TenantsManager extends Component
         return $rules;
     }
 
+    public function mount()
+    {
+        $this->perPage = isset($_COOKIE['paginateTenants']) ? (int)$_COOKIE['paginateTenants'] : 10;
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();

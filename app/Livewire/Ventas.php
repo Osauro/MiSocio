@@ -36,6 +36,11 @@ class Ventas extends Component
     public $montoPagoOnline = 0;
     public $procesandoPago = false;
 
+    public function mount()
+    {
+        $this->perPage = isset($_COOKIE['paginateVentas']) ? (int)$_COOKIE['paginateVentas'] : 12;
+    }
+
     public function updatedMontoPagoEfectivo($value)
     {
         if (!$this->ventaAPagar) return;

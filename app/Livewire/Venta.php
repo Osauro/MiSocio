@@ -600,6 +600,17 @@ class Venta extends Component
         $this->pasoActual = 2;
     }
 
+    public function pagoRapido()
+    {
+        // Sin cliente, efectivo total, saltar directo a procesar
+        $this->clienteSeleccionado = null;
+        $this->obtenerSaldoCaja();
+        $total = round(collect($this->items)->sum('subtotal'), 2);
+        $this->montoPagoEfectivo = $total;
+        $this->montoPagoOnline = 0;
+        $this->procesarPago();
+    }
+
     public function updatedBuscarCliente()
     {
         if (strlen($this->buscarCliente) == 0) {

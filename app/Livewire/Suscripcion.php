@@ -2,16 +2,19 @@
 
 namespace App\Livewire;
 
+use App\Models\Membresia;
 use App\Models\Tenant;
 use App\Models\PlanSuscripcion;
 use App\Traits\SweetAlertTrait;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class Suscripcion extends Component
 {
-    use SweetAlertTrait;
+    use SweetAlertTrait, WithFileUploads;
 
     // Tenant actual
     public $tenant;
@@ -34,6 +37,14 @@ class Suscripcion extends Component
     public $plan_suscripcion_id;
     public $subscription_type = 'demo';
     public $yaExisteDemo = false;
+
+    // Modal de renovación
+    public $renovarModalOpen = false;
+    public $renovarPaso = 1;
+    public $renovarTenantId = null;
+    public $renovarPlanId = null;
+    public $renovarNotas = null;
+    public $renovarComprobante = null;
 
     protected $rules = [
         'name' => 'required|string|max:255|min:3',
@@ -61,7 +72,7 @@ class Suscripcion extends Component
         // Verificar si tiene tenants activos o por vencer
         $tieneTenantsActivos = $this->misTenants->filter(function($t) {
             if (!$t->bill_date) return false;
-            $diasRestantes = now()->diffInDays($t->bill_date, false);
+            $diasRestantes = (int) now()->diffInDays($t->bill_date, false);
             return $diasRestantes >= 0; // Activo o por vencer (no vencido)
         })->count() > 0;
 
@@ -96,7 +107,7 @@ class Suscripcion extends Component
             $hoy = Carbon::now();
 
             // Calcular días restantes
-            $this->diasRestantes = $hoy->diffInDays($fechaPago, false);
+            $this->diasRestantes = (int) $hoy->diffInDays($fechaPago, false);
 
             // Determinar estado
             if ($this->diasRestantes < 0) {
@@ -236,7 +247,7 @@ class Suscripcion extends Component
             $this->alertSuccess('Has cambiado al tenant: ' . $tenant->name);
 
             // Refrescar la página para actualizar el sidebar y tema
-            return redirect()->route('home');
+            return redirect()->route('dashboard');
         } else {
             $this->alertError('No se pudo cambiar de tenant');
         }
@@ -248,11 +259,86 @@ class Suscripcion extends Component
         $this->resetErrorBag();
     }
 
-    public function renovarSuscripcion()
+    public function abrirModalRenovar(int $tenantId)
     {
-        // Aquí puedes implementar la lógica de renovación
-        // Por ejemplo, redirigir a un proceso de pago
-        $this->alertInfo('La renovación manual estará disponible próximamente.');
+        $tenant = auth()->user()->tenants()->find($tenantId);
+
+        if (!$tenant) {
+            $this->alertError('No tienes acceso a esta tienda.');
+            return;
+        }
+
+        $this->renovarTenantId    = $tenantId;
+        $this->renovarPlanId      = $tenant->plan_suscripcion_id;
+        $this->renovarPaso        = 1;
+        $this->renovarNotas       = null;
+        $this->renovarComprobante = null;
+        $this->renovarModalOpen   = true;
+    }
+
+    public function renovarAvanzarPaso()
+    {
+        $this->validate(
+            ['renovarPlanId' => 'required|exists:planes_suscripcion,id'],
+            ['renovarPlanId.required' => 'Debes seleccionar un plan para continuar.']
+        );
+        $this->renovarPaso = 2;
+    }
+
+    public function confirmarRenovacion()
+    {
+        $this->validate(
+            [
+                'renovarPlanId'      => 'required|exists:planes_suscripcion,id',
+                'renovarComprobante' => 'required|image|max:2048',
+            ],
+            [
+                'renovarPlanId.required'      => 'Debes seleccionar un plan de renovación.',
+                'renovarComprobante.required' => 'Debes subir el comprobante de pago.',
+                'renovarComprobante.image'    => 'El comprobante debe ser una imagen (JPG, PNG).',
+                'renovarComprobante.max'      => 'El comprobante no puede superar 2MB.',
+            ]
+        );
+
+        $tenant = auth()->user()->tenants()->find($this->renovarTenantId);
+
+        if (!$tenant) {
+            $this->alertError('No tienes acceso a esta tienda.');
+            return;
+        }
+
+        $plan = PlanSuscripcion::find($this->renovarPlanId);
+
+        try {
+            $comprobanteUrl = $this->renovarComprobante->store('comprobantes', 'public');
+
+            Membresia::withoutGlobalScope('tenant')->create([
+                'tenant_id'          => $tenant->id,
+                'plan_suscripcion_id' => $plan->id,
+                'plan_nombre'        => $plan->nombre,
+                'duracion_meses'     => $plan->duracion_meses,
+                'fecha_inicio'       => now(),
+                'fecha_fin'          => now()->addMonths(max($plan->duracion_meses, 1)),
+                'monto'              => $plan->precio,
+                'estado_pago'        => 'pendiente',
+                'comprobante_url'    => $comprobanteUrl,
+                'notas_verificacion' => $this->renovarNotas,
+            ]);
+
+            $this->renovarModalOpen = false;
+            $this->cargarDatos();
+            $this->alertSuccess('✅ Solicitud enviada. El administrador verificará tu pago y activará la suscripción en breve.');
+        } catch (\Exception $e) {
+            $this->alertError('Error al enviar la solicitud: ' . $e->getMessage());
+        }
+    }
+
+    public function closeRenovarModal()
+    {
+        $this->renovarModalOpen   = false;
+        $this->renovarPaso        = 1;
+        $this->renovarComprobante = null;
+        $this->resetErrorBag();
     }
 
     public function render()
@@ -266,8 +352,11 @@ class Suscripcion extends Component
             });
         }
 
+        $planRenovar = $this->renovarPlanId ? PlanSuscripcion::find($this->renovarPlanId) : null;
+
         return view('livewire.suscripcion', [
-            'planes' => $planes
+            'planes'      => $planes,
+            'planRenovar' => $planRenovar,
         ]);
     }
 }

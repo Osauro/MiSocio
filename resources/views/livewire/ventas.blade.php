@@ -183,31 +183,7 @@
         </div>
     </div>
 
-    <!-- Footer fijo con paginado -->
-    <footer class="fixed-footer shadow-sm py-2">
-        <div class="container-fluid">
-            <div class="d-flex justify-content-between align-items-center">
-                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
-                <div class="d-flex align-items-center gap-2" x-data="{
-                    init() {
-                        const saved = localStorage.getItem('paginateVentas') || document.cookie.split('; ').find(row => row.startsWith('paginateVentas='))?.split('=')[1];
-                        if (saved) {
-                            $wire.set('perPage', parseInt(saved));
-                        }
-                    }
-                }">
-                    <input type="number" class="form-control form-control-sm text-center" style="width: 60px;"
-                        wire:model.live="perPage" min="1" max="100" title="Registros por página"
-                        onfocus="this.select()"
-                        @input="
-                               localStorage.setItem('paginateVentas', $event.target.value);
-                               document.cookie = 'paginateVentas=' + $event.target.value + '; path=/; max-age=31536000';
-                           ">
-                    {{ $ventas->links() }}
-                </div>
-            </div>
-        </div>
-    </footer>
+    @include('partials.paginate-bar', ['results' => $ventas, 'storageKey' => 'ventas'])
 
     <!-- Modal de Detalles de Venta -->
     @if ($mostrarModal && $ventaSeleccionada)
@@ -525,7 +501,7 @@
                         throw new Error(result.error || 'Error al imprimir');
                     }
                 } catch (e) {
-                    console.warn('LicoPOS Printer no disponible:', e.message);
+                    console.warn('MiSocio Printer no disponible:', e.message);
                     // Fallback: abrir ticket HTML para imprimir desde el navegador
                     window.open(`/ticket/venta/${ventaId}/print`, '_blank');
                 }

@@ -12,7 +12,7 @@
             @if(canManageTenant())
                 <li class="sidebar-list">
                     <i class="fa-solid fa-thumbtack"></i>
-                    <a class="sidebar-link" href="{{ route('home') }}">
+                    <a class="sidebar-link" href="{{ route('dashboard') }}">
                         <i class="fa-solid fa-house fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
                         <h6 class="f-w-600">Inicio</h6>
                     </a>

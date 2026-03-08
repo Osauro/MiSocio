@@ -49,12 +49,12 @@ class PlanesSuscripcion extends Component
         'qr_imagen' => 'nullable|image|max:2048', // máximo 2MB
     ];
 
-    public function updatingSearch()
+    public function mount()
     {
-        $this->resetPage();
+        $this->perPage = isset($_COOKIE['paginatePlanes']) ? (int)$_COOKIE['paginatePlanes'] : 10;
     }
 
-    public function create()
+    public function updatingSearch()
     {
         $this->reset(['planId', 'nombre', 'slug', 'duracion_meses', 'precio', 'descripcion', 'activo', 'orden', 'caracteristicas', 'qr_imagen', 'qr_imagen_existente', 'eliminar_qr']);
         $this->activo = true;

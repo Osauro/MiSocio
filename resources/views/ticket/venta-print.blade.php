@@ -235,7 +235,7 @@
     @endif
 
     <div class="pie">
-        {{ now()->format('d/m/Y H:i:s') }} | LicoPOS
+        {{ now()->format('d/m/Y H:i:s') }} | MiSocio
     </div>
 
     {{-- Botón para reimprimir (visible solo en pantalla) --}}

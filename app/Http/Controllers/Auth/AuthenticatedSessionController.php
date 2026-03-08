@@ -32,7 +32,7 @@ class AuthenticatedSessionController extends Controller
 
         // Si es Super Admin, redirigir a la vista de landlord
         if ($user->isSuperAdmin()) {
-            return redirect()->route('admin.home');
+            return redirect()->route('admin.dashboard');
         }
 
         // Para usuarios normales, verificar que tengan tenants asignados
@@ -53,7 +53,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('ventas');
             } elseif ($role === 'tenant') {
                 // Administradores del tenant van al dashboard
-                return redirect()->route('home');
+                return redirect()->route('dashboard');
             }
         } else {
             // Si no tiene tenants, redirigir a suscripción para crear uno

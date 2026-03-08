@@ -148,7 +148,7 @@ class CrearTenant extends Component
                 $this->alertSuccess("¡Tienda creada exitosamente! Tienes {$duracionDias} días de prueba.");
 
                 // Redirigir al home del tenant
-                return redirect()->route('home');
+                return redirect()->route('dashboard');
             }
 
             return $tenant;
