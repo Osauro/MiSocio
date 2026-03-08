@@ -43,8 +43,8 @@
                         </div>
                     </div>
 
-                    <div class="card-body transaction-history pt-0 mt-3 pb-2">
-                        <div class="row g-3">
+                    <div class="card-body transaction-history pt-0 mt-1 pb-1">
+                        <div class="row g-2">
                             @forelse($ventas as $venta)
                                 <div class="col-md-4 col-12">
                                     <div class="card mb-0 shadow-sm {{ $venta->estado === 'Eliminado' ? 'opacity-50' : '' }}">
@@ -52,7 +52,7 @@
                                             <div class="d-flex justify-content-between align-items-start">
                                                 <div class="flex-grow-1">
                                                     <!-- Header -->
-                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
                                                         <h4 class="mb-0 fw-bold">
                                                             Venta #{{ $venta->numero_folio }}
                                                             @if($venta->estado === 'Eliminado')
@@ -119,7 +119,7 @@
                                                     </div>
 
                                                     <!-- Avatar Group de productos -->
-                                                    <div class="avatar-group mb-3">
+                                                    <div class="avatar-group mb-1">
                                                         @foreach ($venta->ventaItems as $item)
                                                             <div class="avatar" style="cursor: pointer;"
                                                                 x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
@@ -133,7 +133,7 @@
                                                     </div>
 
                                                     <!-- Badges de totales -->
-                                                    <div class="d-flex gap-2 flex-wrap mb-2">
+                                                    <div class="d-flex gap-2 flex-wrap mb-1">
                                                         @php
                                                             $total = $venta->efectivo + $venta->online + $venta->credito;
                                                         @endphp

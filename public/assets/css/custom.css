@@ -648,7 +648,8 @@ body,
 
 /* Padding especial para cards de compras */
 .compra-card-body {
-    padding-top: 2rem !important;
+    padding-top: 0.6rem !important;
+    padding-bottom: 0.6rem !important;
 }
 
 /* ========================================
