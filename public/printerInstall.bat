@@ -7,7 +7,19 @@
 :: Verificar si ya se ejecuto con privilegios elevados
 >nul 2>&1 "%SystemRoot%\system32\cacls.exe" "%SystemRoot%\system32\config\system"
 if %errorlevel% neq 0 (
-    echo Solicitando permisos de administrador...
+    echo.
+    echo  ============================================
+    echo    Se requieren permisos de Administrador
+    echo  ============================================
+    echo.
+    echo  Este instalador necesita permisos elevados para:
+    echo  - Instalar software del sistema (Git, PHP, Composer)
+    echo  - Modificar variables de entorno
+    echo  - Crear tareas programadas de inicio
+    echo.
+    echo  Se abrira una ventana solicitando permisos...
+    echo.
+    timeout /t 3 /nobreak
     powershell -Command "Start-Process '%~f0' -Verb RunAs"
     exit
 )
@@ -24,11 +36,26 @@ set "TEMP_DIR=%TEMP%\MiSocioInstaller"
 
 mkdir "%TEMP_DIR%" 2>nul
 
+cls
 echo.
 echo  ============================================
-echo    Instalador MiSocio Printer
+echo    Instalador MiSocio Printer v1.0
 echo  ============================================
 echo.
+echo  Este instalador configurara automaticamente:
+echo.
+echo  [+] Git para control de versiones
+echo  [+] PHP 8.2+ para el servidor web
+echo  [+] Composer para gestionar dependencias
+echo  [+] Servicio MiSocio Printer en C:\MiSocioPrinter
+echo  [+] Inicio automatico con Windows
+echo  [+] Actualizaciones automaticas
+echo.
+echo  El proceso puede tardar varios minutos...
+echo.
+echo  ============================================
+echo.
+pause
 
 :: ============================================================
 :: PASO 1: Verificar / Instalar GIT
@@ -39,7 +66,13 @@ if !errorlevel! neq 0 (
     echo        GIT no encontrado. Descargando...
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe','%TEMP_DIR%\git-setup.exe')"
     if !errorlevel! neq 0 (
-        echo  ERROR: No se pudo descargar GIT. Verifica tu conexion a internet.
+        echo.
+        echo  ============================================
+        echo  ERROR: No se pudo descargar GIT
+        echo  ============================================
+        echo.
+        echo  Verifica tu conexion a internet y vuelve a intentar.
+        echo.
         pause
         exit /b 1
     )
@@ -66,7 +99,13 @@ if "!PHP_OK!"=="0" (
     echo        PHP 8.2+ no encontrado. Descargando...
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://windows.php.net/downloads/releases/php-8.2.27-Win32-vs16-x64.zip','%TEMP_DIR%\php.zip')"
     if !errorlevel! neq 0 (
-        echo  ERROR: No se pudo descargar PHP. Verifica tu conexion a internet.
+        echo.
+        echo  ============================================
+        echo  ERROR: No se pudo descargar PHP
+        echo  ============================================
+        echo.
+        echo  Verifica tu conexion a internet y vuelve a intentar.
+        echo.
         pause
         exit /b 1
     )
@@ -91,7 +130,13 @@ if !errorlevel! neq 0 (
     echo        Composer no encontrado. Descargando...
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://getcomposer.org/Composer-Setup.exe','%TEMP_DIR%\composer-setup.exe')"
     if !errorlevel! neq 0 (
-        echo  ERROR: No se pudo descargar Composer. Verifica tu conexion a internet.
+        echo.
+        echo  ============================================
+        echo  ERROR: No se pudo descargar Composer
+        echo  ============================================
+        echo.
+        echo  Verifica tu conexion a internet y vuelve a intentar.
+        echo.
         pause
         exit /b 1
     )
@@ -116,7 +161,13 @@ if exist "%INSTALL_DIR%\.git" (
     git clone https://github.com/Osauro/MiSocioPrinter.git "%INSTALL_DIR%"
 )
 if !errorlevel! neq 0 (
-    echo  ERROR: No se pudo clonar el repositorio.
+    echo.
+    echo  ============================================
+    echo  ERROR: No se pudo clonar el repositorio
+    echo  ============================================
+    echo.
+    echo  Verifica tu conexion a internet y que el repositorio exista.
+    echo.
     pause
     exit /b 1
 )
@@ -153,7 +204,13 @@ echo  [6/7] Instalando dependencias con Composer...
 cd /d "%INSTALL_DIR%"
 composer install --no-interaction --prefer-dist --optimize-autoloader
 if !errorlevel! neq 0 (
-    echo  ERROR: Fallo la instalacion de dependencias. Revisa la salida anterior.
+    echo.
+    echo  ============================================
+    echo  ERROR: Fallo la instalacion de dependencias
+    echo  ============================================
+    echo.
+    echo  Revisa los mensajes de error anteriores.
+    echo.
     pause
     exit /b 1
 )
@@ -196,18 +253,18 @@ echo         timeout /t 2 /nobreak ^>nul
 echo     ^)
 echo     echo [%%date%% %%time%%] ADVERTENCIA: No se pudo conectar con el repositorio ^>^> "%%LOG_FILE%%"
 echo     goto :skip_update
-echo.    
+echo.
 echo     :git_fetch_ok
 echo     git rev-parse HEAD ^> "%%TEMP%%\current_commit.txt"
 echo     git rev-parse origin/main ^> "%%TEMP%%\remote_commit.txt" 2^>nul ^|^| git rev-parse origin/master ^> "%%TEMP%%\remote_commit.txt" 2^>nul
-echo.    
+echo.
 echo     fc "%%TEMP%%\current_commit.txt" "%%TEMP%%\remote_commit.txt" ^>nul 2^>^&1
 echo     if ^^!errorlevel^^! neq 0 ^(
 echo         echo [%%date%% %%time%%] Actualizacion disponible. Aplicando... ^>^> "%%LOG_FILE%%"
 echo         git pull ^>nul 2^>^&1
 echo         if ^^!errorlevel^^! equ 0 ^(
 echo             echo [%%date%% %%time%%] Actualizacion aplicada correctamente ^>^> "%%LOG_FILE%%"
-echo.            
+echo.
 echo             git diff HEAD@{1} HEAD --name-only ^| findstr "composer.json" ^>nul
 echo             if ^^!errorlevel^^! equ 0 ^(
 echo                 echo [%%date%% %%time%%] Actualizando dependencias... ^>^> "%%LOG_FILE%%"
@@ -220,7 +277,7 @@ echo         ^)
 echo     ^) else ^(
 echo         echo [%%date%% %%time%%] Sistema actualizado, sin cambios ^>^> "%%LOG_FILE%%"
 echo     ^)
-echo.    
+echo.
 echo     del "%%TEMP%%\current_commit.txt" "%%TEMP%%\remote_commit.txt" 2^>nul
 echo ^) else ^(
 echo     echo [%%date%% %%time%%] ADVERTENCIA: Git no disponible ^>^> "%%LOG_FILE%%"
@@ -359,7 +416,8 @@ echo.
 echo  El servidor se iniciara automaticamente
 echo  al iniciar Windows y buscara actualizaciones.
 echo.
-timeout /t 5 /nobreak >nul
+echo  Presiona cualquier tecla para cerrar...
+pause >nul
 exit
 
 :: ============================================================
