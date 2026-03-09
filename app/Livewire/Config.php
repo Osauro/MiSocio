@@ -363,6 +363,43 @@ class Config extends Component
         $this->alertSuccess('Configuración de importación guardada correctamente');
     }
 
+    public function iniciarServicioPrinter()
+    {
+        $printerPath = 'C:\\MiSocioPrinter';
+        $vbsFile = $printerPath . '\\printerStart.vbs';
+        $batFile = $printerPath . '\\printerStart.bat';
+
+        // Verificar si existe el directorio
+        if (!is_dir($printerPath)) {
+            return $this->alertError('El servicio MiSocio Printer no está instalado en ' . $printerPath);
+        }
+
+        // Intentar ejecutar el VBS (preferido porque es silencioso)
+        if (file_exists($vbsFile)) {
+            try {
+                // Ejecutar el VBS en segundo plano usando wscript
+                $command = 'wscript.exe //nologo "' . $vbsFile . '"';
+                pclose(popen('start /B ' . $command, 'r'));
+                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente');
+            } catch (\Exception $e) {
+                // Si falla, intentar con el BAT
+            }
+        }
+
+        // Intentar con el BAT si el VBS no existe o falló
+        if (file_exists($batFile)) {
+            try {
+                $command = 'start /B "" "' . $batFile . '"';
+                pclose(popen($command, 'r'));
+                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente');
+            } catch (\Exception $e) {
+                return $this->alertError('Error al iniciar el servicio: ' . $e->getMessage());
+            }
+        }
+
+        return $this->alertError('No se encontró el archivo de inicio del servicio en ' . $printerPath);
+    }
+
     public function render()
     {
         return view('livewire.config');

@@ -244,7 +244,7 @@
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
-                                        <button type="button" class="btn btn-outline-primary" onclick="iniciarServicio()">
+                                        <button type="button" class="btn btn-outline-primary" wire:click="iniciarServicioPrinter">
                                             <i class="fa-solid fa-play me-1"></i>
                                             Iniciar Servicio
                                         </button>
@@ -253,49 +253,6 @@
                                         <i class="fa-solid fa-external-link-alt me-1"></i>
                                         Abrir en ventana
                                     </a>
-                                </div>
-
-                                <script>
-                                function iniciarServicio() {
-                                    Swal.fire({
-                                        title: 'Iniciar MiSocio Printer',
-                                        html: `
-                                            <p class="mb-3">El servicio de impresora se inicia automáticamente con Windows.</p>
-                                            <p>Si necesitas iniciarlo manualmente, ejecuta:</p>
-                                            <code class="d-block p-2 bg-light rounded my-2">C:\\MiSocioPrinter\\printerStart.vbs</code>
-                                            <p class="small text-muted mt-3">
-                                                <i class="fa fa-info-circle me-1"></i>
-                                                El servicio buscará y aplicará actualizaciones automáticamente en cada inicio
-                                            </p>
-                                        `,
-                                        icon: 'info',
-                                        confirmButtonText: '<i class="fa fa-check me-1"></i> Entendido',
-                                        customClass: {
-                                            confirmButton: 'btn btn-primary'
-                                        }
-                                    });
-                                }
-                                </script>
-
-                                <!-- Instrucciones de instalación -->
-                                <div class="alert alert-info mb-3">
-                                    <h6 class="alert-heading mb-2">
-                                        <i class="fa-solid fa-circle-info me-1"></i>
-                                        Instalación del Servicio de Impresión
-                                    </h6>
-                                    <ol class="mb-0 ps-3 small">
-                                        <li>Descarga el instalador haciendo clic en <strong>"Descargar Instalador"</strong></li>
-                                        <li>Ejecuta el archivo <code>printerInstall.bat</code> (requiere permisos de administrador)</li>
-                                        <li>El instalador configurará automáticamente:
-                                            <ul class="mt-1">
-                                                <li>Git, PHP 8.2+ y Composer (si no están instalados)</li>
-                                                <li>El servicio MiSocio Printer en <code>C:\MiSocioPrinter</code></li>
-                                                <li>Inicio automático con Windows</li>
-                                                <li>Actualizaciones automáticas en cada inicio</li>
-                                            </ul>
-                                        </li>
-                                        <li>El servicio estará disponible en <code>http://localhost:5421</code></li>
-                                    </ol>
                                 </div>
 
                                 <!-- Frame de configuración de impresora -->
