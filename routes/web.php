@@ -117,6 +117,19 @@ Route::middleware(['auth', 'tenant', 'tenant.active', 'tenant.manage'])->group(f
     // Configuración del sistema - Solo administradores
     Route::livewire('config', Config::class)->name('config');
 
+    // Descargar instalador de impresora
+    Route::get('descargar/printer-install', function () {
+        $filePath = public_path('printerInstall.bat');
+
+        if (!file_exists($filePath)) {
+            abort(404, 'Archivo de instalación no encontrado');
+        }
+
+        return response()->download($filePath, 'printerInstall.bat', [
+            'Content-Type' => 'application/octet-stream',
+        ]);
+    })->name('printer.install.download');
+
     // Suscripción - Solo administradores
     Route::livewire('suscripcion', Suscripcion::class)->name('suscripcion');
 });

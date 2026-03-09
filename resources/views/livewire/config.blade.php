@@ -240,7 +240,7 @@
                                 <!-- Botones de acción -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex gap-2">
-                                        <a href="{{ asset('printerInstall.bat') }}" class="btn btn-success" download>
+                                        <a href="{{ route('printer.install.download') }}" class="btn btn-success">
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
