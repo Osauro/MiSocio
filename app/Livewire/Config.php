@@ -374,13 +374,34 @@ class Config extends Component
             return $this->alertError('El servicio MiSocio Printer no está instalado en ' . $printerPath);
         }
 
+        // Verificar si el servicio ya está corriendo en el puerto 5421
+        $command = 'netstat -ano | findstr ":5421" | findstr "LISTENING"';
+        exec($command, $output, $returnCode);
+        
+        if ($returnCode === 0 && count($output) > 0) {
+            // El servicio ya está corriendo, abrir el navegador
+            $url = 'http://localhost:5421';
+            if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                pclose(popen('start "" "' . $url . '"', 'r'));
+            }
+            return $this->alertSuccess('El servicio ya está en ejecución. Abriendo navegador...');
+        }
+
         // Intentar ejecutar el VBS (preferido porque es silencioso)
         if (file_exists($vbsFile)) {
             try {
                 // Ejecutar el VBS en segundo plano usando wscript
-                $command = 'wscript.exe //nologo "' . $vbsFile . '"';
-                pclose(popen('start /B ' . $command, 'r'));
-                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente');
+                $command = 'wscript.exe "' . $vbsFile . '"';
+                pclose(popen($command, 'r'));
+                
+                // Esperar 3 segundos y abrir navegador
+                sleep(3);
+                $url = 'http://localhost:5421';
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    pclose(popen('start "" "' . $url . '"', 'r'));
+                }
+                
+                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente. Abriendo navegador...');
             } catch (\Exception $e) {
                 // Si falla, intentar con el BAT
             }
@@ -389,9 +410,17 @@ class Config extends Component
         // Intentar con el BAT si el VBS no existe o falló
         if (file_exists($batFile)) {
             try {
-                $command = 'start /B "" "' . $batFile . '"';
+                $command = 'start /MIN "" "' . $batFile . '"';
                 pclose(popen($command, 'r'));
-                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente');
+                
+                // Esperar 3 segundos y abrir navegador
+                sleep(3);
+                $url = 'http://localhost:5421';
+                if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+                    pclose(popen('start "" "' . $url . '"', 'r'));
+                }
+                
+                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente. Abriendo navegador...');
             } catch (\Exception $e) {
                 return $this->alertError('Error al iniciar el servicio: ' . $e->getMessage());
             }
