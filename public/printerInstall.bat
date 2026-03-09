@@ -4,25 +4,37 @@
 :: Sistema de impresion automatizado con actualizaciones
 :: ============================================================
 
+:: Evitar ejecucion multiple
+if "%1"=="elevated" goto :start
+
 :: Verificar si ya se ejecuto con privilegios elevados
 >nul 2>&1 "%SystemRoot%\system32\cacls.exe" "%SystemRoot%\system32\config\system"
+if %errorlevel% equ 0 goto :start
+
+cls
+echo.
+echo  ============================================
+echo    Se requieren permisos de Administrador
+echo  ============================================
+echo.
+echo  Este instalador necesita permisos elevados para:
+echo  - Instalar software del sistema (Git, PHP, Composer)
+echo  - Modificar variables de entorno
+echo  - Crear tareas programadas de inicio
+echo.
+echo  Se abrira el UAC solicitando permisos...
+echo.
+echo  Si cancelas el UAC, esta ventana se cerrara.
+echo.
+powershell -Command "Start-Process -FilePath '%~f0' -ArgumentList 'elevated' -Verb RunAs" 2>nul
 if %errorlevel% neq 0 (
     echo.
-    echo  ============================================
-    echo    Se requieren permisos de Administrador
-    echo  ============================================
-    echo.
-    echo  Este instalador necesita permisos elevados para:
-    echo  - Instalar software del sistema (Git, PHP, Composer)
-    echo  - Modificar variables de entorno
-    echo  - Crear tareas programadas de inicio
-    echo.
-    echo  Se abrira una ventana solicitando permisos...
-    echo.
-    timeout /t 3 /nobreak
-    powershell -Command "Start-Process '%~f0' -Verb RunAs"
-    exit
+    echo  Elevacion cancelada o fallida. Saliendo...
+    timeout /t 2 /nobreak >nul
 )
+exit /b
+
+:start
 
 setlocal EnableDelayedExpansion
 title Instalador MiSocio Printer
