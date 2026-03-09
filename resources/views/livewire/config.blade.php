@@ -267,20 +267,8 @@
                                         <iframe
                                             src="http://localhost:5421"
                                             style="width: 100%; height: 550px; border: none;"
-                                            id="iframe-impresora"
-                                            onload="this.nextElementSibling.style.display='none'; this.style.display='block';"
-                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                            id="iframe-impresora">
                                         </iframe>
-                                        <div id="iframe-error" class="alert alert-warning m-3">
-                                            <i class="fa-solid fa-exclamation-triangle me-2"></i>
-                                            <strong>Servicio no disponible</strong><br>
-                                            <p class="mb-2">El servicio MiSocio Printer no está corriendo en <code>http://localhost:5421</code></p>
-                                            <ol class="mb-0 ps-3">
-                                                <li>Verifica que hayas descargado e instalado el programa con el botón <strong>"Descargar Instalador"</strong></li>
-                                                <li>Asegúrate de que el servicio esté iniciado (consulta <strong>"Iniciar Servicio"</strong> para más información)</li>
-                                                <li>Recarga esta página después de iniciar el servicio</li>
-                                            </ol>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
