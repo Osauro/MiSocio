@@ -8,10 +8,10 @@ chcp 65001 >nul 2>&1
 :: Verificar permisos de administrador
 :: ============================================================
 net session >nul 2>&1
-if %errorLevel% NEQ 0 (
+if %errorlevel% NEQ 0 (
     echo Solicitando permisos de administrador...
     powershell -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
-    exit /b
+    exit
 )
 
 set "INSTALL_DIR=C:\MiSocioPrinter"
@@ -32,10 +32,10 @@ echo.
 :: ============================================================
 echo  [1/7] Verificando GIT...
 git --version >nul 2>&1
-if !errorLevel! NEQ 0 (
+if !errorlevel! NEQ 0 (
     echo        GIT no encontrado. Descargando...
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe','%TEMP_DIR%\git-setup.exe')"
-    if !errorLevel! NEQ 0 (
+    if !errorlevel! NEQ 0 (
         echo  ERROR: No se pudo descargar GIT. Verifica tu conexion a internet.
         pause & exit
     )
@@ -54,14 +54,14 @@ echo.
 echo  [2/7] Verificando PHP 8.2+...
 set "PHP_OK=0"
 where php >nul 2>&1
-if !errorLevel! EQU 0 (
+if !errorlevel! EQU 0 (
     powershell -Command "try { $v = (& php -r 'echo PHP_VERSION;' 2>$null); if ([version]$v -ge [version]'8.2.0') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>&1
-    if !errorLevel! EQU 0 set "PHP_OK=1"
+    if !errorlevel! EQU 0 set "PHP_OK=1"
 )
 if "!PHP_OK!"=="0" (
     echo        PHP 8.2+ no encontrado. Descargando...
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://windows.php.net/downloads/releases/php-8.2.27-Win32-vs16-x64.zip','%TEMP_DIR%\php.zip')"
-    if !errorLevel! NEQ 0 (
+    if !errorlevel! NEQ 0 (
         echo  ERROR: No se pudo descargar PHP. Verifica tu conexion a internet.
         pause & exit
     )
@@ -82,10 +82,10 @@ if "!PHP_OK!"=="0" (
 echo.
 echo  [3/7] Verificando Composer...
 composer --version >nul 2>&1
-if !errorLevel! NEQ 0 (
+if !errorlevel! NEQ 0 (
     echo        Composer no encontrado. Descargando...
     powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://getcomposer.org/Composer-Setup.exe','%TEMP_DIR%\composer-setup.exe')"
-    if !errorLevel! NEQ 0 (
+    if !errorlevel! NEQ 0 (
         echo  ERROR: No se pudo descargar Composer. Verifica tu conexion a internet.
         pause & exit
     )
@@ -109,7 +109,7 @@ if exist "%INSTALL_DIR%\.git" (
     if exist "%INSTALL_DIR%" rmdir /s /q "%INSTALL_DIR%"
     git clone https://github.com/Osauro/MiSocioPrinter.git "%INSTALL_DIR%"
 )
-if !errorLevel! NEQ 0 (
+if !errorlevel! NEQ 0 (
     echo  ERROR: No se pudo clonar el repositorio.
     pause & exit
 )
@@ -145,7 +145,7 @@ echo.
 echo  [6/7] Instalando dependencias con Composer...
 cd /d "%INSTALL_DIR%"
 composer install --no-interaction --prefer-dist --optimize-autoloader
-if !errorLevel! NEQ 0 (
+if !errorlevel! NEQ 0 (
     echo  ERROR: Fallo la instalacion de dependencias. Revisa la salida anterior.
     pause & exit
 )
@@ -293,7 +293,7 @@ echo echo.
 echo.
 echo :: Verificar permisos de administrador
 echo net session ^>nul 2^>^&1
-echo if %%errorLevel%% NEQ 0 ^(
+echo if %%errorlevel%% NEQ 0 ^(
 echo     echo Solicitando permisos de administrador...
 echo     powershell -Command "Start-Process -FilePath '%%~f0' -Verb RunAs"
 echo     exit /b
@@ -301,7 +301,7 @@ echo ^)
 echo.
 echo echo  Eliminando tarea programada de inicio...
 echo schtasks /Query /TN "MiSocioPrinter" ^>nul 2^>^&1
-echo if %%errorLevel%% EQU 0 ^(
+echo if %%errorlevel%% EQU 0 ^(
 echo     schtasks /Delete /TN "MiSocioPrinter" /F
 echo     echo  Tarea eliminada correctamente.
 echo ^) else ^(
@@ -337,14 +337,14 @@ echo  [8/9] Configurando inicio automático con Windows...
 
 :: Eliminar tarea existente si la hay
 schtasks /Query /TN "MiSocioPrinter" >nul 2>&1
-if !errorLevel! EQU 0 (
+if !errorlevel! EQU 0 (
     schtasks /Delete /TN "MiSocioPrinter" /F >nul 2>&1
 )
 
 :: Crear tarea programada
 schtasks /Create /TN "MiSocioPrinter" /TR "wscript.exe \"%INSTALL_DIR%\printerStart.vbs\"" /SC ONLOGON /RL HIGHEST /F >nul 2>&1
 
-if !errorLevel! EQU 0 (
+if !errorlevel! EQU 0 (
     echo        Inicio automatico configurado correctamente.
 ) else (
     echo        ADVERTENCIA: No se pudo configurar el inicio automatico.
