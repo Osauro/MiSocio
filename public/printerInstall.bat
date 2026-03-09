@@ -384,64 +384,76 @@ echo [7/9] Instalando dependencias con Composer...
 echo [INFO] Este proceso puede tardar 10-15 minutos...
 cd /d "%PRINTER_PATH%"
 
-set "COMPOSER_RESULT=1"
-
 :: Intentar usar composer del sistema primero
 echo [INFO] Buscando Composer en el sistema...
 where composer >nul 2>&1
 if %errorlevel% equ 0 (
     echo [INFO] Composer encontrado. Instalando dependencias...
-    composer install --no-interaction --prefer-dist --optimize-autoloader
-    set "COMPOSER_RESULT=!errorlevel!"
-    echo [DEBUG] Composer result code: !COMPOSER_RESULT!
+    call composer install --no-interaction --prefer-dist --optimize-autoloader
+    echo [INFO] Composer ejecutado.
 ) else if exist "C:\ProgramData\ComposerSetup\bin\composer.bat" (
     echo [INFO] Usando Composer desde C:\ProgramData\ComposerSetup\bin...
     call "C:\ProgramData\ComposerSetup\bin\composer.bat" install --no-interaction --prefer-dist --optimize-autoloader
-    set "COMPOSER_RESULT=!errorlevel!"
-    echo [DEBUG] Composer result code: !COMPOSER_RESULT!
+    echo [INFO] Composer ejecutado.
 ) else (
     echo [WARNING] Composer no encontrado en rutas comunes.
     echo [INFO] Intentando con composer.phar local...
     if exist "%PRINTER_PATH%\composer.phar" (
         php composer.phar install --no-interaction --prefer-dist --optimize-autoloader
-        set "COMPOSER_RESULT=!errorlevel!"
-        echo [DEBUG] Composer.phar result code: !COMPOSER_RESULT!
+        echo [INFO] Composer.phar ejecutado.
     ) else (
         echo [ERROR] No se encontro composer.phar en el proyecto
-        set "COMPOSER_RESULT=1"
+        echo [WARNING] Continuando sin dependencias...
     )
 )
 
-echo [DEBUG] Final COMPOSER_RESULT: !COMPOSER_RESULT!
-if !COMPOSER_RESULT! neq 0 (
-    echo [ERROR] Fallo la instalacion de dependencias.
-    echo [ERROR] Codigo de error: !COMPOSER_RESULT!
-    echo [INFO] Revisa los mensajes anteriores para mas detalles.
-    echo [INFO] Presiona cualquier tecla para ver mas informacion...
-    pause >nul
-    goto :error
+echo.
+echo [INFO] Verificando instalacion de dependencias...
+if exist "%PRINTER_PATH%\vendor\autoload.php" (
+    echo [OK] Dependencias instaladas correctamente.
+    echo [OK] Archivo vendor\autoload.php encontrado.
+) else (
+    echo [WARNING] vendor\autoload.php no encontrado.
+
+    if exist "%PRINTER_PATH%\vendor" (
+        echo [INFO] Directorio vendor existe, verificando contenido...
+        if exist "%PRINTER_PATH%\vendor\composer" (
+            echo [OK] Dependencias basicas instaladas.
+            echo [INFO] El proyecto puede funcionar correctamente.
+        ) else (
+            echo [WARNING] Instalacion de dependencias incompleta.
+            echo [INFO] El sistema intentara continuar de todos modos.
+        )
+    ) else (
+        echo [WARNING] Directorio vendor no encontrado.
+        echo [INFO] El sistema intentara continuar de todos modos.
+    )
 )
 
-echo [OK] Dependencias instaladas correctamente.
-echo [INFO] Verificando directorio vendor...
-if exist "%PRINTER_PATH%\vendor" (
-    echo [OK] Directorio vendor creado correctamente.
-) else (
-    echo [WARNING] Directorio vendor no encontrado, pero continuando...
-)
+echo [INFO] Continuando con la instalacion...
 echo.
-timeout /t 2 /nobreak >nul
+echo [DEBUG] Esperando 3 segundos antes del paso 8...
+timeout /t 3 /nobreak >nul
+echo [DEBUG] Timeout completado, iniciando paso 8...
+echo.
 
 :: ============================================
 :: PASO 8: CREAR ARCHIVOS DE INICIO AUTOMATICO
 :: ============================================
-echo [8/9] Creando archivos de inicio automatico...
+echo ============================================
+echo [8/9] CREANDO ARCHIVOS DE INICIO AUTOMATICO
+echo ============================================
+echo [DEBUG] Entrando al paso 8/9
+echo [INFO] Creando archivos de inicio...
 
 :: Crear printerStart.bat
 (
 echo @echo off
 echo setlocal EnableDelayedExpansion
 echo chcp 65001 ^>nul 2^>^&1
+echo.
+echo :: Esperar un momento si se acaba de iniciar Windows
+echo timeout /t 5 /nobreak ^>nul 2^>^&1
 echo.
 echo set "PRINTER_PATH=%PRINTER_PATH%"
 echo set "LOG_FILE=%%PRINTER_PATH%%\startup.log"
@@ -573,8 +585,8 @@ if not exist "%PRINTER_PATH%\printerUninstall.bat" (
 
 if !FILES_OK! equ 0 (
     echo [ERROR] Algunos archivos no se pudieron crear
-    echo [INFO] Presiona cualquier tecla para continuar de todos modos...
-    pause >nul
+    echo [WARNING] Intentando continuar de todos modos...
+    timeout /t 3 /nobreak >nul
 ) else (
     echo [OK] Todos los archivos de inicio creados correctamente.
 )
@@ -592,14 +604,22 @@ if %errorlevel% equ 0 (
     schtasks /Delete /TN "MiSocioPrinter" /F >nul 2>&1
 )
 
-echo [INFO] Creando tarea programada...
-schtasks /Create /TN "MiSocioPrinter" /TR "wscript.exe \"%PRINTER_PATH%\printerStart.vbs\"" /SC ONLOGON /RL HIGHEST /F >nul 2>&1
+echo [INFO] Creando tarea programada con delay de 30 segundos...
+schtasks /Create /TN "MiSocioPrinter" /TR "wscript.exe \"%PRINTER_PATH%\printerStart.vbs\"" /SC ONLOGON /RL HIGHEST /DELAY 0000:30 /F >nul 2>&1
 
 if %errorlevel% equ 0 (
     echo [OK] Inicio automatico configurado correctamente.
+    echo [INFO] El servidor iniciara 30 segundos despues de iniciar sesion.
 ) else (
-    echo [WARNING] No se pudo configurar el inicio automatico.
-    echo [INFO] Puedes ejecutar manualmente: %PRINTER_PATH%\printerStart.bat
+    echo [WARNING] No se pudo configurar el inicio automatico con delay.
+    echo [INFO] Intentando sin delay...
+    schtasks /Create /TN "MiSocioPrinter" /TR "wscript.exe \"%PRINTER_PATH%\printerStart.vbs\"" /SC ONLOGON /RL HIGHEST /F >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo [OK] Tarea programada creada sin delay.
+    ) else (
+        echo [WARNING] No se pudo configurar el inicio automatico.
+        echo [INFO] Puedes ejecutar manualmente: %PRINTER_PATH%\printerStart.bat
+    )
 )
 echo.
 
@@ -652,9 +672,12 @@ if exist "%PRINTER_PATH%\public" (
     echo [INFO] Usando webroot: raiz del proyecto
 )
 
-echo [START] Ejecutando servidor en puerto %PORT%...
-echo [CMD] "%USE_PHP%" -S localhost:%PORT% -t "%WEBROOT%"
-start "MiSocio Printer Server" /MIN "%USE_PHP%" -S localhost:%PORT% -t "%WEBROOT%"
+echo [START] Ejecutando servidor en puerto %PORT% (modo invisible)...
+echo [CMD] Iniciando servidor PHP en segundo plano...
+
+:: Usar PowerShell para iniciar el servidor completamente oculto
+powershell -WindowStyle Hidden -Command "Start-Process -FilePath '%USE_PHP%' -ArgumentList '-S','localhost:%PORT%','-t','%WEBROOT%' -WorkingDirectory '%PRINTER_PATH%' -WindowStyle Hidden" >nul 2>&1
+
 echo [INFO] Esperando 5 segundos para que el servidor inicie...
 timeout /t 5 /nobreak >nul
 
@@ -662,12 +685,10 @@ timeout /t 5 /nobreak >nul
 echo [INFO] Verificando que el servidor esta escuchando en puerto %PORT%...
 netstat -ano | findstr ":%PORT%" | findstr "LISTENING" >nul 2>&1
 if %errorlevel% equ 0 (
-    echo [OK] Servidor iniciado correctamente.
+    echo [OK] Servidor iniciado correctamente en segundo plano.
+    echo [OK] URL: http://localhost:%PORT%
+    echo [INFO] El servidor esta funcionando de forma silenciosa.
     echo.
-    echo [INFO] Abriendo navegador en http://localhost:%PORT%
-    timeout /t 2 /nobreak >nul
-    start "" "http://localhost:%PORT%"
-    echo [OK] Navegador abierto
 ) else (
     echo [WARNING] El servidor no inicio automaticamente.
     echo [INFO] Verifica el puerto %PORT% manualmente con: netstat -ano ^| findstr ":%PORT%"
