@@ -1,238 +1,413 @@
 @echo off
-:: ============================================================
-:: Instalador MiSocio Printer
-:: Sistema de impresion automatizado con actualizaciones
-:: ============================================================
-
-:: Evitar ejecucion multiple
-if "%1"=="elevated" goto :start
-
-:: Verificar si ya se ejecuto con privilegios elevados
->nul 2>&1 "%SystemRoot%\system32\cacls.exe" "%SystemRoot%\system32\config\system"
-if %errorlevel% equ 0 goto :start
-
-cls
-echo.
-echo  ============================================
-echo    Se requieren permisos de Administrador
-echo  ============================================
-echo.
-echo  Este instalador necesita permisos elevados para:
-echo  - Instalar software del sistema (Git, PHP, Composer)
-echo  - Modificar variables de entorno
-echo  - Crear tareas programadas de inicio
-echo.
-echo  Se abrira el UAC solicitando permisos...
-echo.
-echo  Si cancelas el UAC, esta ventana se cerrara.
-echo.
-powershell -Command "Start-Process -FilePath '%~f0' -ArgumentList 'elevated' -Verb RunAs" 2>nul
-if %errorlevel% neq 0 (
-    echo.
-    echo  Elevacion cancelada o fallida. Saliendo...
-    timeout /t 2 /nobreak >nul
-)
-exit /b
-
-:start
-
-setlocal EnableDelayedExpansion
+setlocal enabledelayedexpansion
 title Instalador MiSocio Printer
-color 0A
-chcp 65001 >nul 2>&1
-
-set "INSTALL_DIR=C:\MiSocioPrinter"
-set "PHP_DIR=C:\php"
-set "PORT=5421"
-set "TEMP_DIR=%TEMP%\MiSocioInstaller"
-
-mkdir "%TEMP_DIR%" 2>nul
-
+color 0F
 cls
+
+:: ============================================
+:: VERSION DEL INSTALADOR
+:: ============================================
+set "INSTALLER_VERSION=2.0.0"
+set "INSTALLER_DATE=2026-03-09"
+
+:: Configurar variables
+set "PRINTER_PATH=C:\MiSocioPrinter"
+set "PHP_PATH=C:\MiSocioPrinter_PHP"
+set "TEMP_DIR=%TEMP%\MiSocioPrinter_Setup"
+set "PORT=5421"
+set "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe"
+set "COMPOSER_URL=https://getcomposer.org/Composer-Setup.exe"
+set "PHP_URL=https://windows.php.net/downloads/releases/php-8.2.27-Win32-vs16-x64.zip"
+set "REPO_URL=https://github.com/Osauro/MiSocioPrinter.git"
+
+:: ============================================
+:: PANTALLA DE BIENVENIDA
+:: ============================================
+echo ============================================
+echo     MISOCIO PRINTER - Instalador
+echo     Version: %INSTALLER_VERSION% (%INSTALLER_DATE%)
+echo ============================================
 echo.
-echo  ============================================
-echo    Instalador MiSocio Printer v1.0
-echo  ============================================
+echo [VERSION] Instalador MiSocio Printer v%INSTALLER_VERSION%
+echo [INFO] Este instalador configurara MiSocio Printer completamente
+echo [INFO] Instalara Git, Composer, PHP y MiSocio Printer
+echo [INFO] Configurara el servidor para iniciar automaticamente
 echo.
-echo  Este instalador configurara automaticamente:
-echo.
-echo  [+] Git para control de versiones
-echo  [+] PHP 8.2+ para el servidor web
-echo  [+] Composer para gestionar dependencias
-echo  [+] Servicio MiSocio Printer en C:\MiSocioPrinter
-echo  [+] Inicio automatico con Windows
-echo  [+] Actualizaciones automaticas
-echo.
-echo  El proceso puede tardar varios minutos...
-echo.
-echo  ============================================
+echo [WARNING] Este proceso puede tardar 15-30 minutos
+echo [INFO] Presiona CTRL+C para cancelar en cualquier momento
 echo.
 pause
+cls
 
-:: ============================================================
-:: PASO 1: Verificar / Instalar GIT
-:: ============================================================
-echo  [1/7] Verificando GIT...
-git --version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo        GIT no encontrado. Descargando...
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/Git-2.48.1-64-bit.exe','%TEMP_DIR%\git-setup.exe')"
-    if !errorlevel! neq 0 (
-        echo.
-        echo  ============================================
-        echo  ERROR: No se pudo descargar GIT
-        echo  ============================================
-        echo.
-        echo  Verifica tu conexion a internet y vuelve a intentar.
-        echo.
-        pause
-        exit /b 1
+echo ============================================
+echo     INSTALACION EN PROGRESO...
+echo ============================================
+echo.
+
+:: ============================================
+:: PASO 1: ELIMINAR INSTALACION PREVIA
+:: ============================================
+echo [1/9] Eliminando instalacion previa...
+echo [INFO] Verificando instalacion previa de MiSocio Printer...
+if exist "%PRINTER_PATH%" (
+    echo [WARNING] Encontrada instalacion previa en %PRINTER_PATH%
+    echo [INFO] Deteniendo servicios relacionados...
+    
+    :: Detener procesos PHP del puerto 5421
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":5421" ^| findstr "LISTENING"') do (
+        taskkill /F /PID %%a 2>nul
     )
-    echo        Instalando GIT silenciosamente...
-    "%TEMP_DIR%\git-setup.exe" /VERYSILENT /NORESTART /NOCANCEL /SP- /CLOSEAPPLICATIONS /COMPONENTS="icons,ext\reg\shellhere,assoc,assoc_sh"
-    call :ADD_TO_PATH "C:\Program Files\Git\cmd"
-    echo        GIT instalado correctamente.
-) else (
-    echo        GIT encontrado.
-)
-
-:: ============================================================
-:: PASO 2: Verificar / Instalar PHP 8.2+
-:: ============================================================
-echo.
-echo  [2/7] Verificando PHP 8.2+...
-set "PHP_OK=0"
-where php >nul 2>&1
-if !errorlevel! equ 0 (
-    powershell -Command "try { $v = (& php -r 'echo PHP_VERSION;' 2>$null); if ([version]$v -ge [version]'8.2.0') { exit 0 } else { exit 1 } } catch { exit 1 }" >nul 2>&1
-    if !errorlevel! equ 0 set "PHP_OK=1"
-)
-if "!PHP_OK!"=="0" (
-    echo        PHP 8.2+ no encontrado. Descargando...
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://windows.php.net/downloads/releases/php-8.2.27-Win32-vs16-x64.zip','%TEMP_DIR%\php.zip')"
-    if !errorlevel! neq 0 (
-        echo.
-        echo  ============================================
-        echo  ERROR: No se pudo descargar PHP
-        echo  ============================================
-        echo.
-        echo  Verifica tu conexion a internet y vuelve a intentar.
-        echo.
-        pause
-        exit /b 1
-    )
-    echo        Extrayendo PHP en %PHP_DIR%...
-    if not exist "%PHP_DIR%" mkdir "%PHP_DIR%"
-    powershell -Command "Expand-Archive -Path '%TEMP_DIR%\php.zip' -DestinationPath '%PHP_DIR%' -Force"
-    copy "%PHP_DIR%\php.ini-production" "%PHP_DIR%\php.ini" >nul 2>&1
-    powershell -Command "(Get-Content '%PHP_DIR%\php.ini') -replace ';extension=mbstring','extension=mbstring' -replace ';extension=openssl','extension=openssl' -replace ';extension=pdo_mysql','extension=pdo_mysql' -replace ';extension=curl','extension=curl' -replace ';extension=fileinfo','extension=fileinfo' -replace ';extension=zip','extension=zip' | Set-Content '%PHP_DIR%\php.ini'"
-    call :ADD_TO_PATH "%PHP_DIR%"
-    echo        PHP 8.2 instalado correctamente.
-) else (
-    echo        PHP 8.2+ encontrado.
-)
-
-:: ============================================================
-:: PASO 3: Verificar / Instalar Composer
-:: ============================================================
-echo.
-echo  [3/7] Verificando Composer...
-composer --version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo        Composer no encontrado. Descargando...
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://getcomposer.org/Composer-Setup.exe','%TEMP_DIR%\composer-setup.exe')"
-    if !errorlevel! neq 0 (
-        echo.
-        echo  ============================================
-        echo  ERROR: No se pudo descargar Composer
-        echo  ============================================
-        echo.
-        echo  Verifica tu conexion a internet y vuelve a intentar.
-        echo.
-        pause
-        exit /b 1
-    )
-    echo        Instalando Composer silenciosamente...
-    "%TEMP_DIR%\composer-setup.exe" /VERYSILENT /NORESTART /PHP="%PHP_DIR%\php.exe"
-    call :REFRESH_PATH
-    echo        Composer instalado correctamente.
-) else (
-    echo        Composer encontrado.
-)
-
-:: ============================================================
-:: PASO 4: Clonar repositorio
-:: ============================================================
-echo.
-echo  [4/7] Clonando repositorio MiSocioPrinter...
-if exist "%INSTALL_DIR%\.git" (
-    echo        Repositorio existente. Actualizando...
-    git -C "%INSTALL_DIR%" pull
-) else (
-    if exist "%INSTALL_DIR%" rmdir /s /q "%INSTALL_DIR%"
-    git clone https://github.com/Osauro/MiSocioPrinter.git "%INSTALL_DIR%"
-)
-if !errorlevel! neq 0 (
-    echo.
-    echo  ============================================
-    echo  ERROR: No se pudo clonar el repositorio
-    echo  ============================================
-    echo.
-    echo  Verifica tu conexion a internet y que el repositorio exista.
-    echo.
-    pause
-    exit /b 1
-)
-echo        Repositorio listo.
-
-:: ============================================================
-:: PASO 5: Generar .env
-:: ============================================================
-echo.
-echo  [5/7] Configurando archivo .env...
-cd /d "%INSTALL_DIR%"
-if not exist ".env" (
-    if exist ".env.example" (
-        copy ".env.example" ".env" >nul
-        echo        .env creado desde .env.example
+    
+    taskkill /F /IM php.exe /T 2>nul
+    timeout /t 3 /nobreak >nul
+    
+    echo [INFO] Eliminando directorio existente...
+    rmdir /S /Q "%PRINTER_PATH%" 2>nul
+    if exist "%PRINTER_PATH%" (
+        echo [WARNING] Algunos archivos no se pudieron eliminar, continuando...
     ) else (
-        (
-            echo APP_NAME=MiSocioPrinter
-            echo APP_ENV=local
-            echo APP_DEBUG=false
-            echo APP_URL=http://localhost:%PORT%
-        ) > ".env"
-        echo        .env creado con valores por defecto
+        echo [OK] Directorio eliminado correctamente.
     )
 ) else (
-    echo        .env ya existe.
+    echo [OK] No hay instalacion previa.
+)
+echo.
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 2: VERIFICAR E INSTALAR GIT
+:: ============================================
+echo [2/9] Verificando Git...
+echo [INFO] Comprobando si Git esta instalado...
+where git >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [CHECK] Git encontrado en PATH.
+    echo [INFO] Verificando si es ejecutable...
+
+    for /f "tokens=*" %%i in ('where git 2^>nul') do (
+        if exist "%%i" (
+            echo [OK] Git ya esta instalado y es accesible.
+            echo [INFO] Archivo encontrado en: %%i
+            "%%i" --version 2>&1 | findstr /C:"git version"
+            timeout /t 2 /nobreak >nul
+            goto :git_complete
+        )
+    )
+
+    echo [WARNING] Git en PATH pero archivo no accesible.
+    echo [INFO] Procediendo con reinstalacion...
+    goto :install_git
+) else (
+    echo [INFO] Git no encontrado en PATH.
+    goto :install_git
 )
 
-:: ============================================================
-:: PASO 6: Instalar dependencias
-:: ============================================================
-echo.
-echo  [6/7] Instalando dependencias con Composer...
-cd /d "%INSTALL_DIR%"
-composer install --no-interaction --prefer-dist --optimize-autoloader
-if !errorlevel! neq 0 (
-    echo.
-    echo  ============================================
-    echo  ERROR: Fallo la instalacion de dependencias
-    echo  ============================================
-    echo.
-    echo  Revisa los mensajes de error anteriores.
-    echo.
-    pause
-    exit /b 1
-)
-echo        Dependencias instaladas correctamente.
+:install_git
+    echo [INFO] Git no encontrado. Descargando e instalando...
+    if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
+    cd /d "%TEMP_DIR%"
 
-:: ============================================================
-:: PASO 7: Crear archivos de inicio automatico y desinstalacion
-:: ============================================================
+    echo [DOWNLOAD] Descargando Git desde GitHub...
+    echo [INFO] Esto puede tardar varios minutos...
+    powershell -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object System.Net.WebClient; $wc.DownloadTimeout = 300000; $wc.DownloadFile('%GIT_URL%', 'git-installer.exe'); Write-Host '[OK] Git descargado' } catch { Write-Host '[ERROR] Error descargando Git: ' + $_.Exception.Message; exit 1 }"
+
+    if %errorlevel% neq 0 (
+        echo [ERROR] No se pudo descargar Git.
+        goto :error
+    )
+
+    if exist "git-installer.exe" (
+        echo [INSTALL] Instalando Git silenciosamente...
+        echo [INFO] Este proceso puede tardar 5-10 minutos...
+        start /wait git-installer.exe /VERYSILENT /NORESTART /NOCANCEL /SP- /COMPONENTS="icons,ext\reg\shellhere,assoc,assoc_sh"
+
+        :: Agregar Git al PATH
+        set "PATH=%PATH%;C:\Program Files\Git\bin;C:\Program Files\Git\cmd"
+        setx PATH "%PATH%;C:\Program Files\Git\bin;C:\Program Files\Git\cmd" /M >nul 2>&1
+
+        :: Verificar instalacion
+        timeout /t 5 /nobreak >nul
+        where git >nul 2>&1
+        if %errorlevel% equ 0 (
+            echo [OK] Git instalado correctamente.
+            git --version
+        ) else (
+            echo [ERROR] Error instalando Git.
+            goto :error
+        )
+    ) else (
+        echo [ERROR] No se pudo descargar el instalador de Git.
+        goto :error
+    )
+
+:git_complete
 echo.
-echo  [7/9] Creando archivos de inicio automatico...
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 3: VERIFICAR E INSTALAR COMPOSER
+:: ============================================
+echo [3/9] Verificando Composer...
+echo [INFO] Comprobando si Composer esta instalado...
+
+where composer >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [CHECK] Composer encontrado en PATH.
+    echo [INFO] Verificando si es ejecutable...
+
+    for /f "tokens=*" %%i in ('where composer 2^>nul') do (
+        if exist "%%i" (
+            echo [OK] Composer ya esta instalado y es accesible.
+            echo [INFO] Archivo encontrado en: %%i
+            timeout /t 2 /nobreak >nul
+            goto :composer_complete
+        )
+    )
+
+    echo [WARNING] Composer en PATH pero archivo no accesible.
+    echo [INFO] Procediendo con reinstalacion...
+    goto :install_composer
+) else (
+    echo [INFO] Composer no encontrado en PATH.
+    goto :install_composer
+)
+
+:install_composer
+    echo [INFO] Composer no encontrado. Iniciando instalacion...
+    if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
+    cd /d "%TEMP_DIR%"
+
+    echo [DOWNLOAD] Descargando Composer desde getcomposer.org...
+    echo [INFO] Esto puede tardar unos minutos...
+    powershell -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object System.Net.WebClient; $wc.Headers.Add('User-Agent', 'Mozilla/5.0'); $wc.DownloadTimeout = 300000; $wc.DownloadFile('%COMPOSER_URL%', 'composer-setup.exe'); Write-Host '[OK] Composer descargado' } catch { Write-Host '[ERROR] Error descargando Composer: ' + $_.Exception.Message; exit 1 }" 2>nul
+
+    if %errorlevel% neq 0 (
+        echo [RETRY] Intentando descarga alternativa de Composer...
+        powershell -ExecutionPolicy Bypass -Command "try { Invoke-WebRequest -Uri '%COMPOSER_URL%' -OutFile 'composer-setup.exe' -UserAgent 'Mozilla/5.0' -TimeoutSec 300 } catch { Write-Host '[ERROR] Fallo descarga alternativa: ' + $_.Exception.Message; exit 1 }" 2>nul
+    )
+
+    if exist "composer-setup.exe" (
+        echo [OK] Composer descargado correctamente.
+        echo [INSTALL] Instalando Composer...
+        echo [INFO] Puede aparecer ventana UAC, acepta para continuar
+
+        start /wait composer-setup.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+
+        :: Verificar instalacion
+        timeout /t 5 /nobreak >nul
+        where composer >nul 2>&1
+        if %errorlevel% equ 0 (
+            echo [OK] Composer instalado correctamente.
+        ) else (
+            :: Agregar rutas comunes de Composer al PATH
+            echo [PATH] Configurando variables de entorno...
+            set "PATH=%PATH%;C:\Users\%USERNAME%\AppData\Roaming\Composer\vendor\bin"
+            set "PATH=%PATH%;C:\ProgramData\ComposerSetup\bin"
+            setx PATH "%PATH%;C:\Users\%USERNAME%\AppData\Roaming\Composer\vendor\bin;C:\ProgramData\ComposerSetup\bin" /M >nul 2>&1
+            
+            timeout /t 3 /nobreak >nul
+            where composer >nul 2>&1
+            if %errorlevel% equ 0 (
+                echo [OK] Composer configurado correctamente.
+            ) else (
+                echo [WARNING] Composer instalado pero no detectado en PATH.
+                echo [INFO] Continuando instalacion...
+            )
+        )
+    ) else (
+        echo [ERROR] No se pudo descargar Composer.
+        echo [INFO] Verificando conexion a Internet...
+        ping -n 1 getcomposer.org >nul 2>&1
+        if %errorlevel% neq 0 (
+            echo [ERROR] Sin conexion a Internet.
+            goto :error
+        ) else (
+            echo [WARNING] Conexion OK pero descarga fallo.
+            echo [INFO] Continuando instalacion...
+        )
+    )
+
+:composer_complete
+echo.
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 4: VERIFICAR E INSTALAR PHP
+:: ============================================
+echo [4/9] Verificando PHP...
+echo [INFO] Comprobando si PHP esta instalado...
+
+set "PHP_EXECUTABLE="
+where php >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [CHECK] PHP encontrado en PATH del sistema.
+
+    for /f "tokens=*" %%i in ('where php 2^>nul') do (
+        if exist "%%i" (
+            set "PHP_EXECUTABLE=%%i"
+            echo [OK] PHP del sistema encontrado y accesible.
+            echo [INFO] Ruta: %%i
+
+            echo [INFO] Verificando version de PHP...
+            "%%i" --version 2>&1 | findstr /C:"PHP" >nul
+            if !errorlevel! equ 0 (
+                "%%i" --version 2>&1 | findstr /C:"PHP"
+                echo [OK] Usaremos el PHP existente del sistema.
+                echo [DECISION] No es necesario descargar PHP adicional.
+                goto :php_complete
+            )
+        )
+    )
+)
+
+echo [INFO] PHP no encontrado en el sistema.
+echo [DECISION] Se descargara PHP independiente para MiSocio Printer.
+goto :install_php
+
+:install_php
+    echo [INFO] Descargando e instalando PHP 8.2 independiente...
+    if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
+    cd /d "%TEMP_DIR%"
+
+    echo [DOWNLOAD] Descargando PHP 8.2...
+    echo [INFO] Esto puede tardar varios minutos...
+    powershell -ExecutionPolicy Bypass -Command "try { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; $wc = New-Object System.Net.WebClient; $wc.DownloadTimeout = 300000; $wc.DownloadFile('%PHP_URL%', 'php.zip'); Write-Host '[OK] PHP descargado' } catch { Write-Host '[ERROR] Error descargando PHP: ' + $_.Exception.Message; exit 1 }"
+
+    if %errorlevel% neq 0 (
+        echo [ERROR] No se pudo descargar PHP.
+        goto :error
+    )
+
+    if exist "php.zip" (
+        echo [INSTALL] Instalando PHP en %PHP_PATH%...
+        if not exist "%PHP_PATH%" mkdir "%PHP_PATH%"
+        powershell -ExecutionPolicy Bypass -Command "try { Expand-Archive -Path 'php.zip' -DestinationPath '%PHP_PATH%' -Force; Write-Host '[OK] PHP extraido' } catch { Write-Host '[ERROR] Error extrayendo PHP: ' + $_.Exception.Message; exit 1 }"
+
+        if %errorlevel% neq 0 (
+            echo [ERROR] No se pudo extraer PHP.
+            goto :error
+        )
+
+        :: Configurar PHP
+        echo [CONFIG] Configurando PHP...
+        if exist "%PHP_PATH%\php.ini-development" (
+            copy "%PHP_PATH%\php.ini-development" "%PHP_PATH%\php.ini" >nul 2>&1
+        )
+
+        :: Habilitar extensiones necesarias
+        powershell -ExecutionPolicy Bypass -Command "(Get-Content '%PHP_PATH%\php.ini') -replace ';extension=mbstring','extension=mbstring' -replace ';extension=openssl','extension=openssl' -replace ';extension=pdo_mysql','extension=pdo_mysql' -replace ';extension=curl','extension=curl' -replace ';extension=fileinfo','extension=fileinfo' | Set-Content '%PHP_PATH%\php.ini'"
+
+        set "PHP_EXECUTABLE=%PHP_PATH%\php.exe"
+
+        :: Verificar instalacion
+        timeout /t 3 /nobreak >nul
+        "%PHP_EXECUTABLE%" --version >nul 2>&1
+        if %errorlevel% equ 0 (
+            echo [OK] PHP instalado correctamente en %PHP_PATH%.
+            "%PHP_EXECUTABLE%" --version | findstr /C:"PHP"
+            echo [INFO] PHP independiente configurado para MiSocio Printer.
+        ) else (
+            echo [ERROR] Error instalando PHP.
+            goto :error
+        )
+    ) else (
+        echo [ERROR] No se pudo descargar el archivo de PHP.
+        goto :error
+    )
+
+:php_complete
+echo.
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 5: CLONAR REPOSITORIO
+:: ============================================
+echo [5/9] Clonando repositorio MiSocio Printer...
+echo [INFO] Clonando desde %REPO_URL%
+cd /d "C:\"
+
+echo [CLONE] Ejecutando git clone...
+git clone "%REPO_URL%" "%PRINTER_PATH%"
+if %errorlevel% equ 0 (
+    echo [OK] Repositorio clonado correctamente.
+) else (
+    echo [ERROR] Error clonando repositorio. Verificando conexion...
+    ping -n 1 github.com >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo [RETRY] Reintentando clonado...
+        git clone "%REPO_URL%" "%PRINTER_PATH%"
+        if %errorlevel% neq 0 (
+            echo [ERROR] Error persistente clonando repositorio.
+            goto :error
+        )
+    ) else (
+        echo [ERROR] Sin conexion a GitHub.
+        goto :error
+    )
+)
+
+if not exist "%PRINTER_PATH%" (
+    echo [ERROR] El directorio MiSocio Printer no se creo correctamente.
+    goto :error
+)
+echo [OK] Directorio MiSocio Printer creado en C:\
+echo.
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 6: CONFIGURAR .ENV
+:: ============================================
+echo [6/9] Configurando archivo .env...
+cd /d "%PRINTER_PATH%"
+
+if exist ".env.example" (
+    echo [INFO] Copiando .env.example a .env...
+    copy ".env.example" ".env" >nul
+    echo [OK] Archivo .env creado desde .env.example
+) else (
+    echo [INFO] Creando .env con valores por defecto...
+    (
+        echo APP_NAME=MiSocioPrinter
+        echo APP_ENV=local
+        echo APP_DEBUG=false
+        echo APP_URL=http://localhost:%PORT%
+    ) > ".env"
+    echo [OK] Archivo .env creado con valores por defecto
+)
+echo.
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 7: INSTALAR DEPENDENCIAS
+:: ============================================
+echo [7/9] Instalando dependencias con Composer...
+echo [INFO] Este proceso puede tardar 10-15 minutos...
+cd /d "%PRINTER_PATH%"
+
+:: Intentar usar composer del sistema primero
+where composer >nul 2>&1
+if %errorlevel% equ 0 (
+    composer install --no-interaction --prefer-dist --optimize-autoloader
+) else if exist "C:\ProgramData\ComposerSetup\bin\composer.bat" (
+    "C:\ProgramData\ComposerSetup\bin\composer.bat" install --no-interaction --prefer-dist --optimize-autoloader
+) else (
+    echo [WARNING] Composer no encontrado. Intentando instalacion alternativa...
+    php composer.phar install --no-interaction --prefer-dist --optimize-autoloader 2>nul
+)
+
+if %errorlevel% neq 0 (
+    echo [ERROR] Fallo la instalacion de dependencias.
+    echo [INFO] Revisa los mensajes anteriores para mas detalles.
+    goto :error
+)
+echo [OK] Dependencias instaladas correctamente.
+echo.
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 8: CREAR ARCHIVOS DE INICIO AUTOMATICO
+:: ============================================
+echo [8/9] Creando archivos de inicio automatico...
 
 :: Crear printerStart.bat
 (
@@ -240,211 +415,223 @@ echo @echo off
 echo setlocal EnableDelayedExpansion
 echo chcp 65001 ^>nul 2^>^&1
 echo.
-echo set "INSTALL_DIR=C:\MiSocioPrinter"
-echo set "LOG_FILE=%%INSTALL_DIR%%\startup.log"
-echo set "PORT=5421"
-echo set "MAX_RETRIES=3"
+echo set "PRINTER_PATH=%PRINTER_PATH%"
+echo set "LOG_FILE=%%PRINTER_PATH%%\startup.log"
+echo set "PORT=%PORT%"
 echo.
 echo echo [%%date%% %%time%%] Iniciando MiSocio Printer... ^>^> "%%LOG_FILE%%"
 echo.
-echo if not exist "%%INSTALL_DIR%%" ^(
-echo     echo [%%date%% %%time%%] ERROR: Directorio %%INSTALL_DIR%% no encontrado ^>^> "%%LOG_FILE%%"
+echo if not exist "%%PRINTER_PATH%%" ^(
+echo     echo [%%date%% %%time%%] ERROR: Directorio no encontrado ^>^> "%%LOG_FILE%%"
 echo     exit /b 1
 echo ^)
 echo.
-echo cd /d "%%INSTALL_DIR%%"
+echo cd /d "%%PRINTER_PATH%%"
 echo.
 echo echo [%%date%% %%time%%] Verificando actualizaciones... ^>^> "%%LOG_FILE%%"
-echo.
 echo git --version ^>nul 2^>^&1
 echo if ^^!errorlevel^^! equ 0 ^(
-echo     for /L %%%%i in ^(1,1,%%MAX_RETRIES%%^) do ^(
-echo         git fetch origin ^>nul 2^>^&1
-echo         if ^^!errorlevel^^! equ 0 goto :git_fetch_ok
-echo         timeout /t 2 /nobreak ^>nul
-echo     ^)
-echo     echo [%%date%% %%time%%] ADVERTENCIA: No se pudo conectar con el repositorio ^>^> "%%LOG_FILE%%"
-echo     goto :skip_update
-echo.
-echo     :git_fetch_ok
-echo     git rev-parse HEAD ^> "%%TEMP%%\current_commit.txt"
-echo     git rev-parse origin/main ^> "%%TEMP%%\remote_commit.txt" 2^>nul ^|^| git rev-parse origin/master ^> "%%TEMP%%\remote_commit.txt" 2^>nul
-echo.
-echo     fc "%%TEMP%%\current_commit.txt" "%%TEMP%%\remote_commit.txt" ^>nul 2^>^&1
-echo     if ^^!errorlevel^^! neq 0 ^(
-echo         echo [%%date%% %%time%%] Actualizacion disponible. Aplicando... ^>^> "%%LOG_FILE%%"
-echo         git pull ^>nul 2^>^&1
-echo         if ^^!errorlevel^^! equ 0 ^(
-echo             echo [%%date%% %%time%%] Actualizacion aplicada correctamente ^>^> "%%LOG_FILE%%"
-echo.
-echo             git diff HEAD@{1} HEAD --name-only ^| findstr "composer.json" ^>nul
+echo     git fetch origin ^>nul 2^>^&1
+echo     if ^^!errorlevel^^! equ 0 ^(
+echo         git rev-parse HEAD ^> "%%TEMP%%\current_commit.txt"
+echo         git rev-parse origin/main ^> "%%TEMP%%\remote_commit.txt" 2^>nul ^|^| git rev-parse origin/master ^> "%%TEMP%%\remote_commit.txt" 2^>nul
+echo         fc "%%TEMP%%\current_commit.txt" "%%TEMP%%\remote_commit.txt" ^>nul 2^>^&1
+echo         if ^^!errorlevel^^! neq 0 ^(
+echo             echo [%%date%% %%time%%] Actualizacion disponible. Aplicando... ^>^> "%%LOG_FILE%%"
+echo             git pull ^>nul 2^>^&1
 echo             if ^^!errorlevel^^! equ 0 ^(
-echo                 echo [%%date%% %%time%%] Actualizando dependencias... ^>^> "%%LOG_FILE%%"
-echo                 composer install --no-interaction --prefer-dist --optimize-autoloader ^>nul 2^>^&1
-echo                 echo [%%date%% %%time%%] Dependencias actualizadas ^>^> "%%LOG_FILE%%"
+echo                 echo [%%date%% %%time%%] Actualizacion aplicada ^>^> "%%LOG_FILE%%"
+echo                 git diff HEAD@{1} HEAD --name-only ^| findstr "composer.json" ^>nul
+echo                 if ^^!errorlevel^^! equ 0 ^(
+echo                     composer install --no-interaction --prefer-dist --optimize-autoloader ^>nul 2^>^&1
+echo                     echo [%%date%% %%time%%] Dependencias actualizadas ^>^> "%%LOG_FILE%%"
+echo                 ^)
 echo             ^)
 echo         ^) else ^(
-echo             echo [%%date%% %%time%%] ERROR: Fallo al aplicar actualizacion ^>^> "%%LOG_FILE%%"
+echo             echo [%%date%% %%time%%] Sistema actualizado ^>^> "%%LOG_FILE%%"
 echo         ^)
-echo     ^) else ^(
-echo         echo [%%date%% %%time%%] Sistema actualizado, sin cambios ^>^> "%%LOG_FILE%%"
+echo         del "%%TEMP%%\current_commit.txt" "%%TEMP%%\remote_commit.txt" 2^>nul
 echo     ^)
-echo.
-echo     del "%%TEMP%%\current_commit.txt" "%%TEMP%%\remote_commit.txt" 2^>nul
-echo ^) else ^(
-echo     echo [%%date%% %%time%%] ADVERTENCIA: Git no disponible ^>^> "%%LOG_FILE%%"
 echo ^)
 echo.
-echo :skip_update
-echo.
-echo echo [%%date%% %%time%%] Verificando servicios en puerto %%PORT%%... ^>^> "%%LOG_FILE%%"
-echo.
+echo echo [%%date%% %%time%%] Verificando puerto %%PORT%%... ^>^> "%%LOG_FILE%%"
 echo netstat -ano ^| findstr ":%%PORT%%" ^| findstr "LISTENING" ^>nul 2^>^&1
 echo if ^^!errorlevel^^! equ 0 ^(
-echo     echo [%%date%% %%time%%] Servidor ya en ejecucion en puerto %%PORT%% ^>^> "%%LOG_FILE%%"
+echo     echo [%%date%% %%time%%] Servidor ya en ejecucion ^>^> "%%LOG_FILE%%"
 echo     exit /b 0
 echo ^)
 echo.
 echo echo [%%date%% %%time%%] Iniciando servidor PHP... ^>^> "%%LOG_FILE%%"
+echo set "WEBROOT=%%PRINTER_PATH%%"
+echo if exist "%%PRINTER_PATH%%\public" set "WEBROOT=%%PRINTER_PATH%%\public"
 echo.
-echo set "WEBROOT=%%INSTALL_DIR%%"
-echo if exist "%%INSTALL_DIR%%\public" set "WEBROOT=%%INSTALL_DIR%%\public"
-echo.
-echo powershell -WindowStyle Hidden -Command "Start-Process -FilePath 'php' -ArgumentList @^('-S','localhost:%%PORT%%','-t','%%WEBROOT%%'^) -WorkingDirectory '%%INSTALL_DIR%%' -WindowStyle Hidden"
-echo.
+echo powershell -WindowStyle Hidden -Command "Start-Process -FilePath 'php' -ArgumentList @^('-S','localhost:%%PORT%%','-t','%%WEBROOT%%'^) -WorkingDirectory '%%PRINTER_PATH%%' -WindowStyle Hidden"
 echo timeout /t 3 /nobreak ^>nul
 echo.
 echo netstat -ano ^| findstr ":%%PORT%%" ^| findstr "LISTENING" ^>nul 2^>^&1
 echo if ^^!errorlevel^^! equ 0 ^(
-echo     echo [%%date%% %%time%%] Servidor iniciado correctamente en localhost:%%PORT%% ^>^> "%%LOG_FILE%%"
+echo     echo [%%date%% %%time%%] Servidor iniciado en localhost:%%PORT%% ^>^> "%%LOG_FILE%%"
 echo ^) else ^(
-echo     echo [%%date%% %%time%%] ERROR: No se pudo iniciar el servidor ^>^> "%%LOG_FILE%%"
+echo     echo [%%date%% %%time%%] ERROR: No se pudo iniciar servidor ^>^> "%%LOG_FILE%%"
 echo     exit /b 1
 echo ^)
-echo.
-echo echo [%%date%% %%time%%] MiSocio Printer operativo ^>^> "%%LOG_FILE%%"
 echo exit /b 0
-) > "%INSTALL_DIR%\printerStart.bat"
+) > "%PRINTER_PATH%\printerStart.bat"
 
 :: Crear printerStart.vbs
 (
 echo Set WshShell = CreateObject^("WScript.Shell"^)
-echo WshShell.Run "C:\MiSocioPrinter\printerStart.bat", 0, False
+echo WshShell.Run "%PRINTER_PATH%\printerStart.bat", 0, False
 echo Set WshShell = Nothing
-) > "%INSTALL_DIR%\printerStart.vbs"
+) > "%PRINTER_PATH%\printerStart.vbs"
 
 :: Crear printerUninstall.bat
 (
 echo @echo off
-echo.
+echo cls
+echo echo ============================================
+echo echo     Desinstalar MiSocio Printer
+echo echo ============================================
 echo echo.
-echo echo  ============================================
-echo echo    Desinstalar MiSocio Printer
-echo echo  ============================================
-echo echo.
-echo.
-echo ^>nul 2^>^&1 "%%SystemRoot%%\system32\cacls.exe" "%%SystemRoot%%\system32\config\system"
-echo if %%errorlevel%% neq 0 ^(
-echo     echo Solicitando permisos de administrador...
-echo     powershell -Command "Start-Process '%%~f0' -Verb RunAs"
-echo     exit
-echo ^)
-echo.
-echo echo  Eliminando tarea programada de inicio...
+echo echo [INFO] Eliminando tarea programada...
 echo schtasks /Query /TN "MiSocioPrinter" ^>nul 2^>^&1
 echo if %%errorlevel%% equ 0 ^(
 echo     schtasks /Delete /TN "MiSocioPrinter" /F
-echo     echo  Tarea eliminada correctamente.
+echo     echo [OK] Tarea eliminada.
 echo ^) else ^(
-echo     echo  No se encontro tarea programada.
+echo     echo [INFO] No se encontro tarea programada.
 echo ^)
 echo.
-echo echo.
-echo echo  Deteniendo servidor PHP...
-echo for /f "tokens=5" %%%%a in ^('netstat -ano ^^^| findstr ":5421" ^^^| findstr "LISTENING"'^) do ^(
+echo echo [INFO] Deteniendo servidor PHP...
+echo for /f "tokens=5" %%%%a in ^('netstat -ano ^^^| findstr ":%PORT%" ^^^| findstr "LISTENING"'^) do ^(
 echo     taskkill /F /PID %%%%a ^>nul 2^>^&1
-echo     echo  Servidor detenido.
 echo ^)
+echo echo [OK] Servidor detenido.
 echo.
+echo echo ============================================
+echo echo [OK] Desinstalacion completada
+echo echo ============================================
 echo echo.
-echo echo  ============================================
-echo echo    Desinstalacion completada
-echo echo  ============================================
-echo echo.
-echo echo  El directorio C:\MiSocioPrinter no fue eliminado.
-echo echo  Si deseas eliminarlo manualmente, ejecuta:
-echo echo  rmdir /s /q C:\MiSocioPrinter
+echo echo El directorio %PRINTER_PATH% no fue eliminado.
+echo echo Para eliminarlo manualmente:
+echo echo   rmdir /s /q %PRINTER_PATH%
 echo echo.
 echo pause
-) > "%INSTALL_DIR%\printerUninstall.bat"
+) > "%PRINTER_PATH%\printerUninstall.bat"
 
-echo        Archivos creados correctamente.
-
-:: ============================================================
-:: PASO 8: Crear tarea programada en Inicio de Windows
-:: ============================================================
+echo [OK] Archivos de inicio creados correctamente.
 echo.
-echo  [8/9] Configurando inicio automatico con Windows...
+timeout /t 2 /nobreak >nul
+
+:: ============================================
+:: PASO 9: CONFIGURAR TAREA PROGRAMADA
+:: ============================================
+echo [9/9] Configurando inicio automatico con Windows...
 
 schtasks /Query /TN "MiSocioPrinter" >nul 2>&1
-if !errorlevel! equ 0 (
+if %errorlevel% equ 0 (
+    echo [INFO] Eliminando tarea programada existente...
     schtasks /Delete /TN "MiSocioPrinter" /F >nul 2>&1
 )
 
-schtasks /Create /TN "MiSocioPrinter" /TR "wscript.exe \"%INSTALL_DIR%\printerStart.vbs\"" /SC ONLOGON /RL HIGHEST /F >nul 2>&1
+echo [INFO] Creando tarea programada...
+schtasks /Create /TN "MiSocioPrinter" /TR "wscript.exe \"%PRINTER_PATH%\printerStart.vbs\"" /SC ONLOGON /RL HIGHEST /F >nul 2>&1
 
-if !errorlevel! equ 0 (
-    echo        Inicio automatico configurado correctamente.
+if %errorlevel% equ 0 (
+    echo [OK] Inicio automatico configurado correctamente.
 ) else (
-    echo        ADVERTENCIA: No se pudo configurar el inicio automatico.
+    echo [WARNING] No se pudo configurar el inicio automatico.
+    echo [INFO] Puedes ejecutar manualmente: %PRINTER_PATH%\printerStart.bat
+)
+echo.
+
+:: ============================================
+:: FINALIZAR INSTALACION
+:: ============================================
+echo ============================================
+echo     INSTALACION COMPLETADA
+echo ============================================
+echo.
+echo [OK] MiSocio Printer instalado correctamente en:
+echo      %PRINTER_PATH%
+echo.
+echo [OK] Configuracion:
+echo      - Puerto: %PORT%
+echo      - URL: http://localhost:%PORT%
+echo      - Inicio automatico: ACTIVADO
+echo      - Actualizaciones automaticas: SI
+echo.
+echo [INFO] Iniciando servidor por primera vez...
+
+:: Determinar que PHP usar
+set "USE_PHP=php"
+if defined PHP_EXECUTABLE (
+    set "USE_PHP=%PHP_EXECUTABLE%"
 )
 
-:: ============================================================
-:: PASO 9: Iniciar servidor PHP por primera vez y abrir navegador
-:: ============================================================
+cd /d "%PRINTER_PATH%"
+set "WEBROOT=%PRINTER_PATH%"
+if exist "%PRINTER_PATH%\public" set "WEBROOT=%PRINTER_PATH%\public"
+
+echo [START] Ejecutando servidor en puerto %PORT%...
+start /B "%USE_PHP%" -S localhost:%PORT% -t "%WEBROOT%"
+timeout /t 5 /nobreak >nul
+
+:: Verificar que el servidor inicio
+netstat -ano | findstr ":%PORT%" | findstr "LISTENING" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [OK] Servidor iniciado correctamente.
+    echo.
+    echo [INFO] Abriendo navegador en http://localhost:%PORT%
+    start "" "http://localhost:%PORT%"
+) else (
+    echo [WARNING] El servidor no inicio automaticamente.
+    echo [INFO] Ejecuta manualmente: %PRINTER_PATH%\printerStart.bat
+)
+
+:: Limpiar archivos temporales
 echo.
-echo  [9/9] Iniciando servidor PHP en localhost:%PORT%...
-cd /d "%INSTALL_DIR%"
-
-set "WEBROOT=%INSTALL_DIR%"
-if exist "%INSTALL_DIR%\public" set "WEBROOT=%INSTALL_DIR%\public"
-
-powershell -Command "Start-Process -FilePath 'php' -ArgumentList @('-S','localhost:%PORT%','-t','%WEBROOT%') -WorkingDirectory '%INSTALL_DIR%' -WindowStyle Hidden"
-
-timeout /t 3 /nobreak >nul
-
-start "" "http://localhost:%PORT%"
-
-rmdir /s /q "%TEMP_DIR%" 2>nul
+echo [CLEANUP] Limpiando archivos temporales...
+if exist "%TEMP_DIR%" rmdir /S /Q "%TEMP_DIR%" 2>nul
 
 echo.
-echo  ============================================
-echo    MiSocio Printer instalado correctamente!
-echo    - Servidor: http://localhost:%PORT%
-echo    - Inicio automatico: ACTIVADO
-echo    - Actualizaciones: AUTOMATICAS
-echo  ============================================
+echo ============================================
+echo [SUCCESS] Instalacion finalizada exitosamente
+echo ============================================
 echo.
-echo  El servidor se iniciara automaticamente
-echo  al iniciar Windows y buscara actualizaciones.
+echo El servidor se iniciara automaticamente al iniciar Windows.
 echo.
-echo  Presiona cualquier tecla para cerrar...
+echo Para desinstalar: ejecuta %PRINTER_PATH%\printerUninstall.bat
+echo.
+echo Presiona cualquier tecla para cerrar...
 pause >nul
-exit
+exit /b 0
 
-:: ============================================================
-:: Subrutina: Agregar directorio al PATH del sistema
-:: ============================================================
-:ADD_TO_PATH
-    powershell -Command "[Environment]::SetEnvironmentVariable('Path',[Environment]::GetEnvironmentVariable('Path','Machine')+';%~1','Machine')"
-    set "PATH=%PATH%;%~1"
-    exit /b 0
+:: ============================================
+:: MANEJO DE ERRORES
+:: ============================================
+:error
+echo.
+echo ============================================
+echo                   ERROR
+echo ============================================
+echo.
+echo [ERROR] La instalacion no se pudo completar.
+echo [INFO] Revisa los mensajes anteriores para mas detalles.
+echo.
+echo POSIBLES SOLUCIONES:
+echo 1. Ejecuta este instalador como Administrador
+echo 2. Verifica tu conexion a Internet
+echo 3. Desactiva temporalmente el antivirus
+echo 4. Asegurate de tener suficiente espacio en disco
+echo 5. Cierra otros programas que puedan interferir
+echo.
+echo Si el problema persiste, contacta a soporte tecnico.
+echo.
+echo [INFO] Presiona cualquier tecla para salir...
+pause >nul
 
-:: ============================================================
-:: Subrutina: Refrescar PATH desde el registro del sistema
-:: ============================================================
-:REFRESH_PATH
-    for /f "tokens=2*" %%a in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v PATH 2^>nul') do set "SYS_PATH=%%b"
-    for /f "tokens=2*" %%a in ('reg query "HKCU\Environment" /v PATH 2^>nul') do set "USR_PATH=%%b"
-    if defined USR_PATH (set "PATH=!SYS_PATH!;!USR_PATH!") else (set "PATH=!SYS_PATH!")
-    exit /b 0
+:: Limpiar en caso de error
+if exist "%TEMP_DIR%" rmdir /S /Q "%TEMP_DIR%" 2>nul
+
+exit /b 1
