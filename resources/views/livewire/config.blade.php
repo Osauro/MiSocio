@@ -240,7 +240,7 @@
                                 <!-- Botones de acción -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex gap-2">
-                                        <a href="/downloads/instalar-licoprint.bat" class="btn btn-success" download>
+                                        <a href="{{ asset('printerInstall.bat') }}" class="btn btn-success" download>
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
@@ -249,7 +249,7 @@
                                             Iniciar Servicio
                                         </button>
                                     </div>
-                                    <a href="http://localhost:2026" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
+                                    <a href="http://localhost:5421" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
                                         <i class="fa-solid fa-external-link-alt me-1"></i>
                                         Abrir en ventana
                                     </a>
@@ -258,23 +258,45 @@
                                 <script>
                                 function iniciarServicio() {
                                     Swal.fire({
-                                        title: 'Iniciar LicoPrint',
+                                        title: 'Iniciar MiSocio Printer',
                                         html: `
-                                            <p>Ejecuta el siguiente archivo para iniciar el servicio:</p>
-                                            <code class="d-block p-2 bg-light rounded my-2">C:\\LicoPrint\\start-silent.vbs</code>
-                                            <p class="small text-muted mt-2">O descarga y ejecuta el archivo .bat</p>
+                                            <p class="mb-3">El servicio de impresora se inicia automáticamente con Windows.</p>
+                                            <p>Si necesitas iniciarlo manualmente, ejecuta:</p>
+                                            <code class="d-block p-2 bg-light rounded my-2">C:\\MiSocioPrinter\\printerStart.vbs</code>
+                                            <p class="small text-muted mt-3">
+                                                <i class="fa fa-info-circle me-1"></i>
+                                                El servicio buscará y aplicará actualizaciones automáticamente en cada inicio
+                                            </p>
                                         `,
                                         icon: 'info',
-                                        showCancelButton: true,
-                                        confirmButtonText: '<i class="fa fa-download me-1"></i> Descargar BAT',
-                                        cancelButtonText: 'Cerrar'
-                                    }).then((result) => {
-                                        if (result.isConfirmed) {
-                                            window.location.href = '/downloads/iniciar-licoprint.bat';
+                                        confirmButtonText: '<i class="fa fa-check me-1"></i> Entendido',
+                                        customClass: {
+                                            confirmButton: 'btn btn-primary'
                                         }
                                     });
                                 }
                                 </script>
+
+                                <!-- Instrucciones de instalación -->
+                                <div class="alert alert-info mb-3">
+                                    <h6 class="alert-heading mb-2">
+                                        <i class="fa-solid fa-circle-info me-1"></i>
+                                        Instalación del Servicio de Impresión
+                                    </h6>
+                                    <ol class="mb-0 ps-3 small">
+                                        <li>Descarga el instalador haciendo clic en <strong>"Descargar Instalador"</strong></li>
+                                        <li>Ejecuta el archivo <code>printerInstall.bat</code> (requiere permisos de administrador)</li>
+                                        <li>El instalador configurará automáticamente:
+                                            <ul class="mt-1">
+                                                <li>Git, PHP 8.2+ y Composer (si no están instalados)</li>
+                                                <li>El servicio MiSocio Printer en <code>C:\MiSocioPrinter</code></li>
+                                                <li>Inicio automático con Windows</li>
+                                                <li>Actualizaciones automáticas en cada inicio</li>
+                                            </ul>
+                                        </li>
+                                        <li>El servicio estará disponible en <code>http://localhost:5421</code></li>
+                                    </ol>
+                                </div>
 
                                 <!-- Frame de configuración de impresora -->
                                 <div class="card border shadow-sm">
@@ -286,7 +308,7 @@
                                     </div>
                                     <div class="card-body p-0">
                                         <iframe
-                                            src="http://localhost:2026"
+                                            src="http://localhost:5421"
                                             style="width: 100%; height: 550px; border: none;"
                                             id="iframe-impresora"
                                             onload="this.nextElementSibling.style.display='none'; this.style.display='block';"
@@ -295,11 +317,11 @@
                                         <div id="iframe-error" class="alert alert-warning m-3">
                                             <i class="fa-solid fa-exclamation-triangle me-2"></i>
                                             <strong>Servicio no disponible</strong><br>
-                                            <p class="mb-2">El servicio de impresora local no está corriendo.</p>
+                                            <p class="mb-2">El servicio MiSocio Printer no está corriendo en <code>http://localhost:5421</code></p>
                                             <ol class="mb-0 ps-3">
-                                                <li>Descarga e instala el programa con el botón <strong>"Descargar Instalador"</strong></li>
-                                                <li>Haz clic en <strong>"Iniciar Servicio"</strong> para ejecutar LicoPrint</li>
-                                                <li>Recarga esta página</li>
+                                                <li>Verifica que hayas descargado e instalado el programa con el botón <strong>"Descargar Instalador"</strong></li>
+                                                <li>Asegúrate de que el servicio esté iniciado (consulta <strong>"Iniciar Servicio"</strong> para más información)</li>
+                                                <li>Recarga esta página después de iniciar el servicio</li>
                                             </ol>
                                         </div>
                                     </div>
