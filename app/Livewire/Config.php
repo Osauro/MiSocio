@@ -365,22 +365,22 @@ class Config extends Component
 
     public function iniciarServicioPrinter()
     {
-        $printerPath = 'C:\\MiSocioPrinter';
-        $vbsFile = $printerPath . '\\printerStart.vbs';
+        $printerPath = 'C:\\PrinterFADI';
+        $vbsFile = $printerPath . '\\servicio_oculto.vbs';
         $batFile = $printerPath . '\\printerStart.bat';
 
         // Verificar si existe el directorio
         if (!is_dir($printerPath)) {
-            return $this->alertError('El servicio MiSocio Printer no está instalado en ' . $printerPath);
+            return $this->alertError('El servicio PrinterFADI no está instalado en ' . $printerPath);
         }
 
-        // Verificar si el servicio ya está corriendo en el puerto 5421
-        $command = 'netstat -ano | findstr ":5421" | findstr "LISTENING"';
+        // Verificar si el servicio ya está corriendo en el puerto 1013
+        $command = 'netstat -ano | findstr ":1013" | findstr "LISTENING"';
         exec($command, $output, $returnCode);
-        
+
         if ($returnCode === 0 && count($output) > 0) {
             // El servicio ya está corriendo, abrir el navegador
-            $url = 'http://localhost:5421';
+            $url = 'http://localhost:1013';
             if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                 pclose(popen('start "" "' . $url . '"', 'r'));
             }
@@ -393,15 +393,15 @@ class Config extends Component
                 // Ejecutar el VBS en segundo plano usando wscript
                 $command = 'wscript.exe "' . $vbsFile . '"';
                 pclose(popen($command, 'r'));
-                
+
                 // Esperar 3 segundos y abrir navegador
                 sleep(3);
-                $url = 'http://localhost:5421';
+                $url = 'http://localhost:1013';
                 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                     pclose(popen('start "" "' . $url . '"', 'r'));
                 }
-                
-                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente. Abriendo navegador...');
+
+                return $this->alertSuccess('Servicio PrinterFADI iniciado correctamente. Abriendo navegador...');
             } catch (\Exception $e) {
                 // Si falla, intentar con el BAT
             }
@@ -412,15 +412,15 @@ class Config extends Component
             try {
                 $command = 'start /MIN "" "' . $batFile . '"';
                 pclose(popen($command, 'r'));
-                
+
                 // Esperar 3 segundos y abrir navegador
                 sleep(3);
-                $url = 'http://localhost:5421';
+                $url = 'http://localhost:1013';
                 if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
                     pclose(popen('start "" "' . $url . '"', 'r'));
                 }
-                
-                return $this->alertSuccess('Servicio MiSocio Printer iniciado correctamente. Abriendo navegador...');
+
+                return $this->alertSuccess('Servicio PrinterFADI iniciado correctamente. Abriendo navegador...');
             } catch (\Exception $e) {
                 return $this->alertError('Error al iniciar el servicio: ' . $e->getMessage());
             }

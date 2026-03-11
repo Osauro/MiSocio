@@ -240,7 +240,7 @@
                                 <!-- Botones de acción -->
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex gap-2">
-                                        <a href="{{ route('printer.install.download') }}" class="btn btn-success">
+                                        <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat" class="btn btn-success">
                                             <i class="fa-solid fa-download me-1"></i>
                                             Descargar Instalador
                                         </a>
@@ -249,7 +249,7 @@
                                             Iniciar Servicio
                                         </button>
                                     </div>
-                                    <a href="http://localhost:5421" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
+                                    <a href="http://localhost:1013" target="_blank" class="btn btn-outline-secondary" title="Abrir en nueva ventana">
                                         <i class="fa-solid fa-external-link-alt me-1"></i>
                                         Abrir en ventana
                                     </a>
@@ -265,7 +265,7 @@
                                     </div>
                                     <div class="card-body p-0">
                                         <iframe
-                                            src="http://localhost:5421"
+                                            src="http://localhost:1013"
                                             style="width: 100%; height: 550px; border: none;"
                                             id="iframe-impresora">
                                         </iframe>
