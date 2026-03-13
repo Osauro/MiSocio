@@ -652,9 +652,8 @@ class Prestamo extends Component
             $this->prestamo->update([
                 'cliente_id' => $this->clienteSeleccionado,
                 'estado' => 'Prestado',
-                'deposito' => $deposito,
-                'fecha_prestamo' => $this->fechaPrestamo,
-                'fecha_vencimiento' => $fechaVencimiento,
+                'total' => $deposito,
+                'expired_at' => $fechaVencimiento,
             ]);
 
             // Actualizar productos en Kardex y reducir stock

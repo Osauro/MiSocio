@@ -81,11 +81,13 @@
                                                                     title="Ver detalles">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
-                                                                <button class="btn btn-sm btn-success"
-                                                                    wire:click="generarPDF({{ $prestamo->id }})"
-                                                                    title="Generar PDF">
-                                                                    <i class="fa-solid fa-print"></i>
-                                                                </button>
+                                                                @if (!in_array($estadoReal, ['Vencido', 'Devuelto']))
+                                                                    <button class="btn btn-sm btn-success"
+                                                                        wire:click="generarPDF({{ $prestamo->id }})"
+                                                                        title="Generar PDF">
+                                                                        <i class="fa-solid fa-print"></i>
+                                                                    </button>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                     </div>
@@ -110,13 +112,19 @@
                                                     <div class="d-flex gap-2 flex-wrap mb-1">
                                                         <span class="badge bg-primary">
                                                             <i class="fa-solid fa-coins me-1"></i>
-                                                            Bs. {{ number_format($prestamo->deposito, 2) }}
+                                                            Bs. {{ number_format($prestamo->total, 2) }}
                                                         </span>
-                                                        @if ($prestamo->fecha_vencimiento)
+                                                        @if ($prestamo->expired_at && $estadoReal !== 'Devuelto')
                                                             <span
-                                                                class="badge {{ $estadoReal === 'Vencido' ? 'bg-danger' : ($estadoReal === 'Devuelto' ? 'bg-success' : 'bg-warning text-dark') }}">
+                                                                class="badge {{ $estadoReal === 'Vencido' ? 'bg-danger' : 'bg-warning text-dark' }}">
                                                                 <i class="fa-solid fa-calendar-check me-1"></i>
-                                                                {{ $prestamo->fecha_vencimiento->format('d/m/Y') }}
+                                                                Vence: {{ $prestamo->expired_at->format('d/m/Y') }}
+                                                            </span>
+                                                        @endif
+                                                        @if ($estadoReal === 'Devuelto')
+                                                            <span class="badge bg-secondary">
+                                                                <i class="fa-solid fa-rotate-left me-1"></i>
+                                                                Dev: {{ $prestamo->updated_at->format('d/m/Y') }}
                                                             </span>
                                                         @endif
                                                         <span
@@ -125,14 +133,14 @@
                                                         </span>
                                                     </div>
 
-                                                    <!-- Footer: [usuario][fecha][cliente] -->
+                                                    <!-- Footer: [usuario][fecha prestamo][cliente] -->
                                                     <div
                                                         class="d-flex justify-content-between align-items-center text-muted flex-wrap gap-1">
                                                         <small>
                                                             <i
                                                                 class="fa-solid fa-user-tie me-1"></i>{{ $prestamo->user->name ?? 'Usuario' }}
                                                         </small>
-                                                        <small>
+                                                        <small title="Fecha de préstamo">
                                                             <i
                                                                 class="fa-solid fa-calendar me-1"></i>{{ $prestamo->created_at->format('d/m/Y H:i') }}
                                                         </small>
@@ -248,15 +256,41 @@
                             </table>
                         </div>
 
-                        <!-- Tarjeta de depósito -->
+                        <!-- Tarjeta de depósito y fechas -->
                         <div class="p-3">
                             <div class="row g-2 justify-content-center">
-                                <div class="col-6 col-md-4">
-                                    <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
-                                        <small class="text-dark d-block">Depósito</small>
-                                        <span class="fw-bold fs-5 text-dark">Bs. {{ number_format($prestamoSeleccionado->deposito, 2) }}</span>
+                                <div class="col-6 col-md-3">
+                                    <div class="rounded text-center h-100 d-flex flex-column justify-content-center py-2 px-2" style="background-color: #f0f0f0; min-height: 72px;">
+                                        <span class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: .05em;">Total</span>
+                                        <span class="fw-bold text-dark" style="font-size: 1rem;">Bs. {{ number_format($prestamoSeleccionado->total, 2) }}</span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">En garantía</span>
                                     </div>
                                 </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="rounded text-center h-100 d-flex flex-column justify-content-center py-2 px-2" style="background-color: #f0f0f0; min-height: 72px;">
+                                        <span class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: .05em;">Fecha préstamo</span>
+                                        <span class="fw-bold text-dark" style="font-size: 1rem;">{{ $prestamoSeleccionado->created_at->format('d/m/Y') }}</span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">{{ $prestamoSeleccionado->created_at->format('H:i') }}</span>
+                                    </div>
+                                </div>
+                                @if ($prestamoSeleccionado->expired_at && $prestamoSeleccionado->estado !== 'Devuelto')
+                                    <div class="col-6 col-md-3">
+                                        <div class="rounded text-center h-100 d-flex flex-column justify-content-center py-2 px-2" style="background-color: #fff3cd; min-height: 72px;">
+                                            <span class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: .05em;">Vencimiento</span>
+                                            <span class="fw-bold text-dark" style="font-size: 1rem;">{{ $prestamoSeleccionado->expired_at->format('d/m/Y') }}</span>
+                                            <span class="text-muted" style="font-size: 0.7rem;">— —</span>
+                                        </div>
+                                    </div>
+                                @endif
+                                @if ($prestamoSeleccionado->estado === 'Devuelto')
+                                    <div class="col-6 col-md-3">
+                                        <div class="rounded text-center h-100 d-flex flex-column justify-content-center py-2 px-2" style="background-color: #d1e7dd; min-height: 72px;">
+                                            <span class="text-muted" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: .05em;">Devolución</span>
+                                            <span class="fw-bold text-dark" style="font-size: 1rem;">{{ $prestamoSeleccionado->updated_at->format('d/m/Y') }}</span>
+                                            <span class="text-muted" style="font-size: 0.7rem;">{{ $prestamoSeleccionado->updated_at->format('H:i') }}</span>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -264,19 +298,11 @@
                     <div class="modal-footer bg-light">
                         <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
                             <small class="text-muted">
-                                <i
-                                    class="fa-solid fa-user-tie me-1"></i>{{ $prestamoSeleccionado->user->name ?? 'Usuario' }}
+                                <i class="fa-solid fa-user-tie me-1"></i>{{ $prestamoSeleccionado->user->name ?? 'Usuario' }}
                             </small>
                             <small class="text-muted">
-                                <i
-                                    class="fa-solid fa-user me-1"></i>{{ $prestamoSeleccionado->cliente->nombre ?? 'Sin cliente' }}
+                                <i class="fa-solid fa-user me-1"></i>{{ $prestamoSeleccionado->cliente->nombre ?? 'Sin cliente' }}
                             </small>
-                            @if ($prestamoSeleccionado->fecha_vencimiento)
-                                <small class="text-muted">
-                                    <i
-                                        class="fa-solid fa-calendar-check me-1"></i>{{ $prestamoSeleccionado->fecha_vencimiento->format('d/m/Y') }}
-                                </small>
-                            @endif
                             @if ($prestamoSeleccionado->estado === 'Prestado')
                                 <button type="button" class="btn btn-success" wire:click="procesarDevolucion"
                                     wire:loading.attr="disabled" @if ($procesandoDevolucion) disabled @endif>
@@ -288,9 +314,8 @@
                                     </span>
                                 </button>
                             @else
-                                <span
-                                    class="badge bg-{{ $prestamoSeleccionado->estado === 'Devuelto' ? 'success' : 'secondary' }} fs-6">
-                                    {{ $prestamoSeleccionado->estado }}
+                                <span class="badge bg-{{ $prestamoSeleccionado->estado === 'Devuelto' ? 'success' : ($prestamoSeleccionado->estado_real === 'Vencido' ? 'danger' : 'secondary') }} fs-6">
+                                    {{ $prestamoSeleccionado->estado_real }}
                                 </span>
                             @endif
                         </div>

@@ -108,10 +108,16 @@
             <div class="info-label">Fecha:</div>
             <div class="info-value">{{ $prestamo->created_at->format('d/m/Y H:i') }}</div>
         </div>
-        @if ($prestamo->fecha_vencimiento)
+        @if ($prestamo->expired_at)
             <div class="info-row">
                 <div class="info-label">Vencimiento:</div>
-                <div class="info-value">{{ $prestamo->fecha_vencimiento->format('d/m/Y') }}</div>
+                <div class="info-value">{{ $prestamo->expired_at->format('d/m/Y') }}</div>
+            </div>
+        @endif
+        @if ($prestamo->estado === 'Devuelto')
+            <div class="info-row">
+                <div class="info-label">Devolución:</div>
+                <div class="info-value">{{ $prestamo->updated_at->format('d/m/Y') }}</div>
             </div>
         @endif
     </div>
@@ -137,8 +143,8 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="3" class="text-right">Depósito:</td>
-                <td class="text-right text-primary">Bs. {{ number_format($prestamo->deposito, 2) }}</td>
+                <td colspan="3" class="text-right">Total / En garantía:</td>
+                <td class="text-right text-primary">Bs. {{ number_format($prestamo->total, 2) }}</td>
             </tr>
         </tfoot>
     </table>

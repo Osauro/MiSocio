@@ -68,7 +68,7 @@ class Prestamos extends Component
             $this->procesandoDevolucion = true;
             DB::beginTransaction();
 
-            $depositoDevolver = $this->prestamoSeleccionado->deposito;
+            $depositoDevolver = $this->prestamoSeleccionado->total;
             $nombreCliente = $this->prestamoSeleccionado->cliente->nombre ?? 'Sin cliente';
             $numeroFolio = $this->prestamoSeleccionado->numero_folio;
 
@@ -130,7 +130,7 @@ class Prestamos extends Component
             DB::commit();
 
             $this->cerrarModal();
-            $this->toast('success', 'Préstamo devuelto. Depósito: Bs. ' . number_format($depositoDevolver, 2));
+            $this->toast('success', 'Préstamo devuelto. En garantía: Bs. ' . number_format($depositoDevolver, 2));
         } catch (\Exception $e) {
             DB::rollBack();
             $this->procesandoDevolucion = false;
@@ -188,9 +188,7 @@ class Prestamos extends Component
             'user_id' => Auth::id(),
             'numero_folio' => $ultimoFolio + 1,
             'estado' => 'Pendiente',
-            'deposito' => 0,
-            'efectivo' => 0,
-            'online' => 0,
+            'total' => 0,
         ]);
 
         return redirect()->route('prestamo', ['prestamoId' => $prestamo->id]);

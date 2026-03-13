@@ -16,17 +16,13 @@ class Prestamo extends Model
         'cliente_id',
         'numero_folio',
         'estado',
-        'deposito',
-        'fecha_prestamo',
-        'fecha_vencimiento',
-        'fecha_devolucion',
+        'total',
+        'expired_at',
     ];
 
     protected $casts = [
-        'deposito' => 'decimal:2',
-        'fecha_prestamo' => 'date',
-        'fecha_vencimiento' => 'date',
-        'fecha_devolucion' => 'date',
+        'total' => 'decimal:2',
+        'expired_at' => 'date',
     ];
 
     /**
@@ -146,7 +142,7 @@ class Prestamo extends Model
             return false;
         }
 
-        if ($this->fecha_vencimiento && $this->fecha_vencimiento->isPast()) {
+        if ($this->expired_at && $this->expired_at->isPast()) {
             return true;
         }
 

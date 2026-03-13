@@ -184,18 +184,8 @@
                         <h5 class="modal-title mb-0">
                             <i class="fa-solid fa-shopping-cart me-2"></i>Venta #{{ $ventaSeleccionada->numero_folio }}
                         </h5>
-                        <div class="d-flex gap-1 align-items-center">
-                            <button class="btn btn-sm btn-secondary" wire:click="generarPDF({{ $ventaSeleccionada->id }})" title="Generar PDF">
-                                <i class="fa-solid fa-file-pdf"></i>
-                            </button>
-                            @if ($ventaSeleccionada->estado !== 'Eliminado')
-                                <button class="btn btn-sm btn-danger" wire:click="$dispatch('confirm-delete', { id: {{ $ventaSeleccionada->id }}, message: '¿Está seguro de eliminar la venta #{{ $ventaSeleccionada->numero_folio }}?' })" title="Cancelar">
-                                    <i class="fa-solid fa-trash"></i>
-                                </button>
-                            @endif
-                            <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
-                                aria-label="Cerrar"></button>
-                        </div>
+                        <button type="button" class="btn-close btn-close-white" wire:click="cerrarModal"
+                            aria-label="Cerrar"></button>
                     </div>
 
                     <div class="modal-body p-0">
@@ -302,20 +292,38 @@
                         </div>
                     </div>
 
-                    <div class="modal-footer bg-light">
-                        <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
-                            <small class="text-muted">
-                                <i
-                                    class="fa-solid fa-user me-1"></i>{{ $ventaSeleccionada->user->name ?? 'Usuario' }}
-                            </small>
-                            <small class="text-muted">
-                                <i
-                                    class="fa-solid fa-calendar me-1"></i>{{ $ventaSeleccionada->created_at->format('d/m/Y H:i') }}
-                            </small>
-                            <small class="text-muted">
-                                <i
-                                    class="fa-solid fa-user-tie me-1"></i>{{ $ventaSeleccionada->cliente->nombre ?? 'Sin cliente' }}
-                            </small>
+                    <div class="modal-footer bg-light py-2">
+                        <div class="d-flex justify-content-between align-items-center w-100 gap-2">
+                            <div class="row g-2 flex-grow-1">
+                                <div class="col-4">
+                                    <div class="rounded px-2 py-1 text-center" style="background-color: #f0f0f0;">
+                                        <small class="text-muted d-block" style="font-size: 0.7rem;"><i class="fa-solid fa-user me-1"></i>Vendedor</small>
+                                        <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $ventaSeleccionada->user->name ?? 'Usuario' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="rounded px-2 py-1 text-center" style="background-color: #f0f0f0;">
+                                        <small class="text-muted d-block" style="font-size: 0.7rem;"><i class="fa-solid fa-calendar me-1"></i>Fecha</small>
+                                        <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $ventaSeleccionada->created_at->format('d/m/Y H:i') }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="rounded px-2 py-1 text-center" style="background-color: #f0f0f0;">
+                                        <small class="text-muted d-block" style="font-size: 0.7rem;"><i class="fa-solid fa-user-tie me-1"></i>Cliente</small>
+                                        <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $ventaSeleccionada->cliente->nombre ?? 'Sin cliente' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-1 flex-shrink-0">
+                                @if ($ventaSeleccionada->estado !== 'Eliminado')
+                                    <button class="btn btn-sm btn-danger" wire:click="$dispatch('confirm-delete', { id: {{ $ventaSeleccionada->id }}, message: '¿Está seguro de eliminar la venta #{{ $ventaSeleccionada->numero_folio }}?' })" title="Eliminar">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                @endif
+                                <button class="btn btn-sm btn-secondary" wire:click="generarPDF({{ $ventaSeleccionada->id }})" title="Generar PDF">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
