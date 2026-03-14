@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $planes = \App\Models\PlanSuscripcion::where('activo', true)->orderBy('orden')->get();
+    return view('welcome', compact('planes'));
 });
 
 // Manifest PWA dinámico (color según tenant activo)
