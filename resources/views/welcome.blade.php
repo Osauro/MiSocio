@@ -332,8 +332,11 @@
 <nav class="lp-nav" id="lpNav">
     <a href="/" class="lp-logo">
         <div class="lp-logo-icon">
-                <img src="{{ asset('assets/images/mascota-sonrisa.png') }}" alt="MiSocio" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=&quot;fa-solid fa-store&quot; style=&quot;color:#308e87;font-size:22px&quot;></i>'" />
-            </div>
+            <img src="{{ asset('assets/images/mascota-sonrisa.png') }}" alt="MiSocio" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#308e87,#1f6b65)';this.parentElement.innerHTML='<i class=&quot;fa-solid fa-store&quot; style=&quot;color:#fff;font-size:18px&quot;></i>'" />
+        </div>
+        <span class="lp-logo-text">MiSocio</span>
+    </a>
+    <div class="lp-nav-links">
         @auth
             <a href="{{ route('dashboard') }}" class="btn-nav-login">Mi Panel</a>
         @else
