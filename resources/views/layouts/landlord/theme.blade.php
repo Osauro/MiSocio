@@ -21,7 +21,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="MiSocio" />
-    @php $landlordThemeColor = getThemeColor(config('app.landlord_theme', 1)); @endphp
+    @php
+        $landlordThemeColor = getThemeColor(config('app.landlord_theme', 1));
+        // Forzar el color del progress bar de Livewire (wire:navigate) antes de que Livewire inyecte su CSS
+        config(['livewire.navigate.progress_bar_color' => $landlordThemeColor]);
+    @endphp
     <meta name="theme-color" content="{{ $landlordThemeColor }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -53,12 +57,12 @@
         :root {
             --theme-default: {{ $landlordThemeColor }};
             --primary-color: {{ $landlordThemeColor }};
-            --livewire-progress-bar-color: {{ $landlordThemeColor }};
+            --livewire-progress-bar-color: {{ $landlordThemeColor }} !important;
         }
     </style>
     <script>
-        // Forzar el color del progress bar de Livewire via inline style (mayor especificidad que cualquier CSS)
-        document.documentElement.style.setProperty('--livewire-progress-bar-color', '{{ $landlordThemeColor }}');
+        // Forzar inline style con prioridad 'important' para ganar sobre cualquier hoja de estilos
+        document.documentElement.style.setProperty('--livewire-progress-bar-color', '{{ $landlordThemeColor }}', 'important');
     </script>
     <style>
 

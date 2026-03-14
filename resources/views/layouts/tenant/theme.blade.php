@@ -48,18 +48,20 @@
         $currentTenant = currentTenant();
         $themeNumber = $currentTenant?->theme_number ?? 5;
         $themeColor = getThemeColor();
+        // Forzar el color del progress bar de Livewire (wire:navigate) antes de que Livewire inyecte su CSS
+        config(['livewire.navigate.progress_bar_color' => $themeColor]);
     @endphp
     <link id="color" rel="stylesheet" href="{{ asset('assets/css/color-' . $themeNumber . '.css') }}?v={{ time() }}" media="screen" />
     <style>
         :root {
             --theme-default: {{ $themeColor }};
             --primary-color: {{ $themeColor }};
-            --livewire-progress-bar-color: {{ $themeColor }};
+            --livewire-progress-bar-color: {{ $themeColor }} !important;
         }
     </style>
     <script>
-        // Forzar el color del progress bar de Livewire via inline style (mayor especificidad que cualquier CSS)
-        document.documentElement.style.setProperty('--livewire-progress-bar-color', '{{ $themeColor }}');
+        // Forzar inline style con prioridad 'important' para ganar sobre cualquier hoja de estilos
+        document.documentElement.style.setProperty('--livewire-progress-bar-color', '{{ $themeColor }}', 'important');
     </script>
     <style>
 
