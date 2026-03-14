@@ -286,7 +286,7 @@
         function aplicarTruncado() {
             const papelTamano = localStorage.getItem('papel_tamano') || '58mm';
             const is58mm = papelTamano === '58mm';
-            const limite = is58mm ? 14 : 24;
+            const limite = is58mm ? 24 : 36; // Aumentado para aprovechar espacio disponible
 
             document.querySelectorAll('.items-table .producto').forEach(td => {
                 const textoCompleto = td.getAttribute('data-texto');
