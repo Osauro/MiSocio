@@ -192,7 +192,7 @@
                                     <div class="card-body p-2">
                                         <!-- Input de Búsqueda con icono -->
                                         <div class="input-group mb-2">
-                                            <span class="input-group-text bg-primary text-white">
+                                            <span class="input-group-text text-white" style="background-color: {{ getThemeColor() }};">
                                                 <i class="fa-solid fa-search"></i>
                                             </span>
                                             <input type="text"
@@ -616,7 +616,7 @@
             </button>
 
             <!-- Botón Carrito -->
-            <button @click="mostrarCarritoMovil = !mostrarCarritoMovil" class="btn btn-outline-primary position-relative h-100" style="flex: 0 0 60px; padding: 4px;">
+            <button @click="mostrarCarritoMovil = !mostrarCarritoMovil" class="btn btn-outline-secondary position-relative h-100" style="flex: 0 0 60px; padding: 4px; border-color: {{ getThemeColor() }}; color: {{ getThemeColor() }};">
                 <i class="fa-solid fa-shopping-cart d-block" style="font-size: 0.9rem;"></i>
                 <small style="font-size: 0.65rem;" x-text="mostrarCarritoMovil ? 'Buscador' : 'Carrito'"></small>
                 @if(count($items) > 0)

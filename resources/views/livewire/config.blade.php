@@ -297,18 +297,18 @@
                                                 async verificar() {
                                                     console.log('Verificando servicio de impresión desde el navegador...');
                                                     this.estado = 'verificando';
-                                                    
+
                                                     try {
                                                         const controller = new AbortController();
                                                         const timeoutId = setTimeout(() => controller.abort(), 3000);
-                                                        
+
                                                         const response = await fetch('http://localhost:1013/status', {
                                                             signal: controller.signal,
                                                             mode: 'cors'
                                                         });
-                                                        
+
                                                         clearTimeout(timeoutId);
-                                                        
+
                                                         if (response.ok) {
                                                             const data = await response.json();
                                                             this.estado = 'conectado';

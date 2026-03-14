@@ -243,6 +243,16 @@ class Venta extends Component
                     ];
                 })
                 ->toArray();
+
+            // Auto-agregar si solo hay 1 resultado con stock disponible
+            if (count($this->productosEncontrados) === 1) {
+                $unico = $this->productosEncontrados[0];
+                if ($unico['stock'] > 0) {
+                    $this->agregarProducto($unico['id']);
+                    $this->buscar = '';
+                    $this->productosEncontrados = [];
+                }
+            }
         } else {
             $this->productosEncontrados = [];
         }

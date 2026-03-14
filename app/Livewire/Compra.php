@@ -175,6 +175,14 @@ class Compra extends Component
                     ];
                 })
                 ->toArray();
+
+            // Auto-agregar si solo hay 1 resultado
+            if (count($this->productosEncontrados) === 1) {
+                $unico = $this->productosEncontrados[0];
+                $this->agregarProducto($unico['id']);
+                $this->buscar = '';
+                $this->productosEncontrados = [];
+            }
         } else {
             $this->productosEncontrados = [];
         }
