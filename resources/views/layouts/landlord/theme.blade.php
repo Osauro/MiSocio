@@ -50,14 +50,20 @@
     <link rel="stylesheet" href="{{ asset('assets/css/custom.css') }}" />
 
     <style>
+        :root {
+            --theme-default: {{ $landlordThemeColor }};
+            --primary-color: {{ $landlordThemeColor }};
+            --livewire-progress-bar-color: {{ $landlordThemeColor }};
+        }
+
         .active>.page-link,
         .page-link.active {
-            background-color: #0766AD;
-            border-color: #0766AD !important
+            background-color: {{ $landlordThemeColor }};
+            border-color: {{ $landlordThemeColor }} !important
         }
 
         .page-link {
-            color: #0766AD !important
+            color: {{ $landlordThemeColor }} !important
         }
     </style>
 
