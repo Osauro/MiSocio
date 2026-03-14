@@ -14,7 +14,7 @@
         $fontSize = $is58mm ? '11px' : '12px'; // Aumentado
         $lineHeight = $is58mm ? '1.3' : '1.4'; // Aumentado
         $margin = $is58mm ? '2mm' : '4mm';
-        $nombreLimit = $is58mm ? 18 : 26; // Incluye cantidad + nombre (reducido para evitar desbordamiento)
+        $nombreLimit = $is58mm ? 16 : 24; // Incluye cantidad + nombre (reducido para evitar desbordamiento)
 
         // Función para truncar texto en el centro
         $truncateMiddle = function($text, $limit) {
