@@ -333,11 +333,11 @@
         function compartirTicket() {
             // Detectar si es dispositivo móvil
             const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
+
             if (isMobile) {
                 // En móviles: Abrir PDF para que Android muestre "Abrir con"
-                const ventaId = window.location.pathname.split('/').pop();
-                window.open(`/ticket/venta/${ventaId}`, '_blank');
+                const ventaId = window.location.pathname.split('/')[3];
+                window.open(`/ticket/venta/${ventaId}/pdf`, '_blank');
             } else {
                 // En escritorio: Intentar usar la API de compartir si está disponible
                 if (navigator.share) {
@@ -346,8 +346,9 @@
                         url: window.location.href
                     }).catch(err => console.log('Error al compartir:', err));
                 } else {
-                    // Fallback: Descargar el ticket como antes
-                    window.print();
+                    // Fallback: Abrir PDF
+                    const ventaId = window.location.pathname.split('/')[3];
+                    window.open(`/ticket/venta/${ventaId}/pdf`, '_blank');
                 }
             }
         }

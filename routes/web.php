@@ -84,10 +84,10 @@ Route::middleware(['auth', 'tenant', 'tenant.active'])->group(function () {
     Route::livewire('kardex', Kardex::class)->name('kardex');
 
     // Tickets
-    Route::get('ticket/venta/{ventaId}', [TicketController::class, 'venta'])->name('ticket.venta');
-    Route::get('ticket/venta/{ventaId}/print', [TicketController::class, 'ventaHtml'])->name('ticket.venta.print');
-    Route::get('ticket/prestamo/{prestamoId}', [TicketController::class, 'prestamo'])->name('ticket.prestamo');
-    Route::get('ticket/prestamo/{prestamoId}/print', [TicketController::class, 'prestamoHtml'])->name('ticket.prestamo.print');
+    Route::get('ticket/venta/{ventaId}', [TicketController::class, 'ventaHtml'])->name('ticket.venta');
+    Route::get('ticket/venta/{ventaId}/pdf', [TicketController::class, 'venta'])->name('ticket.venta.pdf');
+    Route::get('ticket/prestamo/{prestamoId}', [TicketController::class, 'prestamoHtml'])->name('ticket.prestamo');
+    Route::get('ticket/prestamo/{prestamoId}/pdf', [TicketController::class, 'prestamo'])->name('ticket.prestamo.pdf');
 
     // Ruta de debug temporal - Solo para desarrollo
     Route::get('debug-user', function () {
