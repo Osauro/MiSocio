@@ -56,6 +56,12 @@
             --primary-color: {{ $themeColor }};
             --livewire-progress-bar-color: {{ $themeColor }};
         }
+    </style>
+    <script>
+        // Forzar el color del progress bar de Livewire via inline style (mayor especificidad que cualquier CSS)
+        document.documentElement.style.setProperty('--livewire-progress-bar-color', '{{ $themeColor }}');
+    </script>
+    <style>
 
         /* Fix para backdrop y modales de Bootstrap */
         .modal-backdrop {

@@ -55,6 +55,12 @@
             --primary-color: {{ $landlordThemeColor }};
             --livewire-progress-bar-color: {{ $landlordThemeColor }};
         }
+    </style>
+    <script>
+        // Forzar el color del progress bar de Livewire via inline style (mayor especificidad que cualquier CSS)
+        document.documentElement.style.setProperty('--livewire-progress-bar-color', '{{ $landlordThemeColor }}');
+    </script>
+    <style>
 
         .active>.page-link,
         .page-link.active {
