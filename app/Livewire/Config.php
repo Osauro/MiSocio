@@ -461,7 +461,7 @@ class Config extends Component
     {
         $connected = false;
         $version = '';
-        
+
         try {
             // Intentar hacer petición HTTP a la app de impresión
             $ch = curl_init('http://127.0.0.1:1013/status');
@@ -474,19 +474,19 @@ class Config extends Component
                 'Accept: application/json',
                 'Origin: ' . request()->getSchemeAndHttpHost()
             ]);
-            
+
             $response = curl_exec($ch);
             $curlError = curl_error($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-            
+
             // Log para debugging
             \Log::info('Verificación servicio impresión', [
                 'httpCode' => $httpCode,
                 'response' => $response,
                 'curlError' => $curlError
             ]);
-            
+
             if ($httpCode >= 200 && $httpCode < 400) {
                 $connected = true;
                 if ($response) {

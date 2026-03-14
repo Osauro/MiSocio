@@ -1,18 +1,18 @@
 <div x-data="{
     mostrarCarritoMovil: false,
     papelTamano: localStorage.getItem('papel_tamano') || '58mm',
-    
+
     truncateMiddle(text, context = 'card') {
         if (!text) return '';
         const is58mm = this.papelTamano === '58mm';
         let limit;
-        
+
         if (context === 'card') {
             limit = is58mm ? 30 : 38;
         } else if (context === 'search') {
             limit = is58mm ? 35 : 45;
         }
-        
+
         if (text.length <= limit) return text;
         const start = Math.floor((limit - 3) / 2);
         const end = Math.ceil((limit - 3) / 2);
