@@ -48,10 +48,11 @@
         .lp-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
         .lp-logo-icon {
             width: 40px; height: 40px; border-radius: 10px;
-            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            overflow: hidden;
             display: flex; align-items: center; justify-content: center;
             box-shadow: 0 4px 12px var(--brand-glow);
         }
+        .lp-logo-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .lp-logo-icon i { color: #fff; font-size: 18px; }
         .lp-logo-text { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.35rem; color: var(--dark); }
         .lp-logo-text span { color: var(--brand); }
@@ -330,10 +331,9 @@
 <!-- NAVBAR -->
 <nav class="lp-nav" id="lpNav">
     <a href="/" class="lp-logo">
-        <div class="lp-logo-icon"><i class="fa-solid fa-store"></i></div>
-        <span class="lp-logo-text">Mi<span>Socio</span></span>
-    </a>
-    <div class="lp-nav-links">
+        <div class="lp-logo-icon">
+                <img src="{{ asset('assets/images/mascota-sonrisa.png') }}" alt="MiSocio" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=&quot;fa-solid fa-store&quot; style=&quot;color:#308e87;font-size:22px&quot;></i>'" />
+            </div>
         @auth
             <a href="{{ route('dashboard') }}" class="btn-nav-login">Mi Panel</a>
         @else
@@ -583,7 +583,9 @@
         <div class="footer-top">
             <div class="footer-brand">
                 <a href="/" class="lp-logo" style="margin-bottom:10px;display:inline-flex">
-                    <div class="lp-logo-icon"><i class="fa-solid fa-store"></i></div>
+                    <div class="lp-logo-icon">
+                        <img src="{{ asset('assets/images/mascota-sonrisa.png') }}" alt="MiSocio" onerror="this.style.display='none';this.parentElement.innerHTML='<i class=&quot;fa-solid fa-store&quot; style=&quot;color:#308e87;font-size:22px&quot;></i>'" />
+                    </div>
                     <span class="lp-logo-text">Mi<span>Socio</span></span>
                 </a>
                 <p>La herramienta de gestión para pequeños negocios bolivianos. Simple, rápida y accesible.</p>
