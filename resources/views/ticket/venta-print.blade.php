@@ -111,24 +111,27 @@
         }
 
         .items-table td {
-            padding: 2px 2px;
+            padding: 2px 0;
             vertical-align: top;
         }
 
-        .items-table .cant { 
-            width: 30px; 
-            text-align: left; 
-            white-space: nowrap; 
-            font-size: 12px; 
+        .items-table .producto {
+            text-align: left;
+            font-weight: 500;
+        }
+
+        .items-table .producto .cant {
             font-weight: bold;
+            display: inline;
+            font-size: 12px;
             padding-right: 5px;
         }
-        .items-table .nombre { 
-            text-align: left; 
-            overflow: hidden; 
-            white-space: nowrap;
+
+        .items-table .producto .nombre {
+            display: inline;
             font-size: 12px;
         }
+
         .items-table .precio { 
             width: 55px; 
             text-align: right; 
@@ -262,8 +265,10 @@
     <table class="items-table">
         @foreach($venta->ventaItems as $item)
             <tr>
-                <td class="cant">{{ $item->cantidad_formateada }}</td>
-                <td class="nombre">{{ $truncateMiddle($item->producto->nombre ?? 'Producto', $nombreLimit) }}</td>
+                <td class="producto">
+                    <span class="cant">{{ $item->cantidad_formateada }}</span>
+                    <span class="nombre">{{ $truncateMiddle($item->producto->nombre ?? 'Producto', $nombreLimit) }}</span>
+                </td>
                 <td class="precio">{{ number_format($item->subtotal, 2) }}</td>
             </tr>
         @endforeach
