@@ -293,13 +293,20 @@
                                         <div class="card border shadow-sm h-100"
                                              x-data="{
                                                 estado: 'verificando',
-                                                version: ''
+                                                version: '',
+                                                verificar() {
+                                                    console.log('Verificando servicio de impresión...');
+                                                    this.estado = 'verificando';
+                                                    $wire.call('verificarServicioImpresion');
+                                                }
                                              }"
                                              x-init="
-                                                $wire.call('verificarServicioImpresion');
-                                                $wire.on('printer-status', (e) => {
-                                                    estado = e.connected ? 'conectado' : 'desconectado';
-                                                    version = e.version ?? '';
+                                                verificar();
+                                                $wire.on('printer-status', (event) => {
+                                                    console.log('Evento printer-status recibido:', event);
+                                                    estado = event.connected ? 'conectado' : 'desconectado';
+                                                    version = event.version ?? '';
+                                                    console.log('Estado actualizado:', estado, 'Versión:', version);
                                                 });
                                              ">
                                             <div class="card-header d-flex justify-content-between align-items-center"
@@ -354,8 +361,7 @@
                                             </div>
                                             <div class="card-footer d-flex justify-content-end">
                                                 <button type="button" class="btn btn-sm btn-outline-secondary"
-                                                        wire:click="verificarServicioImpresion"
-                                                        @click="estado = 'verificando'">
+                                                        @click="verificar()">
                                                     <i class="fa-solid fa-rotate-right me-1"></i>
                                                     Verificar conexión
                                                 </button>
