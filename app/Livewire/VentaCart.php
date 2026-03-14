@@ -11,6 +11,7 @@ class VentaCart extends Component
     use RequiresTenant;
 
     public $cantidadPendientes = 0;
+    public $ventaPendienteId = null;
 
     protected $listeners = ['ventaActualizada' => 'actualizarContador'];
 
@@ -33,6 +34,7 @@ class VentaCart extends Component
             ->where('user_id', auth()->id())
             ->first();
 
+        $this->ventaPendienteId = $ventaPendiente?->id;
         $this->cantidadPendientes = $ventaPendiente
             ? $ventaPendiente->ventaItems()->count()
             : 0;

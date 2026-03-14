@@ -12,6 +12,7 @@ class PrestamoCart extends Component
     use RequiresTenant;
 
     public $cantidadItems = 0;
+    public $prestamoPendienteId = null;
 
     protected $listeners = ['prestamoActualizado' => 'actualizarContador'];
 
@@ -35,9 +36,10 @@ class PrestamoCart extends Component
             ->first();
 
         if ($prestamoPendiente) {
-            // Contar items en el préstamo pendiente
+            $this->prestamoPendienteId = $prestamoPendiente->id;
             $this->cantidadItems = PrestamoItem::where('prestamo_id', $prestamoPendiente->id)->count();
         } else {
+            $this->prestamoPendienteId = null;
             $this->cantidadItems = 0;
         }
     }
