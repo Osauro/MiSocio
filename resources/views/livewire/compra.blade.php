@@ -1,3 +1,13 @@
+@php
+    // Función para truncar texto en el centro
+    $truncateMiddle = function($text, $limit = 30) {
+        if (mb_strlen($text) <= $limit) return $text;
+        $start = (int) floor(($limit - 3) / 2);
+        $end = (int) ceil(($limit - 3) / 2);
+        return mb_substr($text, 0, $start) . '...' . mb_substr($text, -$end);
+    };
+@endphp
+
 <div x-data="{ mostrarCarritoMovil: false }">
     <style>
         /* Control de visibilidad en móvil - Cargado inmediatamente */
@@ -56,7 +66,7 @@
                                                     <!-- Nombre y Botón -->
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                         <div class="flex-grow-1">
-                                                            <h5 class="mb-0 text-truncate fw-bold">{{ $item['nombre'] }}</h5>
+                                                            <h5 class="mb-0 fw-bold" title="{{ $item['nombre'] }}">{{ $truncateMiddle($item['nombre'], 35) }}</h5>
                                                         </div>
                                                         <a href="javascript:void(0)" class="text-danger ms-1"
                                                             wire:click="confirmEliminarItem({{ $index }})"
@@ -205,7 +215,7 @@
                                                                     class="rounded"
                                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                                                 <div class="flex-grow-1">
-                                                                    <div class="fw-bold small">{{ $producto['nombre'] }}</div>
+                                                                    <div class="fw-bold small" title="{{ $producto['nombre'] }}">{{ $truncateMiddle($producto['nombre'], 40) }}</div>
                                                                     <div class="d-flex gap-1 mt-1">
                                                                         <span class="badge bg-info text-dark">
                                                                             Stock: {{ $producto['stock_formateado'] ?? $producto['stock'] }}
