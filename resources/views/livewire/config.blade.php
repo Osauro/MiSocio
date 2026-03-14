@@ -294,21 +294,37 @@
                                              x-data="{
                                                 estado: 'verificando',
                                                 version: '',
-                                                verificar() {
-                                                    console.log('Verificando servicio de impresión...');
+                                                async verificar() {
+                                                    console.log('Verificando servicio de impresión desde el navegador...');
                                                     this.estado = 'verificando';
-                                                    $wire.call('verificarServicioImpresion');
+                                                    
+                                                    try {
+                                                        const controller = new AbortController();
+                                                        const timeoutId = setTimeout(() => controller.abort(), 3000);
+                                                        
+                                                        const response = await fetch('http://localhost:1013/status', {
+                                                            signal: controller.signal,
+                                                            mode: 'cors'
+                                                        });
+                                                        
+                                                        clearTimeout(timeoutId);
+                                                        
+                                                        if (response.ok) {
+                                                            const data = await response.json();
+                                                            this.estado = 'conectado';
+                                                            this.version = data.version || '';
+                                                            console.log('✓ Conectado a localhost:1013', data);
+                                                        } else {
+                                                            this.estado = 'desconectado';
+                                                            console.log('✗ Respuesta no ok:', response.status);
+                                                        }
+                                                    } catch (error) {
+                                                        this.estado = 'desconectado';
+                                                        console.log('✗ Error conectando a localhost:1013:', error.message);
+                                                    }
                                                 }
                                              }"
-                                             x-init="
-                                                verificar();
-                                                $wire.on('printer-status', (event) => {
-                                                    console.log('Evento printer-status recibido:', event);
-                                                    estado = event.connected ? 'conectado' : 'desconectado';
-                                                    version = event.version ?? '';
-                                                    console.log('Estado actualizado:', estado, 'Versión:', version);
-                                                });
-                                             ">
+                                             x-init="verificar()">
                                             <div class="card-header d-flex justify-content-between align-items-center"
                                                  :class="{
                                                     'bg-success text-white': estado === 'conectado',
