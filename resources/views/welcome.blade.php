@@ -6,6 +6,10 @@
     <title>MiSocio — Sistema de Gestión para tu Negocio</title>
     <meta name="description" content="Controla tus ventas, compras, inventario y más. La solución todo-en-uno para pequeños negocios bolivianos." />
 
+    <!-- Favicon mascota -->
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/mascota-sonrisa.png') }}" />
+    <link rel="apple-touch-icon" href="{{ asset('assets/images/mascota-sonrisa.png') }}" />
+
     <!-- Bootstrap -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" />
     <!-- Font Awesome -->
