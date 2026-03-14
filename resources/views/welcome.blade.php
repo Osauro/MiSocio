@@ -258,6 +258,27 @@
         .footer-bottom .made { color: rgba(255,255,255,.4); font-size: .8rem; }
         .footer-bottom .made span { color: var(--brand); }
 
+        /* ─── MASCOTAS ────────────────────────────────── */
+        .hero-mascot-img {
+            height: 520px; max-height: 66vh; width: auto;
+            display: block; margin: 0 auto; object-fit: contain;
+            filter: drop-shadow(0 24px 48px rgba(48,142,135,.22));
+            animation: float 5s ease-in-out infinite;
+        }
+        .float-mascot { object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 10px 20px rgba(48,142,135,.15)); }
+        .section-header-flex { display: flex; align-items: center; justify-content: space-between; gap: 48px; }
+        .section-header-flex > div { flex: 1; }
+        .section-mascot { height: 230px; animation: float 6s ease-in-out infinite 1s; }
+        .steps-mascot-wrap { display: flex; align-items: center; gap: 48px; margin-top: 48px; }
+        .steps-mascot-wrap .steps-grid { flex: 1; margin-top: 0; }
+        .steps-side-mascot { height: 290px; animation: float 7s ease-in-out infinite .5s; }
+        .cta-inner { display: flex; align-items: center; justify-content: space-between; gap: 60px; text-align: left; }
+        .cta-text { flex: 1; }
+        .cta-text h2 { text-align: left; }
+        .cta-text p { text-align: left; margin-left: 0; margin-right: 0; }
+        .cta-mascot { height: 360px; animation: float 5s ease-in-out infinite 1.5s; }
+        .footer-mascot { height: 120px; margin-top: 10px; animation: float 8s ease-in-out infinite 2s; display: block; }
+
         /* Animations */
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
@@ -274,6 +295,15 @@
             .hero-visual { display: none; }
             .section-desc { max-width: 100%; }
             .footer-top { flex-direction: column; }
+            .section-header-flex { flex-direction: column-reverse; }
+            .section-mascot { height: 160px; }
+            .steps-mascot-wrap { flex-direction: column; }
+            .steps-side-mascot { height: 190px; }
+            .cta-inner { flex-direction: column; text-align: center; }
+            .cta-text h2 { text-align: center; }
+            .cta-text p { text-align: center; margin-left: auto; margin-right: auto; }
+            .cta-mascot { height: 220px; }
+            .footer-mascot { display: none; }
         }
         @media (max-width: 600px) {
             .lp-nav { padding: 0 4%; }
@@ -330,40 +360,7 @@
                 <div class="fbi" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-arrow-trend-up"></i></div>
                 <div><div style="font-size:.65rem;color:#64748b;font-weight:600">Ventas hoy</div><div style="color:#0f1923">+23% este mes</div></div>
             </div>
-            <div class="hero-mockup">
-                <div class="mockup-topbar">
-                    <div class="mockup-dots"><span></span><span></span><span></span></div>
-                    <div class="mockup-title">MiSocio — Panel Principal</div>
-                    <div style="width:48px"></div>
-                </div>
-                <div class="mockup-body">
-                    <div class="mockup-metric-row">
-                        <div class="mockup-metric"><div class="label">Ventas hoy</div><div class="value green">Bs. 842</div></div>
-                        <div class="mockup-metric"><div class="label">Productos</div><div class="value">127</div></div>
-                        <div class="mockup-metric"><div class="label">Clientes</div><div class="value orange">48</div></div>
-                    </div>
-                    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Actividad semanal</div>
-                    <div class="mockup-chart-bar"><div class="fill" style="width:72%"></div></div>
-                    <div class="mockup-chart-bar"><div class="fill" style="width:45%"></div></div>
-                    <div class="mockup-chart-bar"><div class="fill" style="width:88%"></div></div>
-                    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px">Últimas ventas</div>
-                    <div class="mockup-sale-row">
-                        <div class="mockup-sale-icon" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
-                        <div class="mockup-sale-info"><div class="name">Arroz x 5kg</div><div class="time">hace 3 min</div></div>
-                        <div class="mockup-sale-amount">Bs. 60</div>
-                    </div>
-                    <div class="mockup-sale-row">
-                        <div class="mockup-sale-icon" style="background:#dbeafe;color:#2563eb"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
-                        <div class="mockup-sale-info"><div class="name">Aceite Fino 1L</div><div class="time">hace 8 min</div></div>
-                        <div class="mockup-sale-amount">Bs. 18</div>
-                    </div>
-                    <div class="mockup-sale-row">
-                        <div class="mockup-sale-icon" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
-                        <div class="mockup-sale-info"><div class="name">Leche PIL 1L x6</div><div class="time">hace 15 min</div></div>
-                        <div class="mockup-sale-amount">Bs. 42</div>
-                    </div>
-                </div>
-            </div>
+            <img src="{{ asset('assets/images/mascota-pulgar.png') }}" alt="MiSocio" class="hero-mascot-img" onerror="this.style.display='none'" />
             <div class="float-badge bottom-right">
                 <div class="fbi" style="background:#ede9fe;color:#7c3aed"><i class="fa-solid fa-box"></i></div>
                 <div><div style="font-size:.65rem;color:#64748b;font-weight:600">Stock bajo</div><div style="color:#0f1923">3 productos</div></div>
@@ -375,10 +372,13 @@
 <!-- CARACTERÍSTICAS -->
 <section class="section" id="caracteristicas">
     <div class="section-inner">
-        <div class="reveal">
-            <span class="section-tag">¿Qué incluye?</span>
-            <h2 class="section-title">Todo lo que necesitas<br>para crecer</h2>
-            <p class="section-desc">Desde el primer día tendrás todo bajo control, sin necesidad de ser experto en tecnología.</p>
+        <div class="reveal section-header-flex">
+            <div>
+                <span class="section-tag">¿Qué incluye?</span>
+                <h2 class="section-title">Todo lo que necesitas<br>para crecer</h2>
+                <p class="section-desc">Desde el primer día tendrás todo bajo control, sin necesidad de ser experto en tecnología.</p>
+            </div>
+            <img src="{{ asset('assets/images/mascota-saludo.png') }}" alt="" class="section-mascot float-mascot" onerror="this.style.display='none'" />
         </div>
         <div class="features-grid">
             <div class="feature-card reveal">
@@ -423,21 +423,24 @@
             <h2 class="section-title">Empieza en 3 pasos</h2>
             <p class="section-desc" style="margin:0 auto">Sin contratos, sin complicaciones. Tu tienda lista en minutos.</p>
         </div>
-        <div class="steps-grid">
-            <div class="step-card reveal">
-                <div class="step-number">1</div>
-                <h3>Crea tu cuenta</h3>
-                <p>Regístrate con tu número de celular y un PIN de 4 dígitos. Sin tarjeta, sin trámites.</p>
-            </div>
-            <div class="step-card reveal">
-                <div class="step-number">2</div>
-                <h3>Configura tu tienda</h3>
-                <p>Agrega tus productos, categorías y personaliza el color de tu tienda en minutos.</p>
-            </div>
-            <div class="step-card reveal">
-                <div class="step-number">3</div>
-                <h3>¡Empieza a vender!</h3>
-                <p>Registra tus primeras ventas desde el mismo día. Todo queda guardado automáticamente.</p>
+        <div class="steps-mascot-wrap">
+            <img src="{{ asset('assets/images/mascota-senalando.png') }}" alt="" class="steps-side-mascot float-mascot" onerror="this.style.display='none'" />
+            <div class="steps-grid">
+                <div class="step-card reveal">
+                    <div class="step-number">1</div>
+                    <h3>Crea tu cuenta</h3>
+                    <p>Regístrate con tu número de celular y un PIN de 4 dígitos. Sin tarjeta, sin trámites.</p>
+                </div>
+                <div class="step-card reveal">
+                    <div class="step-number">2</div>
+                    <h3>Configura tu tienda</h3>
+                    <p>Agrega tus productos, categorías y personaliza el color de tu tienda en minutos.</p>
+                </div>
+                <div class="step-card reveal">
+                    <div class="step-number">3</div>
+                    <h3>¡Empieza a vender!</h3>
+                    <p>Registra tus primeras ventas desde el mismo día. Todo queda guardado automáticamente.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -517,15 +520,18 @@
 
 <!-- CTA BANNER -->
 <section class="cta-section">
-    <div class="section-inner">
-        <h2 class="reveal">¿Listo para llevar tu negocio<br>al siguiente nivel?</h2>
-        <p class="reveal">Únete a los emprendedores bolivianos que ya controlan sus negocios con MiSocio. Empieza hoy, gratis.</p>
-        @if(Route::has('register'))
-            <a href="{{ route('register') }}" class="btn-cta reveal">
-                <i class="fa-solid fa-rocket"></i> Crear mi cuenta gratis
-                <i class="fa-solid fa-arrow-right" style="font-size:.85rem"></i>
-            </a>
-        @endif
+    <div class="section-inner cta-inner">
+        <div class="cta-text">
+            <h2 class="reveal">¿Listo para llevar tu negocio<br>al siguiente nivel?</h2>
+            <p class="reveal">Únete a los emprendedores bolivianos que ya controlan sus negocios con MiSocio. Empieza hoy, gratis.</p>
+            @if(Route::has('register'))
+                <a href="{{ route('register') }}" class="btn-cta reveal">
+                    <i class="fa-solid fa-rocket"></i> Crear mi cuenta gratis
+                    <i class="fa-solid fa-arrow-right" style="font-size:.85rem"></i>
+                </a>
+            @endif
+        </div>
+        <img src="{{ asset('assets/images/mascota-bienvenida.png') }}" alt="" class="cta-mascot float-mascot" onerror="this.style.display='none'" />
     </div>
 </section>
 
@@ -539,6 +545,7 @@
                     <span class="lp-logo-text">Mi<span>Socio</span></span>
                 </a>
                 <p>La herramienta de gestión para pequeños negocios bolivianos. Simple, rápida y accesible.</p>
+                <img src="{{ asset('assets/images/mascota-sonrisa.png') }}" alt="" class="footer-mascot float-mascot" onerror="this.style.display='none'" />
             </div>
             <div class="footer-links">
                 <h4>Acceso</h4>
