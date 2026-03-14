@@ -142,7 +142,7 @@
 
         .pie {
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
             color: #555;
             margin-top: 4px;
         }
@@ -256,8 +256,7 @@
     <div class="mensaje-final">{{ $config->mensaje_ticket ?? '¡GRACIAS POR SU PREFERENCIA!' }}</div>
 
     <div class="pie">
-        Sistema MiSocio<br>
-        {{ now()->format('d/m/Y H:i:s') }}
+        misocio.bo
     </div>
 
     {{-- Botones flotantes (visible solo en pantalla) --}}

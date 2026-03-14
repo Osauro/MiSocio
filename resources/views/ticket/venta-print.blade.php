@@ -143,7 +143,7 @@
 
         .pie {
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
             color: #555;
             margin-top: 4px;
         }
@@ -301,7 +301,7 @@
     @endif
 
     <div class="pie">
-        {{ now()->format('d/m/Y H:i:s') }} | MiSocio
+        misocio.bo
     </div>
 
     {{-- Botones flotantes (visible solo en pantalla) --}}
