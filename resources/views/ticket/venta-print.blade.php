@@ -254,7 +254,12 @@
         {{ now()->format('d/m/Y H:i:s') }} | MiSocio
     </div>
 
-    {{-- Botón para reimprimir (visible solo en pantalla) --}}
+    {{-- Botón flotante para imprimir (visible solo en pantalla) --}}
+    <button class="no-print boton-flotante" onclick="window.print()" title="Imprimir ticket">
+        🖨️
+    </button>
+
+    {{-- Botones para reimprimir (visible solo en pantalla) --}}
     <div class="no-print" style="margin-top: 15px;">
         <button onclick="window.print()" style="padding: 8px 20px; font-size: 14px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">
             🖨️ Imprimir

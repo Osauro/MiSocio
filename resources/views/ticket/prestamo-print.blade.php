@@ -272,6 +272,11 @@
         {{ now()->format('d/m/Y H:i:s') }}
     </div>
 
+    {{-- Botón flotante para imprimir (visible solo en pantalla) --}}
+    <button class="no-print boton-flotante" onclick="window.print()" title="Imprimir ticket">
+        🖨️
+    </button>
+
     {{-- Botones de acción (no se imprimen) --}}
     <div class="no-print">
         <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; margin: 5px;">
