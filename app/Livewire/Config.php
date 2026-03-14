@@ -461,14 +461,43 @@ class Config extends Component
     {
         $connected = false;
         $version = '';
+        
         try {
-            $socket = @fsockopen('127.0.0.1', 1013, $errno, $errstr, 2);
-            if ($socket) {
-                fclose($socket);
+            // Intentar hacer petición HTTP a la app de impresión
+            $ch = curl_init('http://127.0.0.1:1013/status');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: application/json',
+                'Origin: ' . request()->getSchemeAndHttpHost()
+            ]);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode === 200 && $response) {
+                $connected = true;
+                $data = json_decode($response, true);
+                if (isset($data['version'])) {
+                    $version = $data['version'];
+                }
+            } elseif ($httpCode > 0) {
+                // Si responde con cualquier código HTTP, está conectado
                 $connected = true;
             }
         } catch (\Throwable $e) {
-            $connected = false;
+            // Fallback: verificar si el puerto está abierto
+            try {
+                $socket = @fsockopen('127.0.0.1', 1013, $errno, $errstr, 2);
+                if ($socket) {
+                    fclose($socket);
+                    $connected = true;
+                }
+            } catch (\Throwable $e2) {
+                $connected = false;
+            }
         }
 
         $this->dispatch('printer-status', connected: $connected, version: $version);
