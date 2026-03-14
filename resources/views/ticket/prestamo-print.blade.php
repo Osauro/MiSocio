@@ -285,16 +285,6 @@
         </button>
     </div>
 
-    {{-- Botones de acción (no se imprimen) --}}
-    <div class="no-print">
-        <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; margin: 5px;">
-            🖨️ Imprimir
-        </button>
-        <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px; margin: 5px;">
-            ✖️ Cerrar
-        </button>
-    </div>
-
     <script>
         // Auto-imprimir cuando la página cargue completamente
         window.addEventListener('load', function() {

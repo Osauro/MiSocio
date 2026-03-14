@@ -311,16 +311,6 @@
         </button>
     </div>
 
-    {{-- Botones para reimprimir (visible solo en pantalla) --}}
-    <div class="no-print" style="margin-top: 15px;">
-        <button onclick="window.print()" style="padding: 8px 20px; font-size: 14px; cursor: pointer; background: #28a745; color: white; border: none; border-radius: 4px;">
-            🖨️ Imprimir
-        </button>
-        <button onclick="window.close()" style="padding: 8px 20px; font-size: 14px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px; margin-left: 5px;">
-            ✕ Cerrar
-        </button>
-    </div>
-
     <script>
         // Auto-imprimir al cargar la página
         window.addEventListener('load', function() {
