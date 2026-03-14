@@ -91,16 +91,19 @@
         .datos-venta {
             font-size: 11px;
             width: 100%;
+            margin: 0 auto;
         }
 
         .datos-venta td {
             padding: 1px 0;
             vertical-align: top;
+            text-align: center;
         }
 
         .datos-venta .label {
             font-weight: bold;
             width: 55px;
+            text-align: center;
         }
 
         .items-table {
@@ -116,7 +119,7 @@
         }
 
         .items-table .producto {
-            text-align: left;
+            text-align: center;
             font-weight: 500;
         }
 
@@ -132,9 +135,9 @@
             font-size: 12px;
         }
 
-        .items-table .precio { 
-            width: 55px; 
-            text-align: right; 
+        .items-table .precio {
+            width: 55px;
+            text-align: right;
             font-weight: bold;
             font-size: 12px;
         }
@@ -146,8 +149,8 @@
         }
 
         .totales-table td { padding: 1px 0; }
-        .totales-table .total-label { text-align: right; font-weight: bold; padding-right: 4px; }
-        .totales-table .total-valor { text-align: right; width: 55px; }
+        .totales-table .total-label { text-align: center; font-weight: bold; padding-right: 4px; }
+        .totales-table .total-valor { text-align: center; width: 55px; }
 
         .total-principal { font-size: 14px; font-weight: bold; }
 
@@ -340,6 +343,13 @@
             setTimeout(function() {
                 window.print();
             }, 300);
+        });
+
+        // Auto-cerrar después de imprimir o cancelar
+        window.addEventListener('afterprint', function() {
+            setTimeout(function() {
+                window.close();
+            }, 500);
         });
 
         // Función para compartir/descargar ticket
