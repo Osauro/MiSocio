@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venta #{{ $venta->numero_folio }}</title>
     @php
-        // Configuración dinámica según tamaño de papel
+        // Configuración dinámica según tamaño de papel (default desde config, pero JS usará localStorage)
         $is58mm = ($config->papel_tamano ?? '80mm') === '58mm';
         $paperWidth = $is58mm ? '58mm' : '80mm';
         $bodyWidth = $is58mm ? '52mm' : '70mm'; // Reducido para evitar cortes
@@ -14,15 +14,6 @@
         $fontSize = $is58mm ? '11px' : '12px'; // Aumentado
         $lineHeight = $is58mm ? '1.3' : '1.4'; // Aumentado
         $margin = $is58mm ? '2mm' : '4mm';
-        $nombreLimit = $is58mm ? 14 : 24; // Incluye cantidad + nombre (reducido para evitar desbordamiento)
-
-        // Función para truncar texto en el centro
-        $truncateMiddle = function($text, $limit) {
-            if (mb_strlen($text) <= $limit) return $text;
-            $start = (int) floor(($limit - 3) / 2);
-            $end = (int) ceil(($limit - 3) / 2);
-            return mb_substr($text, 0, $start) . '...' . mb_substr($text, -$end);
-        };
     @endphp
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -260,7 +251,7 @@
                 $textoCompleto = $item->cantidad_formateada . ' ' . ($item->producto->nombre ?? 'Producto');
             @endphp
             <tr>
-                <td class="producto">{{ $truncateMiddle($textoCompleto, $nombreLimit) }}</td>
+                <td class="producto" data-texto="{{ $textoCompleto }}">{{ $textoCompleto }}</td>
                 <td class="precio">{{ number_format($item->subtotal, 2) }}</td>
             </tr>
         @endforeach
@@ -327,6 +318,31 @@
     </div>
 
     <script>
+        // Función para truncar texto en el centro
+        function truncateMiddle(text, limit) {
+            if (!text || text.length <= limit) return text;
+            const start = Math.floor((limit - 3) / 2);
+            const end = Math.ceil((limit - 3) / 2);
+            return text.substring(0, start) + '...' + text.substring(text.length - end);
+        }
+
+        // Aplicar truncado a productos según localStorage
+        function aplicarTruncado() {
+            const papelTamano = localStorage.getItem('papel_tamano') || '58mm';
+            const is58mm = papelTamano === '58mm';
+            const limite = is58mm ? 14 : 24;
+
+            document.querySelectorAll('.items-table .producto').forEach(td => {
+                const textoCompleto = td.getAttribute('data-texto');
+                if (textoCompleto) {
+                    td.textContent = truncateMiddle(textoCompleto, limite);
+                }
+            });
+        }
+
+        // Aplicar truncado antes de mostrar
+        aplicarTruncado();
+
         // Detectar si es dispositivo móvil
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
