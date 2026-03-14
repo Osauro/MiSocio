@@ -1,4 +1,4 @@
-<div style="display: contents;">
+<div x-data x-on:actualizar-badge-prestamo.window="$wire.actualizarContador()">
     @if($prestamoPendienteId)
         <a href="{{ route('prestamo', ['prestamoId' => $prestamoPendienteId]) }}" class="cart-icon-link position-relative" title="Préstamo en proceso">
     @else

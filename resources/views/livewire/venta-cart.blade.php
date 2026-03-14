@@ -1,4 +1,4 @@
-<div style="display: contents;">
+<div x-data x-on:actualizar-badge-venta.window="$wire.actualizarContador()">
     @if($ventaPendienteId)
         <a href="{{ route('venta', ['ventaId' => $ventaPendienteId]) }}" class="cart-icon-link position-relative" title="Venta en proceso">
     @else
