@@ -718,6 +718,56 @@
                     }
                 }, 50);
             });
+
+            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:1013) ===
+            const LICOPOS_URL = 'http://localhost:1013';
+
+            async function imprimirTicketPrestamo(prestamoId) {
+                try {
+                    const response = await fetch(`${LICOPOS_URL}/prestamo/${prestamoId}`, {
+                        method: 'GET',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    // Consumir respuesta
+                    await response.text();
+                    console.log('Ticket préstamo impreso correctamente por localhost:1013');
+                    return true; // Éxito - no abrir PDF
+                } catch (e) {
+                    console.warn('MiSocio Printer no disponible, generando PDF:', e.message);
+                    // Fallback: Generar PDF y abrir para imprimir (compatible con móviles)
+                    const printWindow = window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
+                    if (printWindow) {
+                        // Intentar imprimir automáticamente cuando el PDF cargue
+                        printWindow.onload = function() {
+                            setTimeout(() => {
+                                try {
+                                    printWindow.print();
+                                } catch (err) {
+                                    console.warn('No se pudo imprimir automáticamente:', err);
+                                }
+                            }, 500);
+                        };
+                    }
+                }
+            }
+
+            // Al finalizar préstamo: imprimir automáticamente si está configurado y redirigir
+            $wire.on('abrir-ticket-prestamo-y-redirigir', async (data) => {
+                const prestamoId = data[0]?.prestamoId || data.prestamoId;
+                const autoPrint = data[0]?.autoPrint || data.autoPrint || false;
+
+                if (autoPrint) {
+                    await imprimirTicketPrestamo(prestamoId);
+                }
+
+                setTimeout(() => {
+                    window.location.href = '{{ route("prestamos") }}';
+                }, 500);
+            });
         </script>
     @endscript
 </div>

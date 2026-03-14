@@ -208,6 +208,13 @@ class Prestamos extends Component
         }, 'prestamo-' . $prestamo->id . '.pdf');
     }
 
+    public function imprimirTicket($prestamoId)
+    {
+        $this->dispatch('abrir-ticket-prestamo', [
+            'prestamoId' => $prestamoId,
+        ]);
+    }
+
     public function render()
     {
         $query = Prestamo::with(['cliente', 'user', 'prestamoItems.producto'])

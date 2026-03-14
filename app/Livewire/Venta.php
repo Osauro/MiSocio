@@ -8,6 +8,7 @@ use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\Kardex;
 use App\Models\Movimiento;
+use App\Models\TenantConfig;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -922,10 +923,20 @@ class Venta extends Component
 
             $this->toast('success', 'Venta completada exitosamente');
 
-            // Imprimir ticket vía LicoPOS Printer local y redirigir
-            $this->dispatch('abrir-ticket-y-redirigir', [
-                'ventaId' => $this->venta->id,
-            ]);
+            // Imprimir ticket automáticamente si está configurado
+            $config = TenantConfig::first();
+            if ($config && $config->impresion_auto_venta) {
+                $this->dispatch('abrir-ticket-y-redirigir', [
+                    'ventaId' => $this->venta->id,
+                    'autoPrint' => true,
+                ]);
+            } else {
+                // Redirigir sin imprimir
+                $this->dispatch('abrir-ticket-y-redirigir', [
+                    'ventaId' => $this->venta->id,
+                    'autoPrint' => false,
+                ]);
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al finalizar venta: ' . $e->getMessage());

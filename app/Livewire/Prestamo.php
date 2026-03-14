@@ -8,6 +8,7 @@ use App\Models\Producto;
 use App\Models\Cliente;
 use App\Models\Kardex;
 use App\Models\Movimiento;
+use App\Models\TenantConfig;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -722,8 +723,17 @@ class Prestamo extends Component
 
             $this->toast('success', 'Préstamo completado exitosamente');
 
-            // Redirigir a la lista de préstamos
-            return redirect()->route('prestamos');
+            // Imprimir ticket automáticamente si está configurado
+            $config = TenantConfig::first();
+            if ($config && $config->impresion_auto_prestamo) {
+                $this->dispatch('abrir-ticket-prestamo-y-redirigir', [
+                    'prestamoId' => $this->prestamo->id,
+                    'autoPrint' => true,
+                ]);
+            } else {
+                // Redirigir sin imprimir
+                return redirect()->route('prestamos');
+            }
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al finalizar préstamo: ' . $e->getMessage());

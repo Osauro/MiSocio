@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Venta;
+use App\Models\Prestamo;
 use App\Models\TenantConfig;
 use App\Services\PrinterService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -76,5 +77,45 @@ class TicketController extends Controller
                 'error' => 'Error al generar ticket ESC/POS: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Cargar préstamo con relaciones necesarias
+     */
+    private function cargarPrestamo($prestamoId)
+    {
+        if (!Auth::check()) abort(403);
+
+        return Prestamo::with(['cliente', 'user', 'prestamoItems.producto' => function ($query) {
+            $query->withTrashed();
+        }])->findOrFail($prestamoId);
+    }
+
+    /**
+     * Ticket PDF de préstamo (para descargar/imprimir)
+     */
+    public function prestamo($prestamoId)
+    {
+        $prestamo = $this->cargarPrestamo($prestamoId);
+        $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+
+        $pdf = Pdf::loadView('pdf.prestamo', compact('prestamo', 'config'));
+
+        // Ajustar tamaño del papel
+        $paperWidth = ($config->papel_tamano === '58mm') ? 164.41 : 226.77;
+        $pdf->setPaper([0, 0, $paperWidth, 850], 'portrait');
+
+        return $pdf->stream('ticket-prestamo-' . $prestamo->numero_folio . '.pdf');
+    }
+
+    /**
+     * Ticket HTML de préstamo para imprimir desde el navegador
+     */
+    public function prestamoHtml($prestamoId)
+    {
+        $prestamo = $this->cargarPrestamo($prestamoId);
+        $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+
+        return view('ticket.prestamo-print', compact('prestamo', 'config'));
     }
 }

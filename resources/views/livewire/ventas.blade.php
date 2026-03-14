@@ -474,39 +474,51 @@
                 });
             });
 
-            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:2026) ===
-            // Envía la venta al servidor local que imprime directo a la térmica.
-            // Si el servidor local no está corriendo, abre HTML como fallback.
-
-            const LICOPOS_URL = 'http://localhost:2026';
+            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:1013) ===
+            const LICOPOS_URL = 'http://localhost:1013';
 
             async function imprimirTicketLocal(ventaId) {
                 try {
-                    const response = await fetch(`${LICOPOS_URL}/?venta=${ventaId}`, {
+                    const response = await fetch(`${LICOPOS_URL}/venta/${ventaId}`, {
                         method: 'GET',
-                        mode: 'cors',
                     });
-                    const result = await response.json();
 
-                    if (result.success) {
-                        // Mostrar notificación de éxito
-                        if (typeof Swal !== 'undefined') {
-                            Swal.fire({
-                                toast: true,
-                                position: 'top-end',
-                                icon: 'success',
-                                title: result.message || 'Ticket impreso',
-                                showConfirmButton: false,
-                                timer: 2000
-                            });
-                        }
-                    } else {
-                        throw new Error(result.error || 'Error al imprimir');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+
+                    // Consumir respuesta
+                    await response.text();
+                    console.log('Ticket impreso correctamente por localhost:1013');
+
+                    // Mostrar notificación de éxito
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Ticket impreso',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
+                    return true; // Éxito - no abrir PDF
                 } catch (e) {
-                    console.warn('MiSocio Printer no disponible:', e.message);
-                    // Fallback: abrir ticket HTML para imprimir desde el navegador
-                    window.open(`/ticket/venta/${ventaId}/print`, '_blank');
+                    console.warn('MiSocio Printer no disponible, generando PDF:', e.message);
+                    // Fallback: Generar PDF y abrir para imprimir (compatible con móviles)
+                    const printWindow = window.open(`/ticket/venta/${ventaId}`, '_blank');
+                    if (printWindow) {
+                        // Intentar imprimir automáticamente cuando el PDF cargue
+                        printWindow.onload = function() {
+                            setTimeout(() => {
+                                try {
+                                    printWindow.print();
+                                } catch (err) {
+                                    console.warn('No se pudo imprimir automáticamente:', err);
+                                }
+                            }, 500);
+                        };
+                    }
                 }
             }
 

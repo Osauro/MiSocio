@@ -2,28 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Préstamo #{{ $prestamo->numero_folio }}</title>
     @php
+        // Configuración dinámica según tamaño de papel
         $is58mm = ($config->papel_tamano ?? '80mm') === '58mm';
         $paperWidth = $is58mm ? '58mm' : '80mm';
         $bodyWidth = $is58mm ? '52mm' : '70mm'; // Reducido para evitar cortes
         $logoWidth = $is58mm ? '30mm' : '40mm'; // Logo más pequeño para mejor resolución
         $logoHeight = $is58mm ? '15mm' : '20mm';
-        $fontBase = $is58mm ? '10px' : '12px';
-        $fontTienda = $is58mm ? '12px' : '15px';
-        $fontInfo = $is58mm ? '8px' : '10px';
-        $fontSeccion = $is58mm ? '10px' : '13px';
-        $fontItems = $is58mm ? '11px' : '12px';
-        $fontCant = $is58mm ? '10px' : '11px';
-        $fontTotales = $is58mm ? '10px' : '12px';
-        $fontTotal = $is58mm ? '11px' : '14px';
-        $fontMensaje = $is58mm ? '10px' : '12px';
-        $fontPie = $is58mm ? '7px' : '9px';
-        $cantWidth = $is58mm ? '35px' : '45px';
-        $precioWidth = $is58mm ? '40px' : '50px';
-        $totalWidth = $is58mm ? '45px' : '55px';
-        $labelWidth = $is58mm ? '45px' : '55px';
-        $nombreLimit = $is58mm ? 16 : 24;
+        $fontSize = $is58mm ? '10px' : '11px';
+        $lineHeight = $is58mm ? '1.2' : '1.3';
+        $margin = $is58mm ? '2mm' : '4mm';
+        $nombreLimit = $is58mm ? 16 : 22;
 
         // Función para truncar texto en el centro
         $truncateMiddle = function($text, $limit) {
@@ -34,22 +25,22 @@
         };
     @endphp
     <style>
-        /* Reset */
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* El alto es AUTO - se ajusta al contenido */
         @page {
-            /* Ancho de papel térmico dinámico */
             size: {{ $paperWidth }} auto;
-            margin: {{ $is58mm ? '2mm' : '4mm' }};
+            margin: {{ $margin }};
         }
 
         body {
             font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
-            font-size: {{ $fontBase }};
-            line-height: {{ $is58mm ? '1.2' : '1.3' }};
+            font-size: {{ $fontSize }};
+            line-height: {{ $lineHeight }};
             color: #000;
             width: {{ $bodyWidth }};
-            margin: 0 auto;
+            margin: 0;
+            padding: 0;
         }
 
         .center { text-align: center; }
@@ -58,7 +49,7 @@
 
         .logo-container {
             text-align: center;
-            margin-bottom: {{ $is58mm ? '2px' : '4px' }};
+            margin-bottom: 4px;
         }
 
         .logo {
@@ -68,68 +59,67 @@
         }
 
         .nombre-tienda {
-            font-size: {{ $fontTienda }};
+            font-size: 15px;
             font-weight: bold;
             text-align: center;
-            margin-bottom: {{ $is58mm ? '1px' : '2px' }};
+            margin-bottom: 2px;
         }
 
         .info-tienda {
             text-align: center;
-            font-size: {{ $fontInfo }};
-            margin-bottom: {{ $is58mm ? '1px' : '2px' }};
+            font-size: 10px;
+            margin-bottom: 2px;
         }
 
         .linea {
             border: none;
             border-top: 1px dashed #000;
-            margin: {{ $is58mm ? '2px 0' : '4px 0' }};
+            margin: 4px 0;
         }
 
         .linea-doble {
             border: none;
-            border-top: {{ $is58mm ? '1px' : '2px' }} solid #000;
-            margin: {{ $is58mm ? '2px 0' : '4px 0' }};
+            border-top: 2px solid #000;
+            margin: 4px 0;
         }
 
         .titulo-seccion {
             text-align: center;
             font-weight: bold;
-            font-size: {{ $fontSeccion }};
-            letter-spacing: {{ $is58mm ? '1px' : '2px' }};
-            margin: {{ $is58mm ? '1px 0' : '2px 0' }};
+            font-size: 13px;
+            letter-spacing: 2px;
+            margin: 2px 0;
         }
 
         .datos-prestamo {
-            font-size: {{ $fontItems }};
+            font-size: 11px;
+            width: 100%;
         }
 
         .datos-prestamo td {
-            padding: {{ $is58mm ? '0' : '1px 0' }};
+            padding: 1px 0;
             vertical-align: top;
         }
 
         .datos-prestamo .label {
             font-weight: bold;
-            width: {{ $labelWidth }};
+            width: 55px;
         }
 
-        /* Tabla de items */
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: {{ $fontItems }};
-            margin: {{ $is58mm ? '1px 0' : '2px 0' }};
+            font-size: 12px;
+            margin: 2px 0;
         }
 
         .items-table td {
-            padding: {{ $is58mm ? '1px 0' : '2px 0' }};
+            padding: 2px 0;
             vertical-align: top;
         }
 
         .items-table .producto {
             text-align: left;
-            font-size: {{ $fontItems }};
             font-weight: 500;
         }
 
@@ -142,65 +132,50 @@
             display: inline;
         }
 
-        .items-table .precio {
-            width: {{ $precioWidth }};
-            text-align: right;
-        }
+        .items-table .precio { width: 55px; text-align: right; font-weight: bold; }
 
-        /* Totales */
         .totales-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: {{ $fontTotales }};
+            font-size: 12px;
         }
 
-        .totales-table td {
-            padding: {{ $is58mm ? '0' : '1px 0' }};
-        }
+        .totales-table td { padding: 1px 0; }
+        .totales-table .total-label { text-align: right; font-weight: bold; padding-right: 4px; }
+        .totales-table .total-valor { text-align: right; width: 55px; }
 
-        .totales-table .total-label {
-            text-align: right;
-            font-weight: bold;
-            padding-right: {{ $is58mm ? '2px' : '4px' }};
-        }
-
-        .totales-table .total-valor {
-            text-align: right;
-            width: {{ $totalWidth }};
-        }
-
-        .total-principal {
-            font-size: {{ $fontTotal }};
-            font-weight: bold;
-        }
+        .total-principal { font-size: 14px; font-weight: bold; }
 
         .mensaje-final {
             text-align: center;
             font-weight: bold;
-            font-size: {{ $fontMensaje }};
-            margin: {{ $is58mm ? '3px 0 1px' : '6px 0 2px' }};
-        }
-
-        .alerta-prestamo {
-            text-align: center;
-            font-weight: bold;
-            font-size: {{ $fontMensaje }};
-            background-color: #f0f0f0;
-            border: 1px solid #333;
-            padding: {{ $is58mm ? '2px' : '3px' }};
-            margin: {{ $is58mm ? '2px 0' : '4px 0' }};
+            font-size: 13px;
+            margin: 6px 0 2px;
         }
 
         .pie {
             text-align: center;
-            font-size: {{ $fontPie }};
+            font-size: 10px;
             color: #555;
-            margin-top: {{ $is58mm ? '2px' : '4px' }};
+            margin-top: 4px;
         }
 
-        /* Auto-print al abrir */
+        /* Resaltar información del préstamo */
+        .info-prestamo {
+            background-color: #f0f0f0;
+            border: 1px solid #333;
+            padding: 3px;
+            margin: 4px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Ocultar controles en impresión */
+        .no-print { display: block; text-align: center; margin: 10px 0; }
         @media print {
-            body { width: 100%; }
+            body { width: 100%; padding: 0; }
+            .no-print { display: none !important; }
+            .info-prestamo { background-color: #f0f0f0; }
         }
     </style>
 </head>
@@ -208,7 +183,7 @@
     {{-- Logo --}}
     @if($config->logo)
         <div class="logo-container">
-            <img src="{{ public_path('storage/' . $config->logo) }}" class="logo" alt="Logo">
+            <img src="{{ asset('storage/' . $config->logo) }}" class="logo" alt="Logo">
         </div>
     @endif
 
@@ -227,14 +202,11 @@
     @endif
 
     <hr class="linea-doble">
-
-    {{-- Título --}}
     <div class="titulo-seccion">Préstamo #{{ $prestamo->numero_folio }}</div>
-
     <hr class="linea-doble">
 
     {{-- Datos del préstamo --}}
-    <table class="datos-prestamo" width="100%">
+    <table class="datos-prestamo">
         <tr>
             <td class="label">FECHA:</td>
             <td>{{ \Carbon\Carbon::parse($prestamo->fecha_prestamo)->format('d/m/Y H:i:s') }}</td>
@@ -260,10 +232,7 @@
     </table>
 
     <hr class="linea">
-
-    {{-- Detalle --}}
     <div class="center bold" style="letter-spacing: 3px; margin: 2px 0;">P R O D U C T O S</div>
-
     <hr class="linea">
 
     {{-- Items --}}
@@ -291,22 +260,36 @@
 
     <hr class="linea-doble">
 
-    {{-- Alerta de préstamo --}}
-    <div class="alerta-prestamo">
+    {{-- Información importante del préstamo --}}
+    <div class="info-prestamo">
         ⚠️ PRÉSTAMO - DEBE DEVOLVERSE
     </div>
 
-    {{-- Mensaje final --}}
-    <div class="mensaje-final">¡GRACIAS POR SU PREFERENCIA!</div>
-
-    @if($config->propietario_celular)
-        <div class="center" style="font-size: 10px; margin-top: 2px;">
-            CEL: {{ $config->propietario_celular }}
-        </div>
-    @endif
+    <div class="mensaje-final">{{ $config->mensaje_ticket ?? '¡GRACIAS POR SU PREFERENCIA!' }}</div>
 
     <div class="pie">
-        {{ now()->format('d/m/Y H:i:s') }} | MiSocio
+        Sistema MiSocio<br>
+        {{ now()->format('d/m/Y H:i:s') }}
     </div>
+
+    {{-- Botones de acción (no se imprimen) --}}
+    <div class="no-print">
+        <button onclick="window.print()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; margin: 5px;">
+            🖨️ Imprimir
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; font-size: 14px; cursor: pointer; background: #6c757d; color: white; border: none; border-radius: 4px; margin: 5px;">
+            ✖️ Cerrar
+        </button>
+    </div>
+
+    <script>
+        // Auto-imprimir cuando la página cargue completamente
+        window.addEventListener('load', function() {
+            // Dar un pequeño delay para que el contenido se renderice completamente
+            setTimeout(function() {
+                window.print();
+            }, 250);
+        });
+    </script>
 </body>
 </html>

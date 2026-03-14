@@ -758,27 +758,51 @@
                 }, 50);
             });
 
-            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:2026) ===
-            const LICOPOS_URL = 'http://localhost:2026';
+            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:1013) ===
+            const LICOPOS_URL = 'http://localhost:1013';
 
             async function imprimirTicketLocal(ventaId) {
                 try {
-                    const response = await fetch(`${LICOPOS_URL}/?venta=${ventaId}`, {
+                    const response = await fetch(`${LICOPOS_URL}/venta/${ventaId}`, {
                         method: 'GET',
-                        mode: 'cors',
                     });
-                    const result = await response.json();
-                    if (!result.success) {
-                        throw new Error(result.error || 'Error al imprimir');
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+
+                    // Consumir respuesta
+                    await response.text();
+                    console.log('Ticket impreso correctamente por localhost:1013');
+                    return true; // Éxito - no abrir PDF
                 } catch (e) {
-                    console.warn('MiSocio Printer no disponible:', e.message);
-                    window.open(`/ticket/venta/${ventaId}/print`, '_blank');
+                    console.warn('MiSocio Printer no disponible, generando PDF:', e.message);
+                    // Fallback: Generar PDF y abrir para imprimir (compatible con móviles)
+                    const printWindow = window.open(`/ticket/venta/${ventaId}`, '_blank');
+                    if (printWindow) {
+                        // Intentar imprimir automáticamente cuando el PDF cargue
+                        printWindow.onload = function() {
+                            setTimeout(() => {
+                                try {
+                                    printWindow.print();
+                                } catch (err) {
+                                    console.warn('No se pudo imprimir automáticamente:', err);
+                                }
+                            }, 500);
+                        };
+                    }
                 }
             }
 
-            // Al finalizar venta: redirigir a ventas (sin impresión automática)
+            // Al finalizar venta: imprimir automáticamente si está configurado y redirigir
             $wire.on('abrir-ticket-y-redirigir', async (data) => {
+                const ventaId = data[0]?.ventaId || data.ventaId;
+                const autoPrint = data[0]?.autoPrint || data.autoPrint || false;
+
+                if (autoPrint) {
+                    await imprimirTicketLocal(ventaId);
+                }
+
                 setTimeout(() => {
                     window.location.href = '{{ route("ventas") }}';
                 }, 500);

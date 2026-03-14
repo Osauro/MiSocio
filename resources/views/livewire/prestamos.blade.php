@@ -295,29 +295,39 @@
                         </div>
                     </div>
 
-                    <div class="modal-footer bg-light">
-                        <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
-                            <small class="text-muted">
-                                <i class="fa-solid fa-user-tie me-1"></i>{{ $prestamoSeleccionado->user->name ?? 'Usuario' }}
-                            </small>
-                            <small class="text-muted">
-                                <i class="fa-solid fa-user me-1"></i>{{ $prestamoSeleccionado->cliente->nombre ?? 'Sin cliente' }}
-                            </small>
-                            @if ($prestamoSeleccionado->estado === 'Prestado')
-                                <button type="button" class="btn btn-success" wire:click="procesarDevolucion"
-                                    wire:loading.attr="disabled" @if ($procesandoDevolucion) disabled @endif>
-                                    <span wire:loading.remove wire:target="procesarDevolucion">
-                                        <i class="fa-solid fa-rotate-left me-1"></i>Devolver
+                    <div class="modal-footer bg-light py-2">
+                        <div class="d-flex justify-content-between align-items-center w-100 gap-2">
+                            <div class="row g-2 flex-grow-1">
+                                <div class="col-6">
+                                    <div class="rounded px-2 py-1 text-center" style="background-color: #f0f0f0;">
+                                        <small class="text-muted d-block" style="font-size: 0.7rem;"><i class="fa-solid fa-user-tie me-1"></i>Vendedor</small>
+                                        <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $prestamoSeleccionado->user->name ?? 'Usuario' }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="rounded px-2 py-1 text-center" style="background-color: #f0f0f0;">
+                                        <small class="text-muted d-block" style="font-size: 0.7rem;"><i class="fa-solid fa-user me-1"></i>Cliente</small>
+                                        <span class="fw-bold text-dark" style="font-size: 0.8rem;">{{ $prestamoSeleccionado->cliente->nombre ?? 'Sin cliente' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex-shrink-0">
+                                @if ($prestamoSeleccionado->estado === 'Prestado')
+                                    <button type="button" class="btn btn-success btn-sm" wire:click="procesarDevolucion"
+                                        wire:loading.attr="disabled" @if ($procesandoDevolucion) disabled @endif>
+                                        <span wire:loading.remove wire:target="procesarDevolucion">
+                                            <i class="fa-solid fa-rotate-left me-1"></i>Devolver
+                                        </span>
+                                        <span wire:loading wire:target="procesarDevolucion">
+                                            <i class="fa-solid fa-spinner fa-spin me-1"></i>Procesando...
+                                        </span>
+                                    </button>
+                                @else
+                                    <span class="badge bg-{{ $prestamoSeleccionado->estado === 'Devuelto' ? 'success' : ($prestamoSeleccionado->estado_real === 'Vencido' ? 'danger' : 'secondary') }} fs-6">
+                                        {{ $prestamoSeleccionado->estado_real }}
                                     </span>
-                                    <span wire:loading wire:target="procesarDevolucion">
-                                        <i class="fa-solid fa-spinner fa-spin me-1"></i>Procesando...
-                                    </span>
-                                </button>
-                            @else
-                                <span class="badge bg-{{ $prestamoSeleccionado->estado === 'Devuelto' ? 'success' : ($prestamoSeleccionado->estado_real === 'Vencido' ? 'danger' : 'secondary') }} fs-6">
-                                    {{ $prestamoSeleccionado->estado_real }}
-                                </span>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -362,6 +372,60 @@
                     confirmButtonColor: data.type === 'success' ? '#28a745' : '#d33',
                     confirmButtonText: 'Aceptar'
                 });
+            });
+
+            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:1013) ===
+            const LICOPOS_URL = 'http://localhost:1013';
+
+            async function imprimirTicketPrestamo(prestamoId) {
+                try {
+                    const response = await fetch(`${LICOPOS_URL}/prestamo/${prestamoId}`, {
+                        method: 'GET',
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    // Consumir respuesta
+                    await response.text();
+                    console.log('Ticket préstamo impreso correctamente por localhost:1013');
+
+                    // Mostrar notificación de éxito
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Ticket impreso',
+                            showConfirmButton: false,
+                            timer: 2000
+                        });
+                    }
+                    return true; // Éxito - no abrir PDF
+                } catch (e) {
+                    console.warn('MiSocio Printer no disponible, generando PDF:', e.message);
+                    // Fallback: Generar PDF y abrir para imprimir (compatible con móviles)
+                    const printWindow = window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
+                    if (printWindow) {
+                        // Intentar imprimir automáticamente cuando el PDF cargue
+                        printWindow.onload = function() {
+                            setTimeout(() => {
+                                try {
+                                    printWindow.print();
+                                } catch (err) {
+                                    console.warn('No se pudo imprimir automáticamente:', err);
+                                }
+                            }, 500);
+                        };
+                    }
+                }
+            }
+
+            // Escuchar evento de Livewire para imprimir
+            $wire.on('abrir-ticket-prestamo', (data) => {
+                const info = data[0] || data;
+                imprimirTicketPrestamo(info.prestamoId);
             });
         </script>
     @endscript

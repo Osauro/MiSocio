@@ -44,6 +44,9 @@ class Config extends Component
     public $abrir_cajon;
     public $sonido_apertura;
     public $ancho_caracteres;
+    public $impresion_auto_venta;
+    public $impresion_auto_prestamo;
+    public $impresion_auto_inventario;
 
     // WhatsApp API
     public $whatsapp_token;
@@ -100,6 +103,12 @@ class Config extends Component
 
     public function mount()
     {
+        $savedTab = $_COOKIE['config_active_tab'] ?? null;
+        $allowed = ['general', 'impresion', 'whatsapp', 'facebook', 'importacion'];
+        if ($savedTab && in_array($savedTab, $allowed)) {
+            $this->activeTab = $savedTab;
+        }
+
         $this->cargarConfiguracion();
     }
 
@@ -135,6 +144,9 @@ class Config extends Component
         $this->abrir_cajon = $config->abrir_cajon ?? false;
         $this->sonido_apertura = $config->sonido_apertura ?? false;
         $this->ancho_caracteres = $config->ancho_caracteres ?? 48;
+        $this->impresion_auto_venta = $config->impresion_auto_venta ?? false;
+        $this->impresion_auto_prestamo = $config->impresion_auto_prestamo ?? false;
+        $this->impresion_auto_inventario = $config->impresion_auto_inventario ?? false;
 
         // WhatsApp
         $this->whatsapp_token = $config->whatsapp_token;
@@ -152,7 +164,10 @@ class Config extends Component
 
     public function setTab($tab)
     {
-        $this->activeTab = $tab;
+        $allowed = ['general', 'impresion', 'whatsapp', 'facebook', 'importacion'];
+        if (in_array($tab, $allowed)) {
+            $this->activeTab = $tab;
+        }
     }
 
     public function guardarGeneral()
@@ -206,7 +221,14 @@ class Config extends Component
             }
         }
 
-        $this->alertSuccess('Configuración general guardada correctamente');
+        $this->toast('success', 'Configuración guardada');
+    }
+
+    public function updatedNuevoLogo()
+    {
+        if ($this->nuevo_logo) {
+            $this->guardarGeneral();
+        }
     }
 
     public function guardarImpresion()
@@ -220,6 +242,9 @@ class Config extends Component
             'abrir_cajon' => 'boolean',
             'sonido_apertura' => 'boolean',
             'ancho_caracteres' => 'nullable|integer|min:32|max:80',
+            'impresion_auto_venta' => 'boolean',
+            'impresion_auto_prestamo' => 'boolean',
+            'impresion_auto_inventario' => 'boolean',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -232,9 +257,12 @@ class Config extends Component
             'abrir_cajon' => $this->abrir_cajon ?? false,
             'sonido_apertura' => $this->sonido_apertura ?? false,
             'ancho_caracteres' => $this->ancho_caracteres ?? 48,
+            'impresion_auto_venta' => $this->impresion_auto_venta ?? false,
+            'impresion_auto_prestamo' => $this->impresion_auto_prestamo ?? false,
+            'impresion_auto_inventario' => $this->impresion_auto_inventario ?? false,
         ]);
 
-        $this->alertSuccess('Configuración de impresión guardada correctamente');
+        $this->toast('success', 'Impresión guardada');
     }
 
     public function eliminarLogo()
@@ -328,7 +356,7 @@ class Config extends Component
             'whatsapp_enabled' => $this->whatsapp_enabled ?? false,
         ]);
 
-        $this->alertSuccess('Configuración de WhatsApp guardada correctamente');
+        $this->toast('success', 'WhatsApp guardado');
     }
 
     public function guardarFacebook()
@@ -346,7 +374,7 @@ class Config extends Component
             'facebook_enabled' => $this->facebook_enabled ?? false,
         ]);
 
-        $this->alertSuccess('Configuración de Facebook guardada correctamente');
+        $this->toast('success', 'Facebook guardado');
     }
 
     public function guardarImportacion()
@@ -360,7 +388,7 @@ class Config extends Component
             'formato_importacion' => $this->formato_importacion,
         ]);
 
-        $this->alertSuccess('Configuración de importación guardada correctamente');
+        $this->toast('success', 'Importación guardada');
     }
 
     public function iniciarServicioPrinter()
@@ -427,6 +455,23 @@ class Config extends Component
         }
 
         return $this->alertError('No se encontró el archivo de inicio del servicio en ' . $printerPath);
+    }
+
+    public function verificarServicioImpresion()
+    {
+        $connected = false;
+        $version = '';
+        try {
+            $socket = @fsockopen('127.0.0.1', 1013, $errno, $errstr, 2);
+            if ($socket) {
+                fclose($socket);
+                $connected = true;
+            }
+        } catch (\Throwable $e) {
+            $connected = false;
+        }
+
+        $this->dispatch('printer-status', connected: $connected, version: $version);
     }
 
     public function render()

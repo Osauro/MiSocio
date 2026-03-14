@@ -3,24 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket #{{ $venta->numero_folio }}</title>
+    <title>Venta #{{ $venta->numero_folio }}</title>
+    @php
+        // Configuración dinámica según tamaño de papel
+        $is58mm = ($config->papel_tamano ?? '80mm') === '58mm';
+        $paperWidth = $is58mm ? '58mm' : '80mm';
+        $bodyWidth = $is58mm ? '52mm' : '70mm'; // Reducido para evitar cortes
+        $logoWidth = $is58mm ? '30mm' : '40mm'; // Logo más pequeño para mejor resolución
+        $logoHeight = $is58mm ? '15mm' : '20mm';
+        $fontSize = $is58mm ? '10px' : '11px';
+        $lineHeight = $is58mm ? '1.2' : '1.3';
+        $margin = $is58mm ? '2mm' : '4mm';
+        $nombreLimit = $is58mm ? 16 : 22;
+
+        // Función para truncar texto en el centro
+        $truncateMiddle = function($text, $limit) {
+            if (mb_strlen($text) <= $limit) return $text;
+            $start = (int) floor(($limit - 3) / 2);
+            $end = (int) ceil(($limit - 3) / 2);
+            return mb_substr($text, 0, $start) . '...' . mb_substr($text, -$end);
+        };
+    @endphp
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         /* El alto es AUTO - se ajusta al contenido */
         @page {
-            size: 80mm auto;
-            margin: 2mm 3mm;
+            size: {{ $paperWidth }} auto;
+            margin: {{ $margin }};
         }
 
         body {
-            font-family: 'Courier New', 'Lucida Console', monospace;
-            font-size: 11px;
-            line-height: 1.3;
+            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
+            font-size: {{ $fontSize }};
+            line-height: {{ $lineHeight }};
             color: #000;
-            width: 74mm;
-            margin: 0 auto;
-            padding: 2mm;
+            width: {{ $bodyWidth }};
+            margin: 0;
+            padding: 0;
         }
 
         .center { text-align: center; }
@@ -30,12 +50,12 @@
         .logo {
             display: block;
             margin: 0 auto 4px;
-            max-width: 50mm;
-            max-height: 25mm;
+            max-width: {{ $logoWidth }};
+            max-height: {{ $logoHeight }};
         }
 
         .nombre-tienda {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
             text-align: center;
             margin-bottom: 2px;
@@ -79,7 +99,7 @@
 
         .datos-venta .label {
             font-weight: bold;
-            width: 70px;
+            width: 55px;
         }
 
         .items-table {
@@ -94,9 +114,9 @@
             vertical-align: top;
         }
 
-        .items-table .cant { width: 55px; text-align: left; white-space: nowrap; font-size: 10px; }
+        .items-table .cant { width: 45px; text-align: left; white-space: nowrap; font-size: 10px; font-weight: bold; }
         .items-table .nombre { text-align: left; overflow: hidden; white-space: nowrap; }
-        .items-table .precio { width: 55px; text-align: right; }
+        .items-table .precio { width: 55px; text-align: right; font-weight: bold; }
 
         .totales-table {
             width: 100%;
@@ -105,21 +125,21 @@
         }
 
         .totales-table td { padding: 1px 0; }
-        .totales-table .total-label { text-align: right; font-weight: bold; padding-right: 8px; }
-        .totales-table .total-valor { text-align: right; width: 65px; }
+        .totales-table .total-label { text-align: right; font-weight: bold; padding-right: 4px; }
+        .totales-table .total-valor { text-align: right; width: 55px; }
 
         .total-principal { font-size: 14px; font-weight: bold; }
 
         .mensaje-final {
             text-align: center;
             font-weight: bold;
-            font-size: 12px;
+            font-size: 13px;
             margin: 6px 0 2px;
         }
 
         .pie {
             text-align: center;
-            font-size: 9px;
+            font-size: 10px;
             color: #555;
             margin-top: 4px;
         }
@@ -153,7 +173,7 @@
     @endif
 
     <hr class="linea-doble">
-    <div class="titulo-seccion">TICKET DE VENTA</div>
+    <div class="titulo-seccion">Venta #{{ $venta->numero_folio }}</div>
     <hr class="linea-doble">
 
     {{-- Datos de la venta --}}
@@ -170,10 +190,6 @@
             <td class="label">CLIENTE:</td>
             <td>{{ $venta->cliente->nombre ?? 'Consumidor Final' }}</td>
         </tr>
-        <tr>
-            <td class="label">FOLIO:</td>
-            <td>#{{ $venta->numero_folio }}</td>
-        </tr>
     </table>
 
     <hr class="linea">
@@ -185,7 +201,7 @@
         @foreach($venta->ventaItems as $item)
             <tr>
                 <td class="cant">{{ $item->cantidad_formateada }}</td>
-                <td class="nombre">{{ Str::limit($item->producto->nombre ?? 'Producto', 22, '') }}</td>
+                <td class="nombre">{{ $truncateMiddle($item->producto->nombre ?? 'Producto', $nombreLimit) }}</td>
                 <td class="precio">{{ number_format($item->subtotal, 2) }}</td>
             </tr>
         @endforeach
