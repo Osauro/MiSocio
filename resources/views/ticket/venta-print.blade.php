@@ -14,7 +14,7 @@
         $fontSize = $is58mm ? '11px' : '12px'; // Aumentado
         $lineHeight = $is58mm ? '1.3' : '1.4'; // Aumentado
         $margin = $is58mm ? '2mm' : '4mm';
-        $nombreLimit = $is58mm ? 16 : 22;
+        $nombreLimit = $is58mm ? 22 : 32; // Incluye cantidad + nombre
 
         // Función para truncar texto en el centro
         $truncateMiddle = function($text, $limit) {
@@ -121,17 +121,6 @@
         .items-table .producto {
             text-align: left;
             font-weight: 500;
-        }
-
-        .items-table .producto .cant {
-            font-weight: bold;
-            display: inline;
-            font-size: 12px;
-            padding-right: 5px;
-        }
-
-        .items-table .producto .nombre {
-            display: inline;
             font-size: 12px;
         }
 
@@ -267,11 +256,11 @@
     {{-- Items --}}
     <table class="items-table">
         @foreach($venta->ventaItems as $item)
+            @php
+                $textoCompleto = $item->cantidad_formateada . ' ' . ($item->producto->nombre ?? 'Producto');
+            @endphp
             <tr>
-                <td class="producto">
-                    <span class="cant">{{ $item->cantidad_formateada }}</span>
-                    <span class="nombre">{{ $truncateMiddle($item->producto->nombre ?? 'Producto', $nombreLimit) }}</span>
-                </td>
+                <td class="producto">{{ $truncateMiddle($textoCompleto, $nombreLimit) }}</td>
                 <td class="precio">{{ number_format($item->subtotal, 2) }}</td>
             </tr>
         @endforeach
