@@ -294,7 +294,7 @@
     </a>
     <div class="lp-nav-links">
         @auth
-            <a href="{{ url('/home') }}" class="btn-nav-login">Mi Panel</a>
+            <a href="{{ route('dashboard') }}" class="btn-nav-login">Mi Panel</a>
         @else
             <a href="{{ route('login') }}" class="btn-nav-login">Iniciar Sesión</a>
             @if(Route::has('register'))
