@@ -11,8 +11,8 @@
         $bodyWidth = $is58mm ? '52mm' : '70mm'; // Reducido para evitar cortes
         $logoWidth = $is58mm ? '30mm' : '40mm'; // Logo más pequeño para mejor resolución
         $logoHeight = $is58mm ? '15mm' : '20mm';
-        $fontSize = $is58mm ? '10px' : '11px';
-        $lineHeight = $is58mm ? '1.2' : '1.3';
+        $fontSize = $is58mm ? '11px' : '12px'; // Aumentado
+        $lineHeight = $is58mm ? '1.3' : '1.4'; // Aumentado
         $margin = $is58mm ? '2mm' : '4mm';
         $nombreLimit = $is58mm ? 16 : 22;
 
@@ -34,13 +34,14 @@
         }
 
         body {
-            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Courier New', monospace;
             font-size: {{ $fontSize }};
             line-height: {{ $lineHeight }};
             color: #000;
             width: {{ $bodyWidth }};
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         .center { text-align: center; }
@@ -105,18 +106,35 @@
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 12px;
             margin: 2px 0;
         }
 
         .items-table td {
-            padding: 2px 0;
+            padding: 2px 2px;
             vertical-align: top;
         }
 
-        .items-table .cant { width: 45px; text-align: left; white-space: nowrap; font-size: 10px; font-weight: bold; }
-        .items-table .nombre { text-align: left; overflow: hidden; white-space: nowrap; }
-        .items-table .precio { width: 55px; text-align: right; font-weight: bold; }
+        .items-table .cant { 
+            width: 30px; 
+            text-align: left; 
+            white-space: nowrap; 
+            font-size: 12px; 
+            font-weight: bold;
+            padding-right: 5px;
+        }
+        .items-table .nombre { 
+            text-align: left; 
+            overflow: hidden; 
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        .items-table .precio { 
+            width: 55px; 
+            text-align: right; 
+            font-weight: bold;
+            font-size: 12px;
+        }
 
         .totales-table {
             width: 100%;

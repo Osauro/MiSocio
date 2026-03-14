@@ -11,8 +11,8 @@
         $bodyWidth = $is58mm ? '52mm' : '70mm'; // Reducido para evitar cortes
         $logoWidth = $is58mm ? '30mm' : '40mm'; // Logo más pequeño para mejor resolución
         $logoHeight = $is58mm ? '15mm' : '20mm';
-        $fontSize = $is58mm ? '10px' : '11px';
-        $lineHeight = $is58mm ? '1.2' : '1.3';
+        $fontSize = $is58mm ? '11px' : '12px'; // Aumentado
+        $lineHeight = $is58mm ? '1.3' : '1.4'; // Aumentado
         $margin = $is58mm ? '2mm' : '4mm';
         $nombreLimit = $is58mm ? 16 : 22;
 
@@ -34,13 +34,14 @@
         }
 
         body {
-            font-family: 'DejaVu Sans Mono', 'Courier New', monospace;
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Courier New', monospace;
             font-size: {{ $fontSize }};
             line-height: {{ $lineHeight }};
             color: #000;
             width: {{ $bodyWidth }};
             margin: 0;
             padding: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         .center { text-align: center; }
@@ -126,10 +127,13 @@
         .items-table .producto .cant {
             font-weight: bold;
             display: inline;
+            font-size: 12px;
+            padding-right: 5px;
         }
 
         .items-table .producto .nombre {
             display: inline;
+            font-size: 12px;
         }
 
         .items-table .precio { width: 55px; text-align: right; font-weight: bold; }
