@@ -389,19 +389,19 @@
                     <div class="mockup-chart-bar"><div class="fill" style="width:88%"></div></div>
                     <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px">Últimas ventas</div>
                     <div class="mockup-sale-row">
-                        <div class="mockup-sale-icon" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
-                        <div class="mockup-sale-info"><div class="name">Arroz x 5kg</div><div class="time">hace 3 min</div></div>
-                        <div class="mockup-sale-amount">Bs. 60</div>
+                        <div class="mockup-sale-icon" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-bottle-water" style="font-size:.7rem"></i></div>
+                        <div class="mockup-sale-info"><div class="name">Coca-Cola 2L</div><div class="time">hace 3 min</div></div>
+                        <div class="mockup-sale-amount">Bs. 14</div>
                     </div>
                     <div class="mockup-sale-row">
-                        <div class="mockup-sale-icon" style="background:#dbeafe;color:#2563eb"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
-                        <div class="mockup-sale-info"><div class="name">Aceite Fino 1L</div><div class="time">hace 8 min</div></div>
-                        <div class="mockup-sale-amount">Bs. 18</div>
+                        <div class="mockup-sale-icon" style="background:#dbeafe;color:#2563eb"><i class="fa-solid fa-bottle-water" style="font-size:.7rem"></i></div>
+                        <div class="mockup-sale-info"><div class="name">Agua Vital 600ml x6</div><div class="time">hace 8 min</div></div>
+                        <div class="mockup-sale-amount">Bs. 22</div>
                     </div>
                     <div class="mockup-sale-row">
-                        <div class="mockup-sale-icon" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
-                        <div class="mockup-sale-info"><div class="name">Leche PIL 1L x6</div><div class="time">hace 15 min</div></div>
-                        <div class="mockup-sale-amount">Bs. 42</div>
+                        <div class="mockup-sale-icon" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-bottle-water" style="font-size:.7rem"></i></div>
+                        <div class="mockup-sale-info"><div class="name">Manzana Sprite 1.5L</div><div class="time">hace 15 min</div></div>
+                        <div class="mockup-sale-amount">Bs. 10</div>
                     </div>
                 </div>
             </div>
