@@ -133,7 +133,14 @@
         .hero-mockup {
             background: #fff; border-radius: 20px;
             box-shadow: 0 30px 80px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.05);
-            overflow: hidden; animation: float 6s ease-in-out infinite;
+            overflow: hidden;
+        }
+        .hero-mascot-corner {
+            position: absolute; bottom: -30px; right: -30px;
+            height: 190px; width: auto; object-fit: contain;
+            filter: drop-shadow(0 10px 24px rgba(0,0,0,.18));
+            animation: float 5s ease-in-out infinite;
+            pointer-events: none;
         }
         .mockup-topbar {
             background: linear-gradient(135deg, var(--brand), var(--brand-dark));
@@ -364,11 +371,42 @@
                 <div class="fbi" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-arrow-trend-up"></i></div>
                 <div><div style="font-size:.65rem;color:#64748b;font-weight:600">Ventas hoy</div><div style="color:#0f1923">+23% este mes</div></div>
             </div>
-            <img src="{{ asset('assets/images/mascota-pulgar.png') }}" alt="MiSocio" class="hero-mascot-img" onerror="this.style.display='none'" />
-            <div class="float-badge bottom-right">
-                <div class="fbi" style="background:#ede9fe;color:#7c3aed"><i class="fa-solid fa-box"></i></div>
-                <div><div style="font-size:.65rem;color:#64748b;font-weight:600">Stock bajo</div><div style="color:#0f1923">3 productos</div></div>
+            <div class="hero-mockup">
+                <div class="mockup-topbar">
+                    <div class="mockup-dots"><span></span><span></span><span></span></div>
+                    <div class="mockup-title">MiSocio — Panel Principal</div>
+                    <div style="width:48px"></div>
+                </div>
+                <div class="mockup-body">
+                    <div class="mockup-metric-row">
+                        <div class="mockup-metric"><div class="label">Ventas hoy</div><div class="value green">Bs. 842</div></div>
+                        <div class="mockup-metric"><div class="label">Productos</div><div class="value">127</div></div>
+                        <div class="mockup-metric"><div class="label">Clientes</div><div class="value orange">48</div></div>
+                    </div>
+                    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Actividad semanal</div>
+                    <div class="mockup-chart-bar"><div class="fill" style="width:72%"></div></div>
+                    <div class="mockup-chart-bar"><div class="fill" style="width:45%"></div></div>
+                    <div class="mockup-chart-bar"><div class="fill" style="width:88%"></div></div>
+                    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px">Últimas ventas</div>
+                    <div class="mockup-sale-row">
+                        <div class="mockup-sale-icon" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
+                        <div class="mockup-sale-info"><div class="name">Arroz x 5kg</div><div class="time">hace 3 min</div></div>
+                        <div class="mockup-sale-amount">Bs. 60</div>
+                    </div>
+                    <div class="mockup-sale-row">
+                        <div class="mockup-sale-icon" style="background:#dbeafe;color:#2563eb"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
+                        <div class="mockup-sale-info"><div class="name">Aceite Fino 1L</div><div class="time">hace 8 min</div></div>
+                        <div class="mockup-sale-amount">Bs. 18</div>
+                    </div>
+                    <div class="mockup-sale-row">
+                        <div class="mockup-sale-icon" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-bag-shopping" style="font-size:.7rem"></i></div>
+                        <div class="mockup-sale-info"><div class="name">Leche PIL 1L x6</div><div class="time">hace 15 min</div></div>
+                        <div class="mockup-sale-amount">Bs. 42</div>
+                    </div>
+                </div>
             </div>
+            <!-- Mascota pequeña en esquina inferior derecha del mockup -->
+            <img src="{{ asset('assets/images/mascota-pulgar.png') }}" alt="" class="hero-mascot-corner" onerror="this.style.display='none'" />
         </div>
     </div>
 </section>
