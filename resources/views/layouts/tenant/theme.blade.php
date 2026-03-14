@@ -54,6 +54,7 @@
         :root {
             --theme-default: {{ $themeColor }};
             --primary-color: {{ $themeColor }};
+            --livewire-progress-bar-color: {{ $themeColor }};
         }
 
         /* Fix para backdrop y modales de Bootstrap */
