@@ -272,10 +272,18 @@
         {{ now()->format('d/m/Y H:i:s') }}
     </div>
 
-    {{-- Botón flotante para imprimir (visible solo en pantalla) --}}
-    <button class="no-print boton-flotante" onclick="window.print()" title="Imprimir ticket">
-        🖨️
-    </button>
+    {{-- Botones flotantes (visible solo en pantalla) --}}
+    <div class="no-print botones-flotantes">
+        <button class="boton-flotante" onclick="window.print()" title="Imprimir ticket">
+            🖨️
+        </button>
+        <button class="boton-flotante boton-compartir" onclick="compartirTicket()" title="Compartir / Descargar">
+            📥
+        </button>
+        <button class="boton-flotante boton-cerrar" onclick="window.close()" title="Cerrar ventana">
+            ✕
+        </button>
+    </div>
 
     {{-- Botones de acción (no se imprimen) --}}
     <div class="no-print">
@@ -295,6 +303,29 @@
                 window.print();
             }, 250);
         });
+
+        // Función para compartir/descargar ticket
+        function compartirTicket() {
+            // Detectar si es dispositivo móvil
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // En móviles: Abrir PDF para que Android muestre "Abrir con"
+                const prestamoId = window.location.pathname.split('/').pop();
+                window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
+            } else {
+                // En escritorio: Intentar usar la API de compartir si está disponible
+                if (navigator.share) {
+                    navigator.share({
+                        title: document.title,
+                        url: window.location.href
+                    }).catch(err => console.log('Error al compartir:', err));
+                } else {
+                    // Fallback: Descargar el ticket como antes
+                    window.print();
+                }
+            }
+        }
     </script>
 </body>
 </html>

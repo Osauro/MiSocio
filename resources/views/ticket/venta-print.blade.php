@@ -150,6 +150,50 @@
             body { width: 100%; padding: 0; }
             .no-print { display: none !important; }
         }
+
+        /* Botones flotantes en la esquina inferior derecha */
+        .botones-flotantes {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .boton-flotante {
+            background: #28a745;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .boton-flotante:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+
+        .boton-flotante:active {
+            transform: scale(0.95);
+        }
+
+        .boton-compartir {
+            background: #007bff;
+        }
+
+        .boton-cerrar {
+            background: #dc3545;
+        }
     </style>
 </head>
 <body>
@@ -254,10 +298,18 @@
         {{ now()->format('d/m/Y H:i:s') }} | MiSocio
     </div>
 
-    {{-- Botón flotante para imprimir (visible solo en pantalla) --}}
-    <button class="no-print boton-flotante" onclick="window.print()" title="Imprimir ticket">
-        🖨️
-    </button>
+    {{-- Botones flotantes (visible solo en pantalla) --}}
+    <div class="no-print botones-flotantes">
+        <button class="boton-flotante" onclick="window.print()" title="Imprimir ticket">
+            🖨️
+        </button>
+        <button class="boton-flotante boton-compartir" onclick="compartirTicket()" title="Compartir / Descargar">
+            📥
+        </button>
+        <button class="boton-flotante boton-cerrar" onclick="window.close()" title="Cerrar ventana">
+            ✕
+        </button>
+    </div>
 
     {{-- Botones para reimprimir (visible solo en pantalla) --}}
     <div class="no-print" style="margin-top: 15px;">
@@ -276,6 +328,29 @@
                 window.print();
             }, 300);
         });
+
+        // Función para compartir/descargar ticket
+        function compartirTicket() {
+            // Detectar si es dispositivo móvil
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // En móviles: Abrir PDF para que Android muestre "Abrir con"
+                const ventaId = window.location.pathname.split('/').pop();
+                window.open(`/ticket/venta/${ventaId}`, '_blank');
+            } else {
+                // En escritorio: Intentar usar la API de compartir si está disponible
+                if (navigator.share) {
+                    navigator.share({
+                        title: document.title,
+                        url: window.location.href
+                    }).catch(err => console.log('Error al compartir:', err));
+                } else {
+                    // Fallback: Descargar el ticket como antes
+                    window.print();
+                }
+            }
+        }
     </script>
 </body>
 </html>
