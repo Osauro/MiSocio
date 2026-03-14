@@ -97,13 +97,13 @@
         .datos-venta td {
             padding: 1px 0;
             vertical-align: top;
-            text-align: center;
+            text-align: left;
         }
 
         .datos-venta .label {
             font-weight: bold;
             width: 55px;
-            text-align: center;
+            text-align: left;
         }
 
         .items-table {
@@ -119,7 +119,7 @@
         }
 
         .items-table .producto {
-            text-align: center;
+            text-align: left;
             font-weight: 500;
         }
 
@@ -149,8 +149,8 @@
         }
 
         .totales-table td { padding: 1px 0; }
-        .totales-table .total-label { text-align: center; font-weight: bold; padding-right: 4px; }
-        .totales-table .total-valor { text-align: center; width: 55px; }
+        .totales-table .total-label { text-align: right; font-weight: bold; padding-right: 4px; }
+        .totales-table .total-valor { text-align: right; width: 55px; }
 
         .total-principal { font-size: 14px; font-weight: bold; }
 
