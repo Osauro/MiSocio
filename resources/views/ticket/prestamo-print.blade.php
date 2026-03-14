@@ -293,26 +293,28 @@
     </div>
 
     <script>
-        // Auto-imprimir cuando la página cargue completamente
-        window.addEventListener('load', function() {
-            // Dar un pequeño delay para que el contenido se renderice completamente
-            setTimeout(function() {
-                window.print();
-            }, 250);
-        });
+        // Detectar si es dispositivo móvil
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // Auto-cerrar después de imprimir o cancelar
-        window.addEventListener('afterprint', function() {
-            setTimeout(function() {
-                window.close();
-            }, 500);
-        });
+        // Auto-imprimir cuando la página cargue completamente (solo en escritorio)
+        if (!isMobile) {
+            window.addEventListener('load', function() {
+                // Dar un pequeño delay para que el contenido se renderice completamente
+                setTimeout(function() {
+                    window.print();
+                }, 250);
+            });
+
+            // Auto-cerrar después de imprimir o cancelar (solo en escritorio)
+            window.addEventListener('afterprint', function() {
+                setTimeout(function() {
+                    window.close();
+                }, 500);
+            });
+        }
 
         // Función para compartir/descargar ticket
         function compartirTicket() {
-            // Detectar si es dispositivo móvil
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
             if (isMobile) {
                 // En móviles: Abrir PDF para que Android muestre "Abrir con"
                 const prestamoId = window.location.pathname.split('/')[3];

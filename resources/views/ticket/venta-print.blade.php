@@ -338,25 +338,27 @@
     </div>
 
     <script>
-        // Auto-imprimir al cargar la página
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                window.print();
-            }, 300);
-        });
+        // Detectar si es dispositivo móvil
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // Auto-cerrar después de imprimir o cancelar
-        window.addEventListener('afterprint', function() {
-            setTimeout(function() {
-                window.close();
-            }, 500);
-        });
+        // Auto-imprimir al cargar la página (solo en escritorio)
+        if (!isMobile) {
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    window.print();
+                }, 300);
+            });
+
+            // Auto-cerrar después de imprimir o cancelar (solo en escritorio)
+            window.addEventListener('afterprint', function() {
+                setTimeout(function() {
+                    window.close();
+                }, 500);
+            });
+        }
 
         // Función para compartir/descargar ticket
         function compartirTicket() {
-            // Detectar si es dispositivo móvil
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
             if (isMobile) {
                 // En móviles: Abrir PDF para que Android muestre "Abrir con"
                 const ventaId = window.location.pathname.split('/')[3];
