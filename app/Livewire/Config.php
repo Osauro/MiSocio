@@ -466,37 +466,54 @@ class Config extends Component
             // Intentar hacer petición HTTP a la app de impresión
             $ch = curl_init('http://127.0.0.1:1013/status');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 2);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Accept: application/json',
                 'Origin: ' . request()->getSchemeAndHttpHost()
             ]);
             
             $response = curl_exec($ch);
+            $curlError = curl_error($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             
-            if ($httpCode === 200 && $response) {
+            // Log para debugging
+            \Log::info('Verificación servicio impresión', [
+                'httpCode' => $httpCode,
+                'response' => $response,
+                'curlError' => $curlError
+            ]);
+            
+            if ($httpCode >= 200 && $httpCode < 400) {
                 $connected = true;
-                $data = json_decode($response, true);
-                if (isset($data['version'])) {
-                    $version = $data['version'];
+                if ($response) {
+                    $data = json_decode($response, true);
+                    if (isset($data['version'])) {
+                        $version = $data['version'];
+                    }
                 }
-            } elseif ($httpCode > 0) {
-                // Si responde con cualquier código HTTP, está conectado
+            } elseif (!$curlError && $httpCode > 0) {
+                // Si responde con cualquier código HTTP válido, está conectado
                 $connected = true;
             }
         } catch (\Throwable $e) {
-            // Fallback: verificar si el puerto está abierto
+            \Log::warning('Error en verificación HTTP servicio impresión: ' . $e->getMessage());
+        }
+
+        // Fallback: verificar si el puerto está abierto con socket
+        if (!$connected) {
             try {
                 $socket = @fsockopen('127.0.0.1', 1013, $errno, $errstr, 2);
                 if ($socket) {
                     fclose($socket);
                     $connected = true;
+                    \Log::info('Servicio de impresión detectado por socket (puerto abierto)');
                 }
-            } catch (\Throwable $e2) {
-                $connected = false;
+            } catch (\Throwable $e) {
+                \Log::warning('No se pudo conectar al servicio de impresión');
             }
         }
 
