@@ -1,14 +1,24 @@
-@php
-    // Función para truncar texto en el centro
-    $truncateMiddle = function($text, $limit = 30) {
-        if (mb_strlen($text) <= $limit) return $text;
-        $start = (int) floor(($limit - 3) / 2);
-        $end = (int) ceil(($limit - 3) / 2);
-        return mb_substr($text, 0, $start) . '...' . mb_substr($text, -$end);
-    };
-@endphp
-
-<div x-data="{ mostrarCarritoMovil: false }">
+<div x-data="{
+    mostrarCarritoMovil: false,
+    papelTamano: localStorage.getItem('papel_tamano') || '58mm',
+    
+    truncateMiddle(text, context = 'card') {
+        if (!text) return '';
+        const is58mm = this.papelTamano === '58mm';
+        let limit;
+        
+        if (context === 'card') {
+            limit = is58mm ? 30 : 38;
+        } else if (context === 'search') {
+            limit = is58mm ? 35 : 45;
+        }
+        
+        if (text.length <= limit) return text;
+        const start = Math.floor((limit - 3) / 2);
+        const end = Math.ceil((limit - 3) / 2);
+        return text.substring(0, start) + '...' + text.substring(text.length - end);
+    }
+}">
     <style>
         /* Control de visibilidad en móvil - Cargado inmediatamente */
         @media (max-width: 767.98px) {
@@ -66,7 +76,7 @@
                                                     <!-- Nombre y Botón -->
                                                     <div class="d-flex justify-content-between align-items-start mb-2">
                                                         <div class="flex-grow-1">
-                                                            <h5 class="mb-0 fw-bold" title="{{ $item['nombre'] }}">{{ $truncateMiddle($item['nombre'], 35) }}</h5>
+                                                            <h5 class="mb-0 fw-bold" :title="'{{ addslashes($item['nombre']) }}'" x-text="truncateMiddle('{{ addslashes($item['nombre']) }}', 'card')"></h5>
                                                         </div>
                                                         <a href="javascript:void(0)" class="text-danger ms-1"
                                                             wire:click="confirmEliminarItem({{ $index }})"
@@ -217,7 +227,7 @@
                                                                     class="rounded"
                                                                     style="width: 40px; height: 40px; object-fit: cover;">
                                                                 <div class="flex-grow-1">
-                                                                    <div class="fw-bold small" title="{{ $producto['nombre'] }}">{{ $truncateMiddle($producto['nombre'], 40) }}</div>
+                                                                    <div class="fw-bold small" :title="'{{ addslashes($producto['nombre']) }}'" x-text="truncateMiddle('{{ addslashes($producto['nombre']) }}', 'search')"></div>
                                                                     <div class="d-flex gap-1 mt-1">
                                                                         <span class="badge {{ $sinStock ? 'bg-danger' : 'bg-info text-dark' }}">
                                                                             Stock: {{ $producto['stock_formateado'] }}
