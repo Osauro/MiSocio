@@ -520,7 +520,9 @@
             resetTags() {
                 this.tags = [];
                 this.currentTag = '';
-                this.$refs.hiddenInput.value = '';
+                if (this.$refs.hiddenInput) {
+                    this.$refs.hiddenInput.value = '';
+                }
             },
 
             addTag() {
@@ -541,7 +543,9 @@
             updateHiddenInput() {
                 // Actualizar directamente el valor del input hidden sin disparar Livewire
                 const tagsString = this.tags.join(', ');
-                this.$refs.hiddenInput.value = tagsString;
+                if (this.$refs.hiddenInput) {
+                    this.$refs.hiddenInput.value = tagsString;
+                }
                 this.$wire.tags_input = tagsString;
             }
         }
