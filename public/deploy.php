@@ -26,10 +26,13 @@ run("{$phpBin} {$projectRoot}/artisan migrate --force");
 run("{$phpBin} {$projectRoot}/artisan config:cache");
 run("{$phpBin} {$projectRoot}/artisan route:cache");
 
-// Symlink storage → public_html/storage (recrear siempre)
+// Eliminar symlink si existe y crear directorio real en public_html/storage
 run("rm -f {$publicHtml}/storage");
-run("ln -s {$projectRoot}/storage/app/public {$publicHtml}/storage");
-echo "Symlink: " . (is_link("{$publicHtml}/storage") ? readlink("{$publicHtml}/storage") : 'FALLIDO') . "\n\n";
+run("mkdir -p {$publicHtml}/storage");
+run("chmod -R 775 {$publicHtml}/storage");
+
+// Mover imágenes existentes de storage/app/public a public_html/storage (si las hay)
+run("rsync -a {$projectRoot}/storage/app/public/ {$publicHtml}/storage/");
 
 // Copiar .htaccess a public_html (contiene SymLinksIfOwnerMatch)
 run("cp {$projectRoot}/public/.htaccess {$publicHtml}/.htaccess");
