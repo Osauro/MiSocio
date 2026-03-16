@@ -209,29 +209,30 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Imagen del Producto</label>
-                                    <div class="image-upload-area" onclick="document.getElementById('imagen').click()"
-                                        ondrop="handleDrop(event)" ondragover="handleDragOver(event)"
-                                        ondragleave="handleDragLeave(event)"
-                                        style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; height: 100%; min-height: 300px; display: flex; align-items: center; justify-content: center; background-color: #f8f9fa;">
-                                        @if ($imagen && is_object($imagen))
-                                            <img src="{{ $imagen->temporaryUrl() }}" alt="Preview"
-                                                style="max-width: 100%; max-height: 280px; object-fit: contain;">
-                                        @elseif ($editMode && $producto_actual)
+                                    <div style="border: 2px dashed #ccc; border-radius: 8px; padding: 15px; text-align: center; height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f8f9fa;">
+                                        @if ($imagen_preview_url)
+                                            <img src="{{ $imagen_preview_url }}" alt="Preview"
+                                                style="max-width: 100%; max-height: 230px; object-fit: contain; border-radius: 6px; margin-bottom: 10px;">
+                                        @elseif ($editMode && $producto_actual && $producto_actual->imagen)
                                             <img src="{{ $producto_actual->photo_url }}" alt="Producto"
-                                                style="max-width: 100%; max-height: 280px; object-fit: contain;">
+                                                style="max-width: 100%; max-height: 230px; object-fit: contain; border-radius: 6px; margin-bottom: 10px;">
                                         @else
-                                            <div class="text-muted">
-                                                <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2"></i>
-                                                <p class="mb-0 small">Arrastra una imagen aquí</p>
-                                                <p class="mb-0 small">o haz clic para seleccionar</p>
+                                            <div class="text-muted mb-3">
+                                                <i class="fa-solid fa-image fa-3x mb-2 opacity-50"></i>
+                                                <p class="mb-0 small">Sin imagen seleccionada</p>
                                             </div>
                                         @endif
+                                        <button type="button"
+                                                class="btn btn-outline-primary btn-sm mt-2"
+                                                wire:click="abrirGaleria">
+                                            <i class="fa-solid fa-images me-1"></i>
+                                            @if ($imagen_preview_url || ($editMode && $producto_actual?->imagen))
+                                                Cambiar imagen
+                                            @else
+                                                Seleccionar imagen
+                                            @endif
+                                        </button>
                                     </div>
-                                    <input type="file" class="d-none @error('imagen') is-invalid @enderror"
-                                        wire:model="imagen" id="imagen" accept="image/*">
-                                    @error('imagen')
-                                        <div class="invalid-feedback d-block">{{ $message }}</div>
-                                    @enderror
                                 </div>
 
                                 <!-- Control de Stock debajo de la imagen -->
@@ -457,6 +458,9 @@
             </div>
         </div>
     @endif
+
+    <!-- Componente Galería Modal -->
+    <livewire:galeria-modal />
 
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />

@@ -3,21 +3,19 @@
 namespace App\Livewire;
 
 use App\Models\Categoria;
+use App\Models\GaleriaImagen;
 use App\Models\Medida;
 use App\Models\Producto;
 use App\Models\Tag;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 
 class Productos extends Component
 {
-    use WithPagination, WithFileUploads, SweetAlertTrait, RequiresTenant;
+    use WithPagination, SweetAlertTrait, RequiresTenant;
 
     public $search = '';
     public $perPage;
@@ -26,14 +24,17 @@ class Productos extends Component
     public $addingNewMedida = false;
     public $mostrarModal = false;
 
+    // Galería / Imagen
+    public $imagen;             // path relativo guardado en DB (string)
+    public $imagen_preview_url; // URL completa solo para preview en el form
+    public $galeria_id_seleccionado; // ID temporal para actualizar metadata de galería
+
     // Campos del producto
     public $productoId;
     public $categoria_id;
     public $nombre;
     public $codigo;
-    public $imagen;
     public $producto_actual; // Para tener acceso al producto completo al editar
-    public $producto_actual_imagen; // Para mostrar la imagen existente al editar
     public $medida;
     public $cantidad;
     public $precio_de_compra;
@@ -47,7 +48,6 @@ class Productos extends Component
         'categoria_id' => 'required|exists:categorias,id',
         'nombre' => 'required|string|max:255',
         'codigo' => 'nullable|string|max:255',
-        'imagen' => 'nullable|image',
         'medida' => 'required|string|max:10',
         'cantidad' => 'required|integer|min:1',
         'precio_de_compra' => 'required|numeric|min:0',
@@ -72,7 +72,10 @@ class Productos extends Component
         'precio_por_menor.min' => 'El precio por menor debe ser mayor o igual a 0',
     ];
 
-    protected $listeners = ['deleteProduct'];
+    protected $listeners = [
+        'deleteProduct',
+        'imagen-seleccionada' => 'imagenSeleccionada',
+    ];
 
     public function mount()
     {
@@ -177,8 +180,6 @@ class Productos extends Component
         $this->categoria_id = $producto->categoria_id;
         $this->nombre = $producto->nombre;
         $this->codigo = $producto->codigo;
-        // NO asignar la imagen existente al campo, solo guardarla para preview
-        $this->imagen = null;
         $this->medida = $producto->medida;
         $this->cantidad = $producto->cantidad;
         $this->precio_de_compra = $producto->precio_de_compra;
@@ -188,7 +189,10 @@ class Productos extends Component
         $this->control = $producto->control;
         $this->tags_input = $producto->tags_string;
         $this->producto_actual = $producto; // Guardar el objeto completo
-        $this->producto_actual_imagen = $producto->imagen; // Guardar la imagen actual
+        // No asignamos $imagen para que en el form se muestre la imagen actual via $producto_actual
+        $this->imagen = null;
+        $this->imagen_preview_url = null;
+        $this->galeria_id_seleccionado = null;
 
         $this->editMode = true;
         $this->mostrarModal = true;
@@ -245,62 +249,58 @@ class Productos extends Component
                 }
             }
 
-            // Procesar imagen si se subió una nueva
-            $imagenPath = null;
-            if ($this->imagen) {
-                $imagenPath = $this->processImage($this->imagen);
-            }
-
             if ($this->editMode) {
                 // Actualizar producto existente
                 $producto = Producto::findOrFail($this->productoId);
 
                 $dataToUpdate = [
-                    'categoria_id' => $this->categoria_id,
-                    'nombre' => $this->nombre,
-                    'codigo' => $this->codigo,
-                    'medida' => $this->medida,
-                    'cantidad' => $this->cantidad,
-                    'precio_de_compra' => $this->precio_de_compra,
-                    'precio_por_mayor' => $this->precio_por_mayor,
-                    'precio_por_menor' => $this->precio_por_menor,
-                    'control' => $this->control,
+                    'categoria_id'      => $this->categoria_id,
+                    'nombre'            => $this->nombre,
+                    'codigo'            => $this->codigo,
+                    'medida'            => $this->medida,
+                    'cantidad'          => $this->cantidad,
+                    'precio_de_compra'  => $this->precio_de_compra,
+                    'precio_por_mayor'  => $this->precio_por_mayor,
+                    'precio_por_menor'  => $this->precio_por_menor,
+                    'control'           => $this->control,
                 ];
 
-                // Solo actualizar imagen si se subió una nueva
-                if ($imagenPath) {
-                    // Eliminar imagen anterior si existe
-                    if ($producto->imagen && Storage::disk('public')->exists($producto->imagen)) {
-                        Storage::disk('public')->delete($producto->imagen);
-                    }
-                    $dataToUpdate['imagen'] = $imagenPath;
+                // Solo actualizar imagen si el usuario seleccionó una nueva de la galería
+                if ($this->galeria_id_seleccionado && $this->imagen) {
+                    $dataToUpdate['imagen'] = $this->imagen;
+                    $this->actualizarGaleria($this->galeria_id_seleccionado);
                 }
 
                 $producto->update($dataToUpdate);
 
-                // Sincronizar tags
+                // Sincronizar tags del producto
                 $producto->syncTagsFromString($this->tags_input);
 
                 $this->toast('success', 'Producto actualizado exitosamente.');
             } else {
                 // Crear nuevo producto
                 $producto = Producto::create([
-                    'tenant_id' => currentTenantId(),
-                    'categoria_id' => $this->categoria_id,
-                    'nombre' => $this->nombre,
-                    'codigo' => $this->codigo,
-                    'imagen' => $imagenPath,
-                    'medida' => $this->medida,
-                    'cantidad' => $this->cantidad,
-                    'precio_de_compra' => $this->precio_de_compra,
-                    'precio_por_mayor' => $this->precio_por_mayor,
-                    'precio_por_menor' => $this->precio_por_menor,
-                    'stock' => 0,
-                    'control' => $this->control,
+                    'tenant_id'         => currentTenantId(),
+                    'categoria_id'      => $this->categoria_id,
+                    'nombre'            => $this->nombre,
+                    'codigo'            => $this->codigo,
+                    'imagen'            => $this->imagen,
+                    'medida'            => $this->medida,
+                    'cantidad'          => $this->cantidad,
+                    'precio_de_compra'  => $this->precio_de_compra,
+                    'precio_por_mayor'  => $this->precio_por_mayor,
+                    'precio_por_menor'  => $this->precio_por_menor,
+                    'stock'             => 0,
+                    'control'           => $this->control,
                 ]);
 
-                // Sincronizar tags
+                // Sincronizar tags del producto
                 $producto->syncTagsFromString($this->tags_input);
+
+                // Actualizar metadata de galería si se seleccionó una imagen
+                if ($this->galeria_id_seleccionado) {
+                    $this->actualizarGaleria($this->galeria_id_seleccionado);
+                }
 
                 $this->toast('success', 'Producto creado exitosamente.');
             }
@@ -312,23 +312,51 @@ class Productos extends Component
     }
 
     /**
-     * Procesar y guardar imagen redimensionada.
+     * Abrir la galería para seleccionar imagen.
      */
-    private function processImage($imagen)
+    public function abrirGaleria(): void
     {
-        // Generar nombre único para la imagen
-        $filename = time() . '_' . uniqid() . '.jpg';
-        $path = 'productos/' . $filename;
+        $this->dispatch('abrir-galeria');
+    }
 
-        // Procesar imagen con Intervention Image
-        $imageProcessed = Image::read($imagen->getRealPath())
-            ->cover(512, 512)
-            ->toJpeg(90);
+    /**
+     * Recibir la imagen seleccionada desde GaleriaModal.
+     */
+    public function imagenSeleccionada(int $id, string $url, string $path): void
+    {
+        $this->galeria_id_seleccionado = $id;
+        $this->imagen = $path;           // path relativo para guardar en DB
+        $this->imagen_preview_url = $url; // URL completa para mostrar preview
+    }
 
-        // Guardar en storage/app/public/productos
-        Storage::disk('public')->put($path, (string) $imageProcessed);
+    /**
+     * Actualizar nombre, tags y contador en la imagen de galería al guardar el producto.
+     */
+    private function actualizarGaleria(int $galeriaImagenId): void
+    {
+        $galeria = GaleriaImagen::find($galeriaImagenId);
+        if (!$galeria) {
+            return;
+        }
 
-        return $path;
+        $galeria->increment('veces_usado');
+
+        $nuevos = [trim($this->nombre)];
+        if ($this->tags_input) {
+            foreach (array_map('trim', explode(',', $this->tags_input)) as $t) {
+                if ($t !== '') {
+                    $nuevos[] = $t;
+                }
+            }
+        }
+
+        $galeria->mergeTags($nuevos);
+
+        if (!$galeria->nombre) {
+            $galeria->nombre = trim($this->nombre);
+        }
+
+        $galeria->save();
     }
 
     /**
@@ -399,8 +427,9 @@ class Productos extends Component
         $this->nombre = '';
         $this->codigo = '';
         $this->imagen = null;
+        $this->imagen_preview_url = null;
+        $this->galeria_id_seleccionado = null;
         $this->producto_actual = null;
-        $this->producto_actual_imagen = null;
         $this->medida = '';
         $this->cantidad = null;
         $this->precio_de_compra = null;
