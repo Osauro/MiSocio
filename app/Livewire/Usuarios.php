@@ -52,7 +52,7 @@ class Usuarios extends Component
         'role.required' => 'El rol es obligatorio',
     ];
 
-    protected $listeners = ['deleteUsuario'];
+    protected $listeners = ['deleteUsuario', 'asociarUsuarioExistente'];
 
     public function mount()
     {
@@ -149,6 +149,28 @@ class Usuarios extends Component
 
                 $this->toast('success', 'Usuario actualizado exitosamente.');
             } else {
+                // Verificar si ya existe un usuario con ese celular
+                $usuarioExistente = User::where('celular', $this->celular)->first();
+
+                if ($usuarioExistente) {
+                    // Verificar si ya está asociado a este tenant
+                    if ($usuarioExistente->tenants()->where('tenants.id', currentTenantId())->exists()) {
+                        $this->alertWarning('Atención', 'Este usuario ya está asociado a tu tienda.');
+                        return;
+                    }
+
+                    // Mostrar confirmación para asociar usuario existente
+                    $this->dispatch('swal:confirm', [
+                        'id' => $usuarioExistente->id,
+                        'title' => '¡Usuario existente!',
+                        'text' => "El usuario <strong>{$usuarioExistente->name}</strong> ya tiene una contraseña asignada. ¿Deseas asociarlo a tu tienda?",
+                        'event' => 'asociarUsuarioExistente',
+                        'confirmButtonText' => 'Sí, asociar',
+                        'confirmButtonColor' => '#198754',
+                    ]);
+                    return;
+                }
+
                 $user = User::create([
                     'name' => $this->name,
                     'celular' => $this->celular,
@@ -169,6 +191,24 @@ class Usuarios extends Component
             $this->closeModal();
         } catch (\Exception $e) {
             $this->alertError('Error', 'Error al guardar el usuario: ' . $e->getMessage());
+        }
+    }
+
+    public function asociarUsuarioExistente($id)
+    {
+        try {
+            $usuario = User::findOrFail($id);
+
+            $usuario->tenants()->attach(currentTenantId(), [
+                'role' => $this->role ?: 'user',
+                'is_active' => true,
+            ]);
+
+            $this->toast('success', "Usuario {$usuario->name} asociado exitosamente.");
+            $this->resetPage();
+            $this->closeModal();
+        } catch (\Exception $e) {
+            $this->alertError('Error', 'No se pudo asociar el usuario: ' . $e->getMessage());
         }
     }
 
