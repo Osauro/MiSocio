@@ -451,7 +451,7 @@ class Compras extends Component
                     'anterior' => $stockAnterior,
                     'saldo' => $producto->stock,
                     'precio' => $item->precio,
-                    'total' => $item->subtotal,
+                    'total' => round(($item->precio / ($producto->cantidad ?: 1)) * $item->cantidad, 2),
                     'obs' => "Eliminación de compra #{$compra->numero_folio}"
                 ]);
             }

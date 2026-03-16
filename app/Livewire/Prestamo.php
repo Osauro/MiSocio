@@ -689,7 +689,7 @@ class Prestamo extends Component
                             'anterior' => $stockAnterior,
                             'saldo' => $producto->stock,
                             'precio' => $item['precio'],
-                            'total' => $item['subtotal'],
+                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
                             'obs' => 'Préstamo #' . $this->prestamo->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
                         ]);
                     }
@@ -705,7 +705,7 @@ class Prestamo extends Component
                             'anterior' => 0,
                             'saldo' => 0,
                             'precio' => $item['precio'],
-                            'total' => $item['subtotal'],
+                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
                             'obs' => 'Préstamo #' . $this->prestamo->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
                         ]);
                     }

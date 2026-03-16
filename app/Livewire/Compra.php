@@ -777,7 +777,7 @@ class Compra extends Component
                             'anterior' => $stockAnterior,
                             'saldo' => $producto->stock, // Stock después del incremento
                             'precio' => $item['precio'],
-                            'total' => $item['subtotal'],
+                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
                             'obs' => 'Compra #' . $this->compra->numero_folio . ($nombreProveedor ? ' - ' . $nombreProveedor : ''),
                         ]);
                     } else {
@@ -792,7 +792,7 @@ class Compra extends Component
                             'anterior' => 0,
                             'saldo' => 0,
                             'precio' => $item['precio'],
-                            'total' => $item['subtotal'],
+                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
                             'obs' => 'Compra #' . $this->compra->numero_folio . ($nombreProveedor ? ' - ' . $nombreProveedor : ''),
                         ]);
                     }

@@ -72,6 +72,17 @@
                 </li>
             @endif
 
+            <!-- Inventarios - Solo Admins -->
+            @if(canManageTenant())
+                <li class="sidebar-list">
+                    <i class="fa-solid fa-thumbtack"></i>
+                    <a class="sidebar-link" href="{{ route('inventarios') }}">
+                        <i class="fa-solid fa-boxes-stacked fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                        <h6 class="f-w-600">Inventarios</h6>
+                    </a>
+                </li>
+            @endif
+
             <!-- Kardex - Todos los usuarios -->
             <li class="sidebar-list">
                 <i class="fa-solid fa-thumbtack"></i>

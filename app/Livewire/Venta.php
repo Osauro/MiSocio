@@ -866,7 +866,7 @@ class Venta extends Component
                             'anterior' => $stockAnterior,
                             'saldo' => $producto->stock, // Stock después de la reducción
                             'precio' => $item['precio'],
-                            'total' => $item['subtotal'],
+                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
                             'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
                         ]);
                     }
@@ -882,7 +882,7 @@ class Venta extends Component
                             'anterior' => 0,
                             'saldo' => 0,
                             'precio' => $item['precio'],
-                            'total' => $item['subtotal'],
+                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
                             'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
                         ]);
                     }

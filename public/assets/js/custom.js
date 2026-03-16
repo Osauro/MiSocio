@@ -80,19 +80,20 @@ function initSweetAlertListeners() {
 
         // SweetAlert - Confirmación de eliminación
         Livewire.on('swal:confirm', (data) => {
+            const d = data[0] || data;
             Swal.fire({
-                title: data.title || data[0].title,
-                html: data.text || data[0].text,
+                title: d.title,
+                html: d.text,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, eliminar',
+                confirmButtonColor: d.confirmButtonColor || '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: d.confirmButtonText || 'Sí, eliminar',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const eventName = data.event || data[0].event || 'delete';
-                    const recordId = data.id || data[0].id;
+                    const eventName = d.event || 'delete';
+                    const recordId = d.id;
                     Livewire.dispatch(eventName, { id: recordId })
                 }
             })

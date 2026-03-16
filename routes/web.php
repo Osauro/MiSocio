@@ -7,6 +7,8 @@ use App\Livewire\Clientes;
 use App\Livewire\Compra;
 use App\Livewire\Compras;
 use App\Livewire\Config;
+use App\Livewire\Inventario;
+use App\Livewire\Inventarios;
 use App\Livewire\CrearTenant;
 use App\Livewire\HomeLandlord;
 use App\Livewire\HomeTenant;
@@ -113,6 +115,10 @@ Route::middleware(['auth', 'tenant', 'tenant.active', 'tenant.manage'])->group(f
 
     // Crear/Editar Compra - Solo administradores
     Route::livewire('compra/{compraId}', Compra::class)->name('compra');
+
+    // Inventarios - Solo administradores
+    Route::livewire('inventarios', Inventarios::class)->name('inventarios');
+    Route::livewire('inventario/{inventarioId}', Inventario::class)->name('inventario');
 
     // Préstamos - Solo administradores
     Route::livewire('prestamos', Prestamos::class)->name('prestamos');

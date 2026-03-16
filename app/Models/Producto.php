@@ -26,6 +26,7 @@ class Producto extends Model
         'stock',
         'control',
         'vencidos',
+        'fecha_control',
     ];
 
     protected $casts = [
@@ -36,6 +37,7 @@ class Producto extends Model
         'cantidad' => 'integer',
         'control' => 'boolean',
         'vencidos' => 'integer',
+        'fecha_control' => 'date',
     ];
 
     /**

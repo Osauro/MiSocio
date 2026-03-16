@@ -91,7 +91,7 @@ class Prestamos extends Component
                         'anterior' => $stockAnterior,
                         'saldo' => $producto->stock,
                         'precio' => $item->precio,
-                        'total' => $item->subtotal,
+                        'total' => round(($item->precio / ($producto->cantidad ?: 1)) * $item->cantidad, 2),
                         'obs' => 'Devolución préstamo #' . $numeroFolio . ' - ' . $nombreCliente,
                     ]);
                 } elseif ($producto) {
@@ -105,7 +105,7 @@ class Prestamos extends Component
                         'anterior' => 0,
                         'saldo' => 0,
                         'precio' => $item->precio,
-                        'total' => $item->subtotal,
+                        'total' => round(($item->precio / ($producto->cantidad ?: 1)) * $item->cantidad, 2),
                         'obs' => 'Devolución préstamo #' . $numeroFolio . ' - ' . $nombreCliente,
                     ]);
                 }

@@ -25,10 +25,10 @@ class Kardex extends Model
     ];
 
     protected $casts = [
-        'entrada' => 'decimal:2',
-        'salida' => 'decimal:2',
-        'anterior' => 'decimal:2',
-        'saldo' => 'decimal:2',
+        'entrada' => 'integer',
+        'salida' => 'integer',
+        'anterior' => 'integer',
+        'saldo' => 'integer',
         'precio' => 'decimal:2',
         'total' => 'decimal:2',
     ];
