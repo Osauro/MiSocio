@@ -9,20 +9,34 @@ echo "Usuario     : " . trim(shell_exec('whoami') ?? 'desconocido') . "\n";
 echo "exec()      : " . (function_exists('exec') ? 'disponible' : 'DESHABILITADO') . "\n";
 echo "shell_exec(): " . (function_exists('shell_exec') ? 'disponible' : 'DESHABILITADO') . "\n";
 
-// Detectar paths reales
-$phpBin      = trim(shell_exec('which php8.1 2>/dev/null || which php8.2 2>/dev/null || which php 2>/dev/null') ?? '');
+// Buscar PHP 8.x primero (cPanel suele tener binarios versionados)
+$phpBin = trim(shell_exec(
+    'which php8.3 2>/dev/null || ' .
+    'which php8.2 2>/dev/null || ' .
+    'which php8.1 2>/dev/null || ' .
+    'which php8.0 2>/dev/null || ' .
+    'ls /usr/local/bin/php8* 2>/dev/null | sort -rV | head -1 || ' .
+    'which php 2>/dev/null'
+) ?? '');
 $composerBin = trim(shell_exec('which composer 2>/dev/null') ?? '');
 $gitBin      = trim(shell_exec('which git 2>/dev/null') ?? '');
 
 echo "PHP path    : " . ($phpBin      ?: 'NO ENCONTRADO') . "\n";
 echo "Composer    : " . ($composerBin ?: 'NO ENCONTRADO') . "\n";
 echo "Git         : " . ($gitBin      ?: 'NO ENCONTRADO') . "\n";
+
+$phpVersionReal = trim(shell_exec(($phpBin ?: 'php') . " -r 'echo PHP_VERSION;' 2>/dev/null") ?? '');
+echo "PHP bin ver : " . ($phpVersionReal ?: 'no se pudo verificar') . "\n";
 echo "\n";
 
-// Si los binarios no se detectaron automáticamente, usar fallbacks manuales
-if (!$phpBin)      $phpBin      = '/usr/bin/php';
+if (!$phpBin)      $phpBin      = '/usr/local/bin/php';
 if (!$composerBin) $composerBin = '/usr/local/bin/composer';
 if (!$gitBin)      $gitBin      = '/usr/bin/git';
+
+// COMPOSER_HOME es obligatorio cuando se corre desde web (sin HOME de shell)
+$homeDir = '/home/misocio405';
+putenv("HOME={$homeDir}");
+putenv("COMPOSER_HOME={$homeDir}/.composer");
 
 // ── Configuración ─────────────────────────────────────────────────────────────
 $projectRoot = '/home/misocio405/MiSocio';
@@ -61,7 +75,8 @@ run("/usr/bin/uapi VersionControlDeployment create repository_root='{$projectRoo
 // 3. Composer: instalar/actualizar dependencias (sin dev, optimizando autoloader)
 run("{$composerBin} install --no-dev --optimize-autoloader --no-interaction --working-dir={$projectRoot}");
 
-// 4. Permisos de escritura en directorios que Laravel necesita
+// 4. Crear directorios necesarios y asignar permisos
+run("mkdir -p {$projectRoot}/storage/framework/{sessions,views,cache} {$projectRoot}/storage/logs {$projectRoot}/bootstrap/cache");
 run("chmod -R 775 {$projectRoot}/storage");
 run("chmod -R 775 {$projectRoot}/bootstrap/cache");
 
