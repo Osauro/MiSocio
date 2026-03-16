@@ -1,6 +1,6 @@
 <div>
-    @teleport('body')
     @if ($mostrar)
+    @teleport('body')
         <div class="modal fade show d-block" tabindex="-1"
              style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.75); z-index: 99999;">
             <div class="modal-dialog modal-fullscreen" style="z-index: 100000;">
@@ -119,6 +119,6 @@
                 </div>
             </div>
         </div>
-    @endif
     @endteleport
+    @endif
 </div>
