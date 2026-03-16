@@ -113,6 +113,19 @@ class Usuarios extends Component
     {
         $this->validate($this->rules());
 
+        // Verificar nombre duplicado en el tenant
+        $nombreDuplicado = User::whereHas('tenants', function ($q) {
+                $q->where('tenants.id', currentTenantId());
+            })
+            ->where('name', $this->name)
+            ->when($this->editMode, fn($q) => $q->where('id', '!=', $this->usuarioId))
+            ->exists();
+
+        if ($nombreDuplicado) {
+            $this->addError('name', 'Ya existe un usuario con ese nombre en esta tienda.');
+            return;
+        }
+
         try {
             // Procesar imagen si se subió una nueva
             $imagenPath = null;
