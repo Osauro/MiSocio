@@ -2,7 +2,7 @@
     @if ($mostrar)
         <div class="modal fade show d-block" tabindex="-1"
              style="background-color: rgba(0,0,0,0.75); z-index: 1060;">
-            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
 
                     <div class="modal-header">
@@ -12,9 +12,9 @@
                         <button type="button" class="btn-close" wire:click="cerrar"></button>
                     </div>
 
-                    <div class="modal-body">
+                    <div class="modal-body d-flex flex-column" style="overflow: hidden;">
                         <!-- Búsqueda -->
-                        <div class="mb-3">
+                        <div class="mb-3 flex-shrink-0">
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
                                 <input type="text"
@@ -30,32 +30,32 @@
                         </div>
 
                         <!-- Grid de imágenes -->
-                        <div class="row g-2" style="max-height: 400px; overflow-y: auto;">
+                        <div class="row g-3 flex-grow-1 overflow-auto pb-2">
                             @forelse($imagenes as $img)
                                 <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                                    <div class="card h-100 border-0 shadow-sm gallery-card"
+                                    <div class="card h-100 border-0 shadow-sm"
                                          wire:click="seleccionar({{ $img->id }})"
                                          style="cursor: pointer; transition: transform .15s, box-shadow .15s;"
-                                         onmouseover="this.style.transform='scale(1.04)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,.25)';"
+                                         onmouseover="this.style.transform='scale(1.03)'; this.style.boxShadow='0 6px 18px rgba(0,0,0,.3)';"
                                          onmouseout="this.style.transform=''; this.style.boxShadow='';">
-                                        <img src="{{ $img->photo_url }}"
-                                             class="card-img-top"
-                                             alt="{{ $img->nombre ?? 'Imagen' }}"
-                                             style="height: 90px; object-fit: cover; border-radius: 4px 4px 0 0;">
+                                        <div style="position: relative; background: #f8f9fa; border-radius: 6px 6px 0 0; display: flex; align-items: center; justify-content: center; height: 160px; overflow: hidden;">
+                                            <img src="{{ $img->photo_url }}"
+                                                 alt="{{ $img->nombre ?? 'Imagen' }}"
+                                                 style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                            @if ($img->veces_usado > 0)
+                                                <span class="position-absolute top-0 end-0 badge bg-secondary m-1"
+                                                      style="font-size: 0.65rem;" title="Veces usado">
+                                                    {{ $img->veces_usado }}
+                                                </span>
+                                            @endif
+                                        </div>
                                         @if ($img->nombre)
-                                            <div class="card-body p-1">
+                                            <div class="card-body p-2">
                                                 <small class="text-muted text-truncate d-block"
-                                                       style="font-size: 0.65rem;"
                                                        title="{{ $img->nombre }}">
                                                     {{ $img->nombre }}
                                                 </small>
                                             </div>
-                                        @endif
-                                        @if ($img->veces_usado > 0)
-                                            <span class="position-absolute top-0 end-0 badge bg-secondary m-1"
-                                                  style="font-size: 0.6rem;" title="Veces usado">
-                                                {{ $img->veces_usado }}
-                                            </span>
                                         @endif
                                     </div>
                                 </div>
@@ -68,14 +68,14 @@
                             @endforelse
                         </div>
 
-                        <hr class="my-3">
+                        <hr class="my-3 flex-shrink-0">
 
                         <!-- Subir nueva imagen -->
-                        <div>
+                        <div class="flex-shrink-0">
                             <p class="fw-semibold mb-2">
                                 <i class="fa-solid fa-upload me-1 text-primary"></i> Subir nueva imagen
                             </p>
-                            <div class="row align-items-start g-2">
+                            <div class="row align-items-center g-2">
                                 <div class="col-md-7">
                                     <input type="file"
                                            class="form-control @error('nuevaImagen') is-invalid @enderror"
@@ -90,7 +90,7 @@
                                     @if ($nuevaImagen)
                                         <img src="{{ $nuevaImagen->temporaryUrl() }}"
                                              alt="Preview"
-                                             style="height: 60px; width: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #dee2e6;">
+                                             style="height: 70px; width: 70px; object-fit: contain; background:#f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
                                     @endif
                                     <button type="button"
                                             class="btn btn-primary"
