@@ -236,6 +236,17 @@ class Productos extends Component
         // Ahora validar con el ID correcto
         $this->validate();
 
+        // Verificar nombre duplicado en el tenant
+        $nombreDuplicado = Producto::where('tenant_id', currentTenantId())
+            ->where('nombre', $this->nombre)
+            ->when($this->editMode, fn($q) => $q->where('id', '!=', $this->productoId))
+            ->exists();
+
+        if ($nombreDuplicado) {
+            $this->addError('nombre', 'Ya existe un producto con ese nombre en esta tienda.');
+            return;
+        }
+
         try {
             // Si estamos agregando una medida nueva, guardarla primero
             if ($this->addingNewMedida && $this->medida) {
