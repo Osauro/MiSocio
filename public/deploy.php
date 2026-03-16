@@ -21,11 +21,18 @@ echo "=== Despliegue: " . date('Y-m-d H:i:s') . " ===\n\n";
 
 run("git -C {$projectRoot} fetch origin");
 run("git -C {$projectRoot} reset --hard origin/master");
+run("git -C {$projectRoot} clean -fd"); // eliminar archivos no rastreados
 run("/usr/bin/uapi VersionControlDeployment create repository_root='{$projectRoot}'");
 run("{$phpBin} {$projectRoot}/artisan migrate --force");
+run("{$phpBin} {$projectRoot}/artisan optimize:clear"); // limpia config, route, view, event, cache todo
 run("{$phpBin} {$projectRoot}/artisan config:cache");
 run("{$phpBin} {$projectRoot}/artisan route:cache");
-run("{$phpBin} {$projectRoot}/artisan view:clear");
+
+// Verificar encoding en vistas del servidor
+echo "=== Verificación de encoding ===\n";
+$check = shell_exec("grep -rl $'\\xc3\\x83\\|\\xc3\\x82' {$projectRoot}/resources/views/ 2>/dev/null");
+echo $check ? "ARCHIVOS ROTOS:\n{$check}" : "Encoding OK en todas las vistas\n";
+echo "\n";
 
 // Eliminar symlink si existe y crear directorio real en public_html/storage
 run("rm -f {$publicHtml}/storage");
