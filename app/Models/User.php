@@ -132,13 +132,24 @@ class User extends Authenticatable
 
     /**
      * Verificar si el usuario es admin (tenant) o super admin en el tenant actual.
+     *
+     * Si el usuario tiene explícitamente el rol 'user' (operador) en el tenant,
+     * se respeta ese rol incluso si es super admin.
      */
     public function canManageCurrentTenant(): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true; // Super admin puede administrar cualquier tenant
+        $roleInTenant = $this->roleInCurrentTenant();
+
+        // Si tiene rol explícito de operador, queda restringido sin importar si es super admin
+        if ($roleInTenant === 'user') {
+            return false;
         }
 
-        return $this->roleInCurrentTenant() === 'tenant';
+        // Super admin sin rol en el tenant, o con rol 'tenant', tiene acceso completo
+        if ($this->isSuperAdmin()) {
+            return true;
+        }
+
+        return $roleInTenant === 'tenant';
     }
 }
