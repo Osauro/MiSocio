@@ -83,8 +83,7 @@ run("chmod -R 775 {$projectRoot}/bootstrap/cache");
 // 5. Migraciones de base de datos
 run("{$phpBin} {$projectRoot}/artisan migrate --force");
 
-// 6. Sincronizar .htaccess y assets compilados a public_html
-run("cp {$projectRoot}/public/.htaccess {$publicHtml}/.htaccess");
+// 6. Sincronizar assets compilados a public_html
 run("rsync -a --delete {$projectRoot}/public/build/ {$publicHtml}/build/");
 
 // 7. Symlink storage dentro de public_html (dentro del mismo usuario, suele funcionar)
