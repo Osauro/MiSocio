@@ -15,6 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Forzar Content-Type: text/html; charset=UTF-8 en todas las respuestas HTML
+        $middleware->append(function ($request, $next) {
+            $response = $next($request);
+            if (method_exists($response, 'header') && str_contains($response->headers->get('Content-Type', ''), 'text/html')) {
+                $response->header('Content-Type', 'text/html; charset=UTF-8');
+            }
+            return $response;
+        });
+
         $middleware->alias([
             'tenant' => EnsureUserHasTenant::class,
             'landlord' => EnsureUserIsLandlord::class,
