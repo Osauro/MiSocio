@@ -2,7 +2,7 @@
     <div class="container-fluid" style="padding-top: 0 !important;">
         <div class="row starter-main" style="margin-top: 0 !important;">
             <div class="col-sm-12" style="padding-top: 0 !important;">
-                <!-- Header con botÃ³n de crear -->
+                <!-- Header con bot├│n de crear -->
                 <div class="card" style="margin-top: 0 !important;">
                     <div class="card-header card-no-border pb-0">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
@@ -76,7 +76,7 @@
                                                                     Vence: {{ $t->bill_date->format('d/m/Y') }}
                                                                     @if($diasRestantesTenant >= 0)
                                                                         <span class="badge bg-{{ $colorTenant }} ms-1">
-                                                                            {{ (int) $diasRestantesTenant }} dÃ­as
+                                                                            {{ (int) $diasRestantesTenant }} d├¡as
                                                                         </span>
                                                                     @endif
                                                                 </small>
@@ -95,7 +95,7 @@
                                                                 <button wire:click="abrirModalRenovar({{ $t->id }})"
                                                                     class="btn btn-sm {{ $estadoTenant === 'vencida' ? 'btn-danger' : 'btn-warning' }} w-100">
                                                                     <i class="fa-solid fa-rotate me-1"></i>
-                                                                    Renovar SuscripciÃ³n
+                                                                    Renovar Suscripci├│n
                                                                 </button>
                                                             @endif
                                                             @if($estadoTenant !== 'vencida')
@@ -187,7 +187,7 @@
                                         class="form-control @error('domain') is-invalid @enderror"
                                         placeholder="mitienda.com">
                                     @error('domain') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                    <small class="text-muted">Puedes configurar esto despuÃ©s</small>
+                                    <small class="text-muted">Puedes configurar esto despu├®s</small>
                                 </div>
 
                                 <!-- Separador -->
@@ -201,38 +201,38 @@
 
                                 <!-- Seleccionar Plan -->
                                 <div class="col-12">
-                                    <label class="form-label fw-bold">Plan de SuscripciÃ³n</label>
+                                    <label class="form-label fw-bold">Plan de Suscripci├│n</label>
                                     <select wire:model.live="plan_suscripcion_id" class="form-select">
-                                        <option value="">-- ConfiguraciÃ³n Manual --</option>
+                                        <option value="">-- Configuraci├│n Manual --</option>
                                         @foreach($planes as $plan)
                                             <option value="{{ $plan->id }}">
                                                 {{ $plan->nombre }} - Bs. {{ number_format($plan->precio, 2) }}
                                                 @if($plan->duracion_meses > 0)
                                                     ({{ $plan->duracion_texto }})
                                                 @else
-                                                    (15 dÃ­as de prueba)
+                                                    (15 d├¡as de prueba)
                                                 @endif
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
 
-                                <!-- Tipo de SuscripciÃ³n Manual -->
+                                <!-- Tipo de Suscripci├│n Manual -->
                                 <div class="col-12">
                                     <label class="form-label fw-bold">
                                         <i class="fa-solid fa-tag me-1"></i>
-                                        Tipo de SuscripciÃ³n <span class="text-danger">*</span>
+                                        Tipo de Suscripci├│n <span class="text-danger">*</span>
                                     </label>
                                     <select wire:model="subscription_type" class="form-select @error('subscription_type') is-invalid @enderror">
                                         @if(!$yaExisteDemo)
                                         <option value="demo">
-                                            Demo (Gratis - 15 dÃ­as)
+                                            Demo (Gratis - 15 d├¡as)
                                         </option>
                                         @endif
                                         <option value="mensual">Mensual (Bs. 120/mes)</option>
                                         <option value="trimestral">Trimestral (Bs. 330/3 meses)</option>
                                         <option value="semestral">Semestral (Bs. 630/6 meses)</option>
-                                        <option value="anual">Anual (Bs. 1,200/aÃ±o)</option>
+                                        <option value="anual">Anual (Bs. 1,200/a├▒o)</option>
                                     </select>
                                     @error('subscription_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
@@ -242,15 +242,15 @@
                                     <div class="alert alert-info">
                                         <i class="fa-solid fa-info-circle me-2"></i>
                                         @if($subscription_type === 'demo')
-                                            <strong>Plan Demo:</strong> Tu tienda estarÃ¡ activa por 15 dÃ­as con todas las funcionalidades. Solo puedes tener 1 tienda demo.
+                                            <strong>Plan Demo:</strong> Tu tienda estar├í activa por 15 d├¡as con todas las funcionalidades. Solo puedes tener 1 tienda demo.
                                         @elseif($subscription_type === 'mensual')
                                             <strong>Plan Mensual:</strong> Pago de Bs. 120 cada mes.
                                         @elseif($subscription_type === 'trimestral')
-                                            <strong>Plan Trimestral:</strong> Pago de Bs. 330 cada 3 meses. Â¡Ahorra 8%!
+                                            <strong>Plan Trimestral:</strong> Pago de Bs. 330 cada 3 meses. ┬íAhorra 8%!
                                         @elseif($subscription_type === 'semestral')
-                                            <strong>Plan Semestral:</strong> Pago de Bs. 630 cada 6 meses. Â¡Ahorra 12%!
+                                            <strong>Plan Semestral:</strong> Pago de Bs. 630 cada 6 meses. ┬íAhorra 12%!
                                         @elseif($subscription_type === 'anual')
-                                            <strong>Plan Anual:</strong> Pago de Bs. 1,200 por aÃ±o. Â¡Ahorra 17%!
+                                            <strong>Plan Anual:</strong> Pago de Bs. 1,200 por a├▒o. ┬íAhorra 17%!
                                         @endif
                                     </div>
                                 </div>
@@ -272,9 +272,9 @@
         </div>
     @endif
 
-    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-         OVERLAY WIZARD: RENOVAR SUSCRIPCIÃ“N (2 PASOS)
-         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+    {{-- ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+         OVERLAY WIZARD: RENOVAR SUSCRIPCI├ôN (2 PASOS)
+         ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ --}}
     @if($renovarModalOpen)
         @php $tenantRenovar = $misTenants->firstWhere('id', $renovarTenantId); @endphp
 
@@ -285,12 +285,12 @@
                         max-height:92vh; overflow-y:auto;
                         box-shadow:0 24px 70px rgba(0,0,0,0.45);">
 
-                {{-- â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ÔöÇÔöÇ HEADER ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ --}}
                 <div class="d-flex align-items-center justify-content-between px-4 py-3"
                      style="background:linear-gradient(135deg,#f5a623,#e07b00); border-radius:18px 18px 0 0;">
                     <div>
                         <h4 class="text-white fw-bold mb-0">
-                            <i class="fa-solid fa-rotate me-2"></i>Renovar SuscripciÃ³n
+                            <i class="fa-solid fa-rotate me-2"></i>Renovar Suscripci├│n
                         </h4>
                         @if($tenantRenovar)
                             <small class="text-white" style="opacity:.8;">{{ $tenantRenovar->name }}</small>
@@ -301,7 +301,7 @@
                     </button>
                 </div>
 
-                {{-- â”€â”€ STEP INDICATOR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ÔöÇÔöÇ STEP INDICATOR ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ --}}
                 <div class="px-4 pt-3">
                     <div class="d-flex align-items-center">
 
@@ -321,7 +321,7 @@
                                   style="font-size:.9rem;">Seleccionar Plan</span>
                         </div>
 
-                        {{-- LÃ­nea conectora --}}
+                        {{-- L├¡nea conectora --}}
                         <div class="flex-grow-1 mx-3"
                              style="height:3px; border-radius:2px;
                                     background:{{ $renovarPaso >= 2 ? '#0d6efd' : '#dee2e6' }};"></div>
@@ -342,10 +342,10 @@
                     <hr class="mt-3 mb-0">
                 </div>
 
-                {{-- â”€â”€ BODY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ÔöÇÔöÇ BODY ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ --}}
                 <div class="p-4">
 
-                    {{-- â•â•â•â• PASO 1: Seleccionar Plan â•â•â•â• --}}
+                    {{-- ÔòÉÔòÉÔòÉÔòÉ PASO 1: Seleccionar Plan ÔòÉÔòÉÔòÉÔòÉ --}}
                     @if($renovarPaso === 1)
 
                         <p class="text-muted mb-4">
@@ -389,7 +389,7 @@
                             </div>
                         @enderror
 
-                    {{-- â•â•â•â• PASO 2: QR + Comprobante â•â•â•â• --}}
+                    {{-- ÔòÉÔòÉÔòÉÔòÉ PASO 2: QR + Comprobante ÔòÉÔòÉÔòÉÔòÉ --}}
                     @elseif($renovarPaso === 2)
 
                         {{-- Resumen del plan elegido --}}
@@ -459,7 +459,7 @@
                                             @error('renovarComprobante')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
-                                            <small class="text-muted">JPG, PNG. MÃ¡ximo 2 MB.</small>
+                                            <small class="text-muted">JPG, PNG. M├íximo 2 MB.</small>
                                         </div>
 
                                         {{-- Preview comprobante --}}
@@ -489,7 +489,7 @@
                                         <div class="alert alert-warning py-2 mb-0">
                                             <small>
                                                 <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                                                Tu solicitud serÃ¡ revisada. La suscripciÃ³n se activarÃ¡ una vez que el administrador verifique el pago.
+                                                Tu solicitud ser├í revisada. La suscripci├│n se activar├í una vez que el administrador verifique el pago.
                                             </small>
                                         </div>
 
@@ -502,11 +502,11 @@
 
                 </div>
 
-                {{-- â”€â”€ FOOTER / NAVEGACIÃ“N â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ÔöÇÔöÇ FOOTER / NAVEGACI├ôN ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ --}}
                 <div class="d-flex justify-content-between align-items-center px-4 pb-4 pt-2"
                      style="border-top:1px solid #dee2e6;">
 
-                    {{-- BotÃ³n izquierdo: Cancelar (paso 1) o Volver (paso 2) --}}
+                    {{-- Bot├│n izquierdo: Cancelar (paso 1) o Volver (paso 2) --}}
                     @if($renovarPaso === 1)
                         <button type="button" class="btn btn-secondary" wire:click="closeRenovarModal">
                             <i class="fa-solid fa-times me-1"></i>Cancelar
@@ -518,7 +518,7 @@
                         </button>
                     @endif
 
-                    {{-- BotÃ³n derecho: Continuar (paso 1) o Enviar (paso 2) --}}
+                    {{-- Bot├│n derecho: Continuar (paso 1) o Enviar (paso 2) --}}
                     @if($renovarPaso === 1)
                         <button type="button" class="btn btn-primary btn-lg fw-bold"
                                 wire:click="renovarAvanzarPaso"

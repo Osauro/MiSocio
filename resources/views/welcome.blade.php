@@ -36,7 +36,7 @@
         html { scroll-behavior: smooth; }
         body { font-family: 'Nunito Sans', sans-serif; color: var(--text); background: #fff; overflow-x: hidden; }
 
-        /* --- NAVBAR ----------------------------------- */
+        /* ─── NAVBAR ─────────────────────────────────── */
         .lp-nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 999;
             padding: 0 5%; height: 68px;
@@ -71,7 +71,7 @@
         }
         .btn-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--brand-glow); color: #fff; }
 
-        /* --- HERO ------------------------------------- */
+        /* ─── HERO ───────────────────────────────────── */
         .hero {
             min-height: 100vh; padding: 120px 5% 80px;
             display: flex; align-items: center;
@@ -180,7 +180,7 @@
         .float-badge.bottom-right { bottom: -10px; right: -25px; animation-delay: 2s; }
         .float-badge .fbi { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .9rem; }
 
-        /* --- SECTIONS ---------------------------------- */
+        /* ─── SECTIONS ────────────────────────────────── */
         .section { padding: 90px 5%; }
         .section-inner { max-width: 1200px; margin: 0 auto; }
         .section-tag {
@@ -270,7 +270,7 @@
         .footer-bottom .made { color: rgba(255,255,255,.4); font-size: .8rem; }
         .footer-bottom .made span { color: var(--brand); }
 
-        /* --- MASCOTAS ---------------------------------- */
+        /* ─── MASCOTAS ────────────────────────────────── */
         .hero-mascot-img {
             height: 520px; max-height: 66vh; width: auto;
             display: block; margin: 0 auto; object-fit: contain;
@@ -611,7 +611,7 @@
         </div>
         <div class="footer-bottom">
             <p>© {{ date('Y') }} MiSocio — Todos los derechos reservados.</p>
-            <p class="made">Hecho con <span>?</span> en Bolivia</p>
+            <p class="made">Hecho con <span>♥</span> en Bolivia</p>
         </div>
     </div>
 </footer>
