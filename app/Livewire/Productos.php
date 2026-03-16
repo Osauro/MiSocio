@@ -285,7 +285,7 @@ class Productos extends Component
             } else {
                 // Crear nuevo producto
                 $producto = Producto::create([
-                    'tenant_id' => Auth::user()->tenant_id,
+                    'tenant_id' => currentTenantId(),
                     'categoria_id' => $this->categoria_id,
                     'nombre' => $this->nombre,
                     'codigo' => $this->codigo,
