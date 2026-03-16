@@ -91,12 +91,10 @@ run("rsync -a --delete {$projectRoot}/public/build/ {$publicHtml}/build/");
 run("cp {$projectRoot}/public/.htaccess {$publicHtml}/.htaccess");
 run("cp {$projectRoot}/public/.user.ini {$publicHtml}/.user.ini");
 
-// 7. Symlink storage dentro de public_html (dentro del mismo usuario, suele funcionar)
-if (!file_exists("{$publicHtml}/storage")) {
-    run("ln -s {$projectRoot}/storage/app/public {$publicHtml}/storage");
-} else {
-    echo "\n$ Symlink public_html/storage ya existe, se omite.\n";
-}
+// 7. Symlink storage dentro de public_html (recrear siempre para garantizar destino correcto)
+run("rm -f {$publicHtml}/storage");
+run("ln -s {$projectRoot}/storage/app/public {$publicHtml}/storage");
+echo "Symlink: " . (is_link("{$publicHtml}/storage") ? readlink("{$publicHtml}/storage") : 'FALLIDO') . "\n";
 
 // 8. Limpiar y reconstruir cachés de Laravel
 run("{$phpBin} {$projectRoot}/artisan config:cache");
