@@ -1,6 +1,12 @@
 # Permitir seguir symlinks (necesario para storage/ → storage/app/public)
 Options +SymLinksIfOwnerMatch
 
+# Forzar charset UTF-8 en todas las respuestas
+AddDefaultCharset UTF-8
+<IfModule mod_php.c>
+    php_value default_charset "UTF-8"
+</IfModule>
+
 # PHP upload limits (mod_php)
 <IfModule mod_php.c>
     php_value upload_max_filesize 20M
