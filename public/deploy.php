@@ -20,6 +20,7 @@ echo "=== Despliegue: " . date('Y-m-d H:i:s') . " ===\n\n";
 
 run("git -C {$projectRoot} fetch origin");
 run("git -C {$projectRoot} reset --hard origin/master");
+run("/usr/bin/uapi VersionControlDeployment create repository_root='{$projectRoot}'");
 run("{$phpBin} {$projectRoot}/artisan migrate --force");
 run("{$phpBin} {$projectRoot}/artisan config:cache");
 run("{$phpBin} {$projectRoot}/artisan route:cache");
