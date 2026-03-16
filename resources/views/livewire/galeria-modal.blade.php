@@ -1,8 +1,8 @@
 <div>
     @if ($mostrar)
         <div class="modal fade show d-block" tabindex="-1"
-             style="background-color: rgba(0,0,0,0.75); z-index: 99999;">
-            <div class="modal-dialog modal-fullscreen" style="z-index: 100000;">
+             style="position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; background-color: rgba(0,0,0,0.75); z-index: 200000 !important;">
+            <div class="modal-dialog modal-fullscreen" style="z-index: 200001 !important;">
                 <div class="modal-content">
 
                     <div class="modal-header">
