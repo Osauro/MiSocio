@@ -25,6 +25,7 @@ run("/usr/bin/uapi VersionControlDeployment create repository_root='{$projectRoo
 run("{$phpBin} {$projectRoot}/artisan migrate --force");
 run("{$phpBin} {$projectRoot}/artisan config:cache");
 run("{$phpBin} {$projectRoot}/artisan route:cache");
+run("{$phpBin} {$projectRoot}/artisan view:clear");
 
 // Eliminar symlink si existe y crear directorio real en public_html/storage
 run("rm -f {$publicHtml}/storage");
