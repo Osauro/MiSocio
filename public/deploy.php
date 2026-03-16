@@ -4,6 +4,7 @@ header('Content-Type: text/plain; charset=utf-8');
 
 $phpBin      = '/usr/local/bin/php';
 $projectRoot = '/home/misocio405/MiSocio';
+$publicHtml  = '/home/misocio405/public_html';
 
 function run(string $cmd): void
 {
@@ -25,5 +26,13 @@ run("{$phpBin} {$projectRoot}/artisan migrate --force");
 run("{$phpBin} {$projectRoot}/artisan config:cache");
 run("{$phpBin} {$projectRoot}/artisan route:cache");
 run("{$phpBin} {$projectRoot}/artisan view:cache");
+
+// Symlink storage → public_html/storage (recrear siempre)
+run("rm -f {$publicHtml}/storage");
+run("ln -s {$projectRoot}/storage/app/public {$publicHtml}/storage");
+echo "Symlink: " . (is_link("{$publicHtml}/storage") ? readlink("{$publicHtml}/storage") : 'FALLIDO') . "\n\n";
+
+// Copiar .htaccess a public_html (contiene SymLinksIfOwnerMatch)
+run("cp {$projectRoot}/public/.htaccess {$publicHtml}/.htaccess");
 
 echo "=== Finalizado: " . date('Y-m-d H:i:s') . " ===\n";
