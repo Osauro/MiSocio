@@ -77,6 +77,7 @@ run("{$composerBin} install --no-dev --optimize-autoloader --no-interaction --wo
 
 // 4. Crear directorios necesarios y asignar permisos
 run("mkdir -p {$projectRoot}/storage/framework/{sessions,views,cache} {$projectRoot}/storage/logs {$projectRoot}/bootstrap/cache");
+run("mkdir -p {$projectRoot}/storage/app/public {$projectRoot}/storage/app/private {$projectRoot}/storage/app/private/livewire-tmp");
 run("chmod -R 775 {$projectRoot}/storage");
 run("chmod -R 775 {$projectRoot}/bootstrap/cache");
 
@@ -85,6 +86,10 @@ run("{$phpBin} {$projectRoot}/artisan migrate --force");
 
 // 6. Sincronizar assets compilados a public_html
 run("rsync -a --delete {$projectRoot}/public/build/ {$publicHtml}/build/");
+
+// 6b. Copiar archivos de configuración PHP a public_html
+run("cp {$projectRoot}/public/.htaccess {$publicHtml}/.htaccess");
+run("cp {$projectRoot}/public/.user.ini {$publicHtml}/.user.ini");
 
 // 7. Symlink storage dentro de public_html (dentro del mismo usuario, suele funcionar)
 if (!file_exists("{$publicHtml}/storage")) {
