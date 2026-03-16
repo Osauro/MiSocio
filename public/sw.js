@@ -2,7 +2,7 @@ const CACHE_NAME = 'misocio-v1';
 
 // Recursos estáticos a cachear en instalación
 const PRECACHE_URLS = [
-    '/',
+    '/ventas',
     '/offline',
     '/assets/images/icon-192.png',
     '/assets/images/icon-512.png',

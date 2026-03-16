@@ -39,7 +39,7 @@ Route::get('/manifest.json', function () {
         'name'            => 'MiSocio',
         'short_name'      => 'MiSocio',
         'description'     => 'Sistema de gestión para tu negocio',
-        'start_url'       => '/',
+        'start_url'       => '/ventas',
         'scope'           => '/',
         'display'         => 'standalone',
         'orientation'     => 'portrait-primary',
