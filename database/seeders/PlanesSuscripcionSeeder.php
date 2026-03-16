@@ -31,7 +31,7 @@ class PlanesSuscripcionSeeder extends Seeder
                 'slug' => 'demo',
                 'duracion_meses' => 0,
                 'precio' => 0.00,
-                'descripcion' => 'Plan de prueba gratuito por 15 días - Acceso completo',
+                'descripcion' => 'Plan de prueba gratuito por 30 días - Acceso completo',
                 'caracteristicas' => $caracteristicasComunes,
                 'activo' => true,
                 'orden' => 1,

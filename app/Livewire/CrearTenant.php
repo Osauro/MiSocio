@@ -109,7 +109,7 @@ class CrearTenant extends Component
     {
         try {
             // Calcular duración
-            $duracionDias = $plan->duracion_meses > 0 ? ($plan->duracion_meses * 30) : 15;
+            $duracionDias = $plan->duracion_meses > 0 ? ($plan->duracion_meses * 30) : 30;
 
             // Crear el tenant
             $tenant = Tenant::create([

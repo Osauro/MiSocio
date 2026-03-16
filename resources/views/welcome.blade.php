@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MiSocio — Sistema de Gestión para tu Negocio</title>
-    <meta name="description" content="Controla tus ventas, compras, inventario y más. La solución todo-en-uno para pequeños negocios bolivianos." />
+    <title>MiSocio � Sistema de Gesti�n para tu Negocio</title>
+    <meta name="description" content="Controla tus ventas, compras, inventario y m�s. La soluci�n todo-en-uno para peque�os negocios bolivianos." />
 
     <!-- Favicon mascota -->
     <link rel="icon" type="image/png" href="{{ asset('assets/images/mascota-sonrisa.png') }}" />
@@ -36,7 +36,7 @@
         html { scroll-behavior: smooth; }
         body { font-family: 'Nunito Sans', sans-serif; color: var(--text); background: #fff; overflow-x: hidden; }
 
-        /* ─── NAVBAR ─────────────────────────────────── */
+        /* --- NAVBAR ----------------------------------- */
         .lp-nav {
             position: fixed; top: 0; left: 0; right: 0; z-index: 999;
             padding: 0 5%; height: 68px;
@@ -71,7 +71,7 @@
         }
         .btn-nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px var(--brand-glow); color: #fff; }
 
-        /* ─── HERO ───────────────────────────────────── */
+        /* --- HERO ------------------------------------- */
         .hero {
             min-height: 100vh; padding: 120px 5% 80px;
             display: flex; align-items: center;
@@ -180,7 +180,7 @@
         .float-badge.bottom-right { bottom: -10px; right: -25px; animation-delay: 2s; }
         .float-badge .fbi { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .9rem; }
 
-        /* ─── SECTIONS ────────────────────────────────── */
+        /* --- SECTIONS ---------------------------------- */
         .section { padding: 90px 5%; }
         .section-inner { max-width: 1200px; margin: 0 auto; }
         .section-tag {
@@ -270,7 +270,7 @@
         .footer-bottom .made { color: rgba(255,255,255,.4); font-size: .8rem; }
         .footer-bottom .made span { color: var(--brand); }
 
-        /* ─── MASCOTAS ────────────────────────────────── */
+        /* --- MASCOTAS ---------------------------------- */
         .hero-mascot-img {
             height: 520px; max-height: 66vh; width: auto;
             display: block; margin: 0 auto; object-fit: contain;
@@ -340,7 +340,7 @@
         @auth
             <a href="{{ route('dashboard') }}" class="btn-nav-login">Mi Panel</a>
         @else
-            <a href="{{ route('login') }}" class="btn-nav-login">Iniciar Sesión</a>
+            <a href="{{ route('login') }}" class="btn-nav-login">Iniciar Sesi�n</a>
             @if(Route::has('register'))
                 <a href="{{ route('register') }}" class="btn-nav-cta">Crear Cuenta Gratis</a>
             @endif
@@ -352,13 +352,13 @@
 <section class="hero">
     <div class="hero-inner">
         <div class="hero-copy">
-            <div class="hero-badge"><span class="dot"></span> Sistema de Gestión 100% Boliviano</div>
+            <div class="hero-badge"><span class="dot"></span> Sistema de Gesti�n 100% Boliviano</div>
             <h1 class="hero-title">Gestiona tu negocio<br>como un <span class="highlight">profesional</span></h1>
-            <p class="hero-sub">Ventas, compras, inventario, clientes y reportes en un solo lugar. Fácil de usar, sin complicaciones y diseñado para emprendedores bolivianos.</p>
+            <p class="hero-sub">Ventas, compras, inventario, clientes y reportes en un solo lugar. F�cil de usar, sin complicaciones y dise�ado para emprendedores bolivianos.</p>
             <div class="hero-actions">
                 @if(Route::has('register'))
                     <a href="{{ route('register') }}" class="btn-hero-primary">
-                        <i class="fa-solid fa-rocket"></i> Empezar Gratis — 15 días
+                        <i class="fa-solid fa-rocket"></i> Empezar Gratis � 30 d�as
                     </a>
                 @endif
                 <a href="#planes" class="btn-hero-secondary"><i class="fa-solid fa-tag"></i> Ver Planes</a>
@@ -377,7 +377,7 @@
             <div class="hero-mockup">
                 <div class="mockup-topbar">
                     <div class="mockup-dots"><span></span><span></span><span></span></div>
-                    <div class="mockup-title">MiSocio — Panel Principal</div>
+                    <div class="mockup-title">MiSocio � Panel Principal</div>
                     <div style="width:48px"></div>
                 </div>
                 <div class="mockup-body">
@@ -390,7 +390,7 @@
                     <div class="mockup-chart-bar"><div class="fill" style="width:72%"></div></div>
                     <div class="mockup-chart-bar"><div class="fill" style="width:45%"></div></div>
                     <div class="mockup-chart-bar"><div class="fill" style="width:88%"></div></div>
-                    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px">Últimas ventas</div>
+                    <div style="font-size:.65rem;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin:14px 0 6px">�ltimas ventas</div>
                     <div class="mockup-sale-row">
                         <div class="mockup-sale-icon" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-bottle-water" style="font-size:.7rem"></i></div>
                         <div class="mockup-sale-info"><div class="name">Coca-Cola 2L</div><div class="time">hace 3 min</div></div>
@@ -408,20 +408,20 @@
                     </div>
                 </div>
             </div>
-            <!-- Mascota pequeña en esquina inferior derecha del mockup -->
+            <!-- Mascota peque�a en esquina inferior derecha del mockup -->
             <img src="{{ asset('assets/images/mascota-pulgar.png') }}" alt="" class="hero-mascot-corner" onerror="this.style.display='none'" />
         </div>
     </div>
 </section>
 
-<!-- CARACTERÍSTICAS -->
+<!-- CARACTER�STICAS -->
 <section class="section" id="caracteristicas">
     <div class="section-inner">
         <div class="reveal section-header-flex">
             <div>
-                <span class="section-tag">¿Qué incluye?</span>
+                <span class="section-tag">�Qu� incluye?</span>
                 <h2 class="section-title">Todo lo que necesitas<br>para crecer</h2>
-                <p class="section-desc">Desde el primer día tendrás todo bajo control, sin necesidad de ser experto en tecnología.</p>
+                <p class="section-desc">Desde el primer d�a tendr�s todo bajo control, sin necesidad de ser experto en tecnolog�a.</p>
             </div>
             <img src="{{ asset('assets/images/mascota-saludo.png') }}" alt="" class="section-mascot float-mascot" onerror="this.style.display='none'" />
         </div>
@@ -429,7 +429,7 @@
             <div class="feature-card reveal">
                 <div class="feature-icon"><i class="fa-solid fa-cash-register"></i></div>
                 <h3>Punto de Venta</h3>
-                <p>Registra ventas rápidamente, agrega descuentos, gestiona el carrito y genera tickets en segundos.</p>
+                <p>Registra ventas r�pidamente, agrega descuentos, gestiona el carrito y genera tickets en segundos.</p>
             </div>
             <div class="feature-card reveal">
                 <div class="feature-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
@@ -438,13 +438,13 @@
             </div>
             <div class="feature-card reveal">
                 <div class="feature-icon"><i class="fa-solid fa-cart-flatbed"></i></div>
-                <h3>Gestión de Compras</h3>
-                <p>Registra compras a proveedores, controla costos y mantén actualizado el inventario automáticamente.</p>
+                <h3>Gesti�n de Compras</h3>
+                <p>Registra compras a proveedores, controla costos y mant�n actualizado el inventario autom�ticamente.</p>
             </div>
             <div class="feature-card reveal">
                 <div class="feature-icon"><i class="fa-solid fa-users"></i></div>
-                <h3>Gestión de Clientes</h3>
-                <p>Guarda el historial de compras de cada cliente y lleva el seguimiento de créditos o préstamos pendientes.</p>
+                <h3>Gesti�n de Clientes</h3>
+                <p>Guarda el historial de compras de cada cliente y lleva el seguimiento de cr�ditos o pr�stamos pendientes.</p>
             </div>
             <div class="feature-card reveal">
                 <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
@@ -454,13 +454,13 @@
             <div class="feature-card reveal">
                 <div class="feature-icon"><i class="fa-solid fa-mobile-screen"></i></div>
                 <h3>Acceso desde cualquier lugar</h3>
-                <p>Funciona en celular, tablet o computadora. Instálalo como app y úsalo desde donde estés.</p>
+                <p>Funciona en celular, tablet o computadora. Inst�lalo como app y �salo desde donde est�s.</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CÓMO FUNCIONA -->
+<!-- C�MO FUNCIONA -->
 <section class="section" style="background:linear-gradient(180deg,#fff 0%,#f0faf9 100%)">
     <div class="section-inner">
         <div class="reveal" style="text-align:center">
@@ -474,17 +474,17 @@
                 <div class="step-card reveal">
                     <div class="step-number">1</div>
                     <h3>Crea tu cuenta</h3>
-                    <p>Regístrate con tu número de celular y un PIN de 4 dígitos. Sin tarjeta, sin trámites.</p>
+                    <p>Reg�strate con tu n�mero de celular y un PIN de 4 d�gitos. Sin tarjeta, sin tr�mites.</p>
                 </div>
                 <div class="step-card reveal">
                     <div class="step-number">2</div>
                     <h3>Configura tu tienda</h3>
-                    <p>Agrega tus productos, categorías y personaliza el color de tu tienda en minutos.</p>
+                    <p>Agrega tus productos, categor�as y personaliza el color de tu tienda en minutos.</p>
                 </div>
                 <div class="step-card reveal">
                     <div class="step-number">3</div>
-                    <h3>¡Empieza a vender!</h3>
-                    <p>Registra tus primeras ventas desde el mismo día. Todo queda guardado automáticamente.</p>
+                    <h3>�Empieza a vender!</h3>
+                    <p>Registra tus primeras ventas desde el mismo d�a. Todo queda guardado autom�ticamente.</p>
                 </div>
             </div>
         </div>
@@ -509,7 +509,7 @@
             @endphp
             <div class="price-card {{ $isPopular ? 'popular' : '' }} reveal">
                 @if($isPopular)
-                    <div class="popular-badge"><i class="fa-solid fa-star"></i> Más popular</div>
+                    <div class="popular-badge"><i class="fa-solid fa-star"></i> M�s popular</div>
                 @elseif($isDemo)
                     <div class="free-badge"><i class="fa-solid fa-gift"></i> Gratis</div>
                 @endif
@@ -520,7 +520,7 @@
                 </div>
                 <div class="price-duration">
                     @if($isDemo)
-                        15 días de prueba gratuita
+                        30 d�as de prueba gratuita
                     @else
                         por {{ $plan->duracion_texto ?? ($plan->duracion_meses . ' mes(es)') }}
                     @endif
@@ -547,7 +547,7 @@
         @else
         <div class="reveal" style="text-align:center;padding:60px 20px;color:var(--muted)">
             <i class="fa-solid fa-tag" style="font-size:2.5rem;color:var(--brand);margin-bottom:16px;display:block"></i>
-            <p>Los planes están disponibles al registrarte.</p>
+            <p>Los planes est�n disponibles al registrarte.</p>
             @if(Route::has('register'))
                 <a href="{{ route('register') }}" class="btn-hero-primary" style="display:inline-flex;margin-top:20px">
                     <i class="fa-solid fa-rocket"></i> Crear cuenta gratis
@@ -567,8 +567,8 @@
 <section class="cta-section">
     <div class="section-inner cta-inner">
         <div class="cta-text">
-            <h2 class="reveal">¿Listo para llevar tu negocio<br>al siguiente nivel?</h2>
-            <p class="reveal">Únete a los emprendedores bolivianos que ya controlan sus negocios con MiSocio. Empieza hoy, gratis.</p>
+            <h2 class="reveal">�Listo para llevar tu negocio<br>al siguiente nivel?</h2>
+            <p class="reveal">�nete a los emprendedores bolivianos que ya controlan sus negocios con MiSocio. Empieza hoy, gratis.</p>
             @if(Route::has('register'))
                 <a href="{{ route('register') }}" class="btn-cta reveal">
                     <i class="fa-solid fa-rocket"></i> Crear mi cuenta gratis
@@ -591,27 +591,27 @@
                     </div>
                     <span class="lp-logo-text">Mi<span>Socio</span></span>
                 </a>
-                <p>La herramienta de gestión para pequeños negocios bolivianos. Simple, rápida y accesible.</p>
+                <p>La herramienta de gesti�n para peque�os negocios bolivianos. Simple, r�pida y accesible.</p>
                 <img src="{{ asset('assets/images/mascota-sonrisa.png') }}" alt="" class="footer-mascot float-mascot" onerror="this.style.display='none'" />
             </div>
             <div class="footer-links">
                 <h4>Acceso</h4>
                 <ul>
-                    @if(Route::has('login'))<li><a href="{{ route('login') }}">Iniciar Sesión</a></li>@endif
+                    @if(Route::has('login'))<li><a href="{{ route('login') }}">Iniciar Sesi�n</a></li>@endif
                     @if(Route::has('register'))<li><a href="{{ route('register') }}">Crear Cuenta</a></li>@endif
                 </ul>
             </div>
             <div class="footer-links">
                 <h4>Sistema</h4>
                 <ul>
-                    <li><a href="#caracteristicas">Características</a></li>
+                    <li><a href="#caracteristicas">Caracter�sticas</a></li>
                     <li><a href="#planes">Planes y Precios</a></li>
                 </ul>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>© {{ date('Y') }} MiSocio — Todos los derechos reservados.</p>
-            <p class="made">Hecho con <span>♥</span> en Bolivia</p>
+            <p>� {{ date('Y') }} MiSocio � Todos los derechos reservados.</p>
+            <p class="made">Hecho con <span>?</span> en Bolivia</p>
         </div>
     </div>
 </footer>
