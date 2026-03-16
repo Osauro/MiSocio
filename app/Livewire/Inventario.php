@@ -99,6 +99,7 @@ class Inventario extends Component
                 'cnt_uni'            => $cntUni,
                 'diferencia'         => $item->diferencia,
                 'contado'            => $contado,
+                'sistema_cambio'     => false,
             ];
         })->toArray();
     }
@@ -157,17 +158,71 @@ class Inventario extends Component
         ]);
     }
 
+    #[Renderless]
+    public function actualizarStockSistema()
+    {
+        $updatedItems = [];
+
+        foreach ($this->items as $index => $item) {
+            $producto = Producto::find($item['producto_id']);
+            if (!$producto) continue;
+
+            $stockActual   = $producto->stock;
+            $cantPorMedida = $producto->cantidad ?? 1;
+            $sistemaCambio = $stockActual !== $item['stock_sistema'];
+
+            $sysEnt = $cantPorMedida > 1 ? intdiv($stockActual, $cantPorMedida) : $stockActual;
+            $sysUni = $cantPorMedida > 1 ? ($stockActual % $cantPorMedida) : 0;
+
+            // Solo actualizar stock_sistema — nunca tocar stock_contado ni cnt_ent/cnt_uni
+            $this->items[$index]['stock_sistema']  = $stockActual;
+            $this->items[$index]['sys_ent']        = $sysEnt;
+            $this->items[$index]['sys_uni']        = $sysUni;
+            $this->items[$index]['diferencia']     = $item['stock_contado'] - $stockActual;
+            $this->items[$index]['sistema_cambio'] = $sistemaCambio;
+
+            InventarioItem::where('id', $item['id'])->update([
+                'stock_sistema' => $stockActual,
+                'diferencia'    => $this->items[$index]['diferencia'],
+            ]);
+
+            $updatedItems[] = [
+                'id'            => $item['id'],
+                'stock_sistema' => $stockActual,
+                'diferencia'    => $this->items[$index]['diferencia'],
+                'sistemaCambio' => $sistemaCambio,
+                'can'           => $cantPorMedida,
+                'sysEnt'        => $sysEnt,
+                'sysUni'        => $sysUni,
+            ];
+        }
+
+        $this->dispatch('stock-sistema-actualizado', items: $updatedItems);
+        $this->toast('success', 'Stock del sistema actualizado');
+    }
+
     public function cancelarInventario()
     {
-        InventarioModel::withoutGlobalScopes()
-            ->where('id', $this->inventarioId)
-            ->update(['estado' => 'Eliminado']);
+        DB::transaction(function () {
+            InventarioItem::where('inventario_id', $this->inventarioId)->delete();
+            InventarioModel::withoutGlobalScopes()
+                ->where('id', $this->inventarioId)
+                ->delete();
+        });
         return redirect()->route('inventarios');
     }
 
     public function ejecutarFinalizar($id = null)
     {
         if ($this->procesando) return;
+
+        // Guard contra doble procesamiento: verificar estado actual en BD
+        $estadoActual = InventarioModel::withoutGlobalScopes()
+            ->where('id', $this->inventarioId)
+            ->value('estado');
+        if ($estadoActual !== 'Pendiente') {
+            return;
+        }
 
         $this->procesando = true;
 

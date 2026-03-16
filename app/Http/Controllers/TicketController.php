@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Venta;
 use App\Models\Prestamo;
+use App\Models\Inventario;
 use App\Models\TenantConfig;
 use App\Services\PrinterService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -117,5 +118,24 @@ class TicketController extends Controller
         $config = TenantConfig::getOrCreateForTenant(currentTenantId());
 
         return view('ticket.prestamo-print', compact('prestamo', 'config'));
+    }
+
+    /**
+     * PDF de inventario (A4)
+     */
+    public function inventario($inventarioId)
+    {
+        if (!Auth::check()) abort(403);
+
+        $inventario = Inventario::with(['user', 'items.producto' => function ($q) {
+            $q->withTrashed();
+        }])->findOrFail($inventarioId);
+
+        $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+
+        $pdf = Pdf::loadView('pdf.inventario', compact('inventario', 'config'));
+        $pdf->setPaper('a4', 'portrait');
+
+        return $pdf->stream('inventario-' . str_pad($inventario->numero_folio, 6, '0', STR_PAD_LEFT) . '.pdf');
     }
 }

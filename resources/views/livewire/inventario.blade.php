@@ -10,6 +10,13 @@
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h3 class="d-none d-md-block mb-0">Inventario #{{ $inventarioFolio }}</h3>
                             <div class="d-flex gap-2 align-items-center">
+                                <button class="btn btn-warning" title="Actualizar stock desde el sistema"
+                                    wire:click="actualizarStockSistema"
+                                    wire:loading.attr="disabled">
+                                    <i class="fa-solid fa-rotate"
+                                       wire:loading.class="fa-spin"
+                                       wire:target="actualizarStockSistema"></i>
+                                </button>
                                 <button class="btn btn-secondary" title="Cancelar inventario"
                                     onclick="swalCancelarInventario({{ $inventarioId }}, '{{ $inventarioFolio }}')"
                                     wire:ignore>
@@ -31,6 +38,13 @@
                     <div class="card-header card-no-border d-md-none"
                         style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
                         <div class="d-flex gap-2 align-items-center">
+                            <button class="btn btn-warning btn-sm flex-shrink-0" title="Actualizar stock"
+                                wire:click="actualizarStockSistema"
+                                wire:loading.attr="disabled">
+                                <i class="fa-solid fa-rotate"
+                                   wire:loading.class="fa-spin"
+                                   wire:target="actualizarStockSistema"></i>
+                            </button>
                             <button class="btn btn-secondary btn-sm flex-shrink-0" title="Cancelar inventario"
                                 onclick="swalCancelarInventario({{ $inventarioId }}, '{{ $inventarioFolio }}')"
                                 wire:ignore>
@@ -68,6 +82,15 @@
                                          med: '{{ $medAbrev }}',
                                          sys: {{ (int)$item['stock_sistema'] }},
                                          contado: {{ $item['contado'] ? 'true' : 'false' }},
+                                         sistemaCambio: false,
+                                         get sysDisplay() {
+                                             if (this.can > 1) {
+                                                 let e = Math.floor(this.sys / this.can);
+                                                 let u = this.sys % this.can;
+                                                 return e + this.med + '-' + u + 'u';
+                                             }
+                                             return this.sys + this.med;
+                                         },
                                          get diff() {
                                              let cnt = this.can > 1 ? (this.ent * this.can + this.uni) : this.ent;
                                              return cnt - this.sys;
@@ -98,8 +121,14 @@
                                              this.contado = true;
                                              $wire.actualizarEntUni({{ $item['id'] }}, this.ent, this.uni);
                                          }
-                                     }">
-                                    <div class="card mb-0 shadow-sm">
+                                     }"
+                                     @stock-sistema-actualizado.window="
+                                         const me = $event.detail.items.find(i => i.id == {{ $item['id'] }});
+                                         if (me) { sys = me.stock_sistema; sistemaCambio = me.sistemaCambio; }
+                                     ">
+                                    <div class="card mb-0 shadow-sm"
+                                         :class="sistemaCambio ? 'border-danger' : ''"
+                                         :style="sistemaCambio ? 'background-color:rgba(220,53,69,0.1)' : ''">
                                         <div class="card-body p-2">
 
                                             <!-- Fila 1: Nombre -->
@@ -183,7 +212,7 @@
                                                         <input type="text" readonly
                                                             class="form-control form-control-sm text-center fw-bold flex-fill"
                                                             style="font-size:0.78rem; padding:2px; min-width:0; background:var(--theme-default,#7366ff); color:#fff; border:none; cursor:default;"
-                                                            value="{{ $sysDisplay }}"
+                                                            :value="sysDisplay"
                                                             title="Stock en sistema">
                                                         <input type="text" readonly
                                                             class="form-control form-control-sm text-center fw-bold flex-fill"
@@ -232,7 +261,10 @@ function swalCancelarInventario(id, folio) {
     });
 }
 
+let _inventarioFinalizando = false;
+
 function swalFinalizarInventario(id, folio, total) {
+    if (_inventarioFinalizando) return;
     Swal.fire({
         title: '\u00bfFinalizar inventario #' + folio + '?',
         html: '<p>Se procesar\u00e1n <strong>' + total + '</strong> productos.</p><p class="text-muted small mb-0">Se ajustar\u00e1 el stock, se actualizar\u00e1 la fecha de control y se registrar\u00e1n las diferencias en el Kardex.</p>',
@@ -244,6 +276,11 @@ function swalFinalizarInventario(id, folio, total) {
         cancelButtonText: 'Cancelar'
     }).then(function(result) {
         if (result.isConfirmed) {
+            _inventarioFinalizando = true;
+            // Deshabilitar todos los botones finalizar
+            document.querySelectorAll('[onclick*="swalFinalizarInventario"]').forEach(function(btn) {
+                btn.disabled = true;
+            });
             Livewire.dispatch('ejecutarFinalizar', { id: id });
         }
     });

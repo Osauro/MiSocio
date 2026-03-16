@@ -16,7 +16,6 @@ class Inventarios extends Component
 {
     use WithPagination, RequiresTenant, SweetAlertTrait;
 
-    public $search = '';
     public $perPage = 12;
 
     // Modal de detalles
@@ -29,11 +28,6 @@ class Inventarios extends Component
     public function mount()
     {
         $this->perPage = isset($_COOKIE['paginateInventarios']) ? (int)$_COOKIE['paginateInventarios'] : 12;
-    }
-
-    public function updatingSearch()
-    {
-        $this->resetPage();
     }
 
     public function crearInventario()
@@ -183,7 +177,6 @@ class Inventarios extends Component
             },
         ])
         ->withCount('items')
-        ->when($this->search, fn($q) => $q->where('numero_folio', 'like', '%' . $this->search . '%'))
         ->orderBy('created_at', 'desc')
         ->paginate($this->perPage);
 

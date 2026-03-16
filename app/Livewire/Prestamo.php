@@ -644,6 +644,13 @@ class Prestamo extends Component
         try {
             DB::beginTransaction();
 
+            // Guard contra doble procesamiento: verificar estado actual en BD
+            $this->prestamo->refresh();
+            if ($this->prestamo->estado !== 'Pendiente') {
+                DB::rollBack();
+                return;
+            }
+
             $totalDeposito = collect($this->items)->sum('subtotal');
 
             // Obtener el nombre del cliente si existe

@@ -549,8 +549,10 @@
                         <i class="fa-solid fa-arrow-left me-1"></i>
                         Atrás
                     </button>
-                    <button type="button" class="btn btn-success" wire:click="procesarPago">
-                        <i class="fa-solid fa-check me-1"></i>
+                    <button type="button" class="btn btn-success" wire:click="procesarPago"
+                        wire:loading.attr="disabled" wire:target="procesarPago">
+                        <i class="fa-solid fa-check me-1" wire:loading.remove wire:target="procesarPago"></i>
+                        <span class="spinner-border spinner-border-sm me-1" wire:loading wire:target="procesarPago"></span>
                         Procesar Pago <span class="badge bg-white text-success ms-1">Enter</span>
                     </button>
                 </div>

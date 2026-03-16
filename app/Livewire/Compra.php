@@ -668,6 +668,13 @@ class Compra extends Component
         try {
             DB::beginTransaction();
 
+            // Guard contra doble procesamiento: verificar estado actual en BD
+            $this->compra->refresh();
+            if ($this->compra->estado !== 'Pendiente') {
+                DB::rollBack();
+                return;
+            }
+
             $total = collect($this->items)->sum('subtotal');
 
             // Obtener el nombre del proveedor si existe

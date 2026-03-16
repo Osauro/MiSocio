@@ -91,6 +91,7 @@ Route::middleware(['auth', 'tenant', 'tenant.active'])->group(function () {
     Route::get('ticket/venta/{ventaId}/pdf', [TicketController::class, 'venta'])->name('ticket.venta.pdf');
     Route::get('ticket/prestamo/{prestamoId}', [TicketController::class, 'prestamoHtml'])->name('ticket.prestamo');
     Route::get('ticket/prestamo/{prestamoId}/pdf', [TicketController::class, 'prestamo'])->name('ticket.prestamo.pdf');
+    Route::get('inventario/{inventarioId}/pdf', [TicketController::class, 'inventario'])->name('inventario.pdf');
 
     // Ruta de debug temporal - Solo para desarrollo
     Route::get('debug-user', function () {

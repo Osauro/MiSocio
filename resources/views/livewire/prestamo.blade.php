@@ -481,8 +481,10 @@
                         <i class="fa-solid fa-times me-1"></i>
                         Cancelar <span class="badge bg-white text-secondary ms-1">Esc</span>
                     </button>
-                    <button type="button" class="btn btn-success" wire:click="procesarDepósito">
-                        <i class="fa-solid fa-check me-1"></i>
+                    <button type="button" class="btn btn-success" wire:click="procesarDepósito"
+                        wire:loading.attr="disabled" wire:target="procesarDepósito">
+                        <i class="fa-solid fa-check me-1" wire:loading.remove wire:target="procesarDepósito"></i>
+                        <span class="spinner-border spinner-border-sm me-1" wire:loading wire:target="procesarDepósito"></span>
                         Procesar Depósito <span class="badge bg-white text-success ms-1">Enter</span>
                     </button>
                 </div>

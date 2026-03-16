@@ -807,6 +807,13 @@ class Venta extends Component
         try {
             DB::beginTransaction();
 
+            // Guard contra doble procesamiento: verificar estado actual en BD
+            $this->venta->refresh();
+            if ($this->venta->estado !== 'Pendiente') {
+                DB::rollBack();
+                return;
+            }
+
             $total = collect($this->items)->sum('subtotal');
 
             // Obtener el nombre del cliente si existe
