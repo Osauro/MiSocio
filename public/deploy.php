@@ -1,25 +1,52 @@
 <?php
 
-// ── Configuración ─────────────────────────────────────────────────────────────
-$projectRoot  = '/home/misocio405/MiSocio';
-$publicHtml   = '/home/misocio405/public_html';
-$composerBin  = '/usr/bin/composer';
-$phpBin       = '/usr/bin/php';
-$gitBin       = '/usr/bin/git';
-
 header('Content-Type: text/plain; charset=utf-8');
 
+// ── Diagnóstico rápido del entorno ────────────────────────────────────────────
+echo "=== DIAGNÓSTICO DEL ENTORNO ===\n";
+echo "PHP version : " . PHP_VERSION . "\n";
+echo "Usuario     : " . trim(shell_exec('whoami') ?? 'desconocido') . "\n";
+echo "exec()      : " . (function_exists('exec') ? 'disponible' : 'DESHABILITADO') . "\n";
+echo "shell_exec(): " . (function_exists('shell_exec') ? 'disponible' : 'DESHABILITADO') . "\n";
+
+// Detectar paths reales
+$phpBin      = trim(shell_exec('which php8.1 2>/dev/null || which php8.2 2>/dev/null || which php 2>/dev/null') ?? '');
+$composerBin = trim(shell_exec('which composer 2>/dev/null') ?? '');
+$gitBin      = trim(shell_exec('which git 2>/dev/null') ?? '');
+
+echo "PHP path    : " . ($phpBin      ?: 'NO ENCONTRADO') . "\n";
+echo "Composer    : " . ($composerBin ?: 'NO ENCONTRADO') . "\n";
+echo "Git         : " . ($gitBin      ?: 'NO ENCONTRADO') . "\n";
+echo "\n";
+
+// Si los binarios no se detectaron automáticamente, usar fallbacks manuales
+if (!$phpBin)      $phpBin      = '/usr/bin/php';
+if (!$composerBin) $composerBin = '/usr/local/bin/composer';
+if (!$gitBin)      $gitBin      = '/usr/bin/git';
+
+// ── Configuración ─────────────────────────────────────────────────────────────
+$projectRoot = '/home/misocio405/MiSocio';
+$publicHtml  = '/home/misocio405/public_html';
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function run(string $cmd): void
+function run(string $cmd): bool
 {
-    echo "\n$ {$cmd}\n";
+    echo "$ {$cmd}\n";
     $output = [];
     $code   = 0;
     exec($cmd . ' 2>&1', $output, $code);
-    echo implode("\n", $output) . "\n";
+    $out = implode("\n", $output);
+    echo ($out ?: '(sin salida)') . "\n";
     if ($code !== 0) {
-        echo "[ERROR] El comando terminó con código {$code}.\n";
+        echo "[ERROR] Código de salida: {$code}\n";
     }
+    echo "\n";
+    return $code === 0;
+}
+
+if (!function_exists('exec')) {
+    echo "[FATAL] exec() está deshabilitado. Contactá al hosting para habilitarlo.\n";
+    exit(1);
 }
 
 // ── Pipeline de despliegue ────────────────────────────────────────────────────
