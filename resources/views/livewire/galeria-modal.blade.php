@@ -14,6 +14,7 @@
                     </div>
 
                     <div class="modal-body d-flex flex-column" style="overflow: hidden;">
+
                         <!-- Búsqueda -->
                         <div class="mb-3 flex-shrink-0">
                             <div class="input-group">
@@ -30,8 +31,35 @@
                             </div>
                         </div>
 
-                        <!-- Grid de imágenes -->
+                        <!-- Grid: primera card = subir imagen, resto = galería -->
                         <div class="row g-3 flex-grow-1 overflow-auto pb-2">
+
+                            <!-- Card subir nueva imagen (siempre primera) -->
+                            <div class="col-6 col-sm-4 col-md-3 col-lg-2">
+                                <label class="card h-100 border-2 border-dashed border-primary d-flex flex-column align-items-center justify-content-center text-primary"
+                                       style="cursor: pointer; min-height: 160px; border-style: dashed !important; background: #f0f4ff; transition: background .15s;"
+                                       onmouseover="this.style.background='#dde8ff'"
+                                       onmouseout="this.style.background='#f0f4ff'">
+                                    <span wire:loading.remove wire:target="nuevaImagen">
+                                        <i class="fa-solid fa-cloud-arrow-up fa-2x mb-2"></i>
+                                        <span class="d-block small fw-semibold">Subir imagen</span>
+                                        <span class="d-block" style="font-size: 0.7rem; opacity: .7;">Máx. 10 MB</span>
+                                    </span>
+                                    <span wire:loading wire:target="nuevaImagen">
+                                        <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+                                        <span class="d-block small fw-semibold">Subiendo...</span>
+                                    </span>
+                                    <input type="file"
+                                           class="d-none"
+                                           wire:model="nuevaImagen"
+                                           accept="image/*">
+                                </label>
+                                @error('nuevaImagen')
+                                    <div class="text-danger mt-1" style="font-size: 0.75rem;">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <!-- Imágenes de la galería -->
                             @forelse($imagenes as $img)
                                 <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                                     <div class="card h-100 border-0 shadow-sm"
@@ -61,52 +89,13 @@
                                     </div>
                                 </div>
                             @empty
-                                <div class="col-12 text-center text-muted py-5">
+                                <div class="col text-center text-muted py-5">
                                     <i class="fa-solid fa-image fa-3x mb-3 opacity-50"></i>
-                                    <p class="mb-0">No hay imágenes en la galería todavía</p>
-                                    <small>Sube la primera imagen abajo</small>
+                                    <p class="mb-0">No hay imágenes todavía</p>
+                                    <small>Sube la primera usando la card de la izquierda</small>
                                 </div>
                             @endforelse
-                        </div>
 
-                        <hr class="my-3 flex-shrink-0">
-
-                        <!-- Subir nueva imagen -->
-                        <div class="flex-shrink-0">
-                            <p class="fw-semibold mb-2">
-                                <i class="fa-solid fa-upload me-1 text-primary"></i> Subir nueva imagen
-                            </p>
-                            <div class="row align-items-center g-2">
-                                <div class="col-md-7">
-                                    <input type="file"
-                                           class="form-control @error('nuevaImagen') is-invalid @enderror"
-                                           wire:model="nuevaImagen"
-                                           accept="image/*">
-                                    @error('nuevaImagen')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                    <small class="text-muted">Máx. 10 MB. Se redimensionará a 512×512 px.</small>
-                                </div>
-                                <div class="col-md-5 d-flex align-items-center gap-2">
-                                    @if ($nuevaImagen)
-                                        <img src="{{ $nuevaImagen->temporaryUrl() }}"
-                                             alt="Preview"
-                                             style="height: 70px; width: 70px; object-fit: contain; background:#f8f9fa; border-radius: 6px; border: 1px solid #dee2e6;">
-                                    @endif
-                                    <button type="button"
-                                            class="btn btn-primary"
-                                            wire:click="subirImagen"
-                                            wire:loading.attr="disabled"
-                                            @disabled(!$nuevaImagen)>
-                                        <span wire:loading.remove wire:target="subirImagen">
-                                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Subir y usar
-                                        </span>
-                                        <span wire:loading wire:target="subirImagen">
-                                            <i class="fa-solid fa-spinner fa-spin me-1"></i> Subiendo...
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                     </div>
 

@@ -40,6 +40,13 @@ class GaleriaModal extends Component
         $this->cerrar();
     }
 
+    public function updatedNuevaImagen(): void
+    {
+        if ($this->nuevaImagen) {
+            $this->subirImagen();
+        }
+    }
+
     public function subirImagen(): void
     {
         $this->validate([
