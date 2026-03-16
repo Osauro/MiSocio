@@ -8,7 +8,7 @@
                             <h3 class="mb-0">
                                 <i class="fa-solid fa-store me-2"></i>
                                 @if($paso === 1)
-                                    Selecciona tu Plan de Suscripción
+                                    Selecciona tu Plan de SuscripciÃ³n
                                 @elseif($paso === 2)
                                     Completa los Datos de tu Tienda
                                 @else
@@ -19,7 +19,7 @@
                                 @if($paso === 1)
                                     Elige el plan que mejor se adapte a tus necesidades
                                 @elseif($paso === 2)
-                                    Estás a un paso de comenzar con MiSocio
+                                    EstÃ¡s a un paso de comenzar con MiSocio
                                 @else
                                     Realiza el pago y sube tu comprobante para activar tu tienda
                                 @endif
@@ -29,7 +29,7 @@
 
                     <div class="card-body pt-3">
                         @if($paso === 1)
-                            <!-- PASO 1: Selección de Plan -->
+                            <!-- PASO 1: SelecciÃ³n de Plan -->
                             <div class="row g-4 justify-content-center">
                                 <!-- Todos los planes desde la base de datos -->
                                 @foreach($planes as $plan)
@@ -37,11 +37,11 @@
                                     <div class="plan-card {{ $plan->precio == 0 ? 'plan-demo' : 'plan-paid' }}">
                                         @if($plan->precio == 0)
                                         <div class="plan-badge">
-                                            <i class="fa-solid fa-gift me-1"></i> ¡Gratis!
+                                            <i class="fa-solid fa-gift me-1"></i> Â¡Gratis!
                                         </div>
                                         @elseif($plan->duracion_meses == 12)
                                         <div class="plan-badge plan-badge-popular">
-                                            <i class="fa-solid fa-star me-1"></i> Más Popular
+                                            <i class="fa-solid fa-star me-1"></i> MÃ¡s Popular
                                         </div>
                                         @endif
                                         <div class="plan-header">
@@ -52,7 +52,7 @@
                                             </div>
                                             <div class="plan-duration">
                                                 @if($plan->duracion_meses == 0)
-                                                    15 días de prueba
+                                                    15 dÃ­as de prueba
                                                 @else
                                                     {{ $plan->duracion_texto }}
                                                 @endif
@@ -81,7 +81,7 @@
                             <!-- PASO 2: Formulario de Tienda -->
                             <div class="row justify-content-center">
                                 <div class="col-md-8">
-                                    <!-- Botón volver -->
+                                    <!-- BotÃ³n volver -->
                                     <button type="button" class="btn btn-light btn-sm mb-3" wire:click="volverAPlanes">
                                         <i class="fa-solid fa-arrow-left me-1"></i> Volver a planes
                                     </button>
@@ -96,7 +96,7 @@
                                         @if($planSeleccionadoObj)
                                             {{ $planSeleccionadoObj->nombre }} -
                                             @if($planSeleccionadoObj->precio == 0)
-                                                15 días gratis
+                                                15 dÃ­as gratis
                                             @else
                                                 Bs. {{ number_format($planSeleccionadoObj->precio, 2) }} ({{ $planSeleccionadoObj->duracion_texto }})
                                             @endif
@@ -115,9 +115,9 @@
                                         <div class="mb-3">
                                             <label class="form-label">Dominio (Opcional)</label>
                                             <input type="text" class="form-control @error('domain') is-invalid @enderror"
-                                                wire:model="domain" placeholder="Dejar vacío para generar automáticamente">
+                                                wire:model="domain" placeholder="Dejar vacÃ­o para generar automÃ¡ticamente">
                                             @error('domain') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                            <small class="text-muted">Si no especificas uno, se generará automáticamente basado en el nombre</small>
+                                            <small class="text-muted">Si no especificas uno, se generarÃ¡ automÃ¡ticamente basado en el nombre</small>
                                         </div>
 
                                         <div class="mb-3">
@@ -127,7 +127,7 @@
                                                 <option value="2">Tema 2 - Verde</option>
                                                 <option value="3">Tema 3 - Rojo</option>
                                                 <option value="4">Tema 4 - Naranja</option>
-                                                <option value="5">Tema 5 - Púrpura</option>
+                                                <option value="5">Tema 5 - PÃºrpura</option>
                                                 <option value="6">Tema 6 - Turquesa</option>
                                                 <option value="7">Tema 7 - Rosa</option>
                                                 <option value="8">Tema 8 - Amarillo</option>
@@ -154,18 +154,18 @@
                             <!-- PASO 3: Pago y Comprobante -->
                             <div class="row justify-content-center">
                                 <div class="col-md-10">
-                                    <!-- Botón volver -->
+                                    <!-- BotÃ³n volver -->
                                     <button type="button" class="btn btn-light btn-sm mb-3" wire:click="volverAlFormulario">
                                         <i class="fa-solid fa-arrow-left me-1"></i> Volver al formulario
                                     </button>
 
-                                    <!-- Información del plan -->
+                                    <!-- InformaciÃ³n del plan -->
                                     <div class="alert alert-success mb-4">
                                         <div class="d-flex align-items-center">
                                             <i class="fa-solid fa-circle-check fa-2x me-3"></i>
                                             <div>
                                                 <h5 class="mb-1">Plan seleccionado: {{ $planData?->nombre }}</h5>
-                                                <p class="mb-0">Monto a pagar: <strong>Bs. {{ number_format($planData?->precio ?? 0, 2) }}</strong> - Duración: {{ $planData?->duracion_texto }}</p>
+                                                <p class="mb-0">Monto a pagar: <strong>Bs. {{ number_format($planData?->precio ?? 0, 2) }}</strong> - DuraciÃ³n: {{ $planData?->duracion_texto }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -216,7 +216,7 @@
                                                             @error('comprobante')
                                                                 <div class="invalid-feedback">{{ $message }}</div>
                                                             @enderror
-                                                            <small class="text-muted">Formatos: JPG, PNG. Máximo 2MB</small>
+                                                            <small class="text-muted">Formatos: JPG, PNG. MÃ¡ximo 2MB</small>
                                                         </div>
 
                                                         <!-- Preview del comprobante -->
@@ -243,8 +243,8 @@
                                                         <div class="alert alert-warning">
                                                             <i class="fa-solid fa-exclamation-triangle me-2"></i>
                                                             <small>
-                                                                <strong>Importante:</strong> Tu pago será verificado por nuestro equipo.
-                                                                Una vez aprobado, recibirás un correo y podrás acceder a tu tienda.
+                                                                <strong>Importante:</strong> Tu pago serÃ¡ verificado por nuestro equipo.
+                                                                Una vez aprobado, recibirÃ¡s un correo y podrÃ¡s acceder a tu tienda.
                                                             </small>
                                                         </div>
 
@@ -255,7 +255,7 @@
                                                                     wire:target="procesarPago">
                                                                 <span wire:loading.remove wire:target="procesarPago">
                                                                     <i class="fa-solid fa-paper-plane me-2"></i>
-                                                                    Enviar para Verificación
+                                                                    Enviar para VerificaciÃ³n
                                                                 </span>
                                                                 <span wire:loading wire:target="procesarPago">
                                                                     <span class="spinner-border spinner-border-sm me-2"></span>

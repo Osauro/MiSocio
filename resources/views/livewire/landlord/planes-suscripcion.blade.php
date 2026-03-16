@@ -7,7 +7,7 @@
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h3 class="d-none d-md-block mb-0">
                                 <i class="fa-solid fa-layer-group me-2"></i>
-                                Planes de Suscripción
+                                Planes de SuscripciÃ³n
                             </h3>
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
@@ -21,7 +21,7 @@
                         </div>
                     </div>
 
-                    <!-- Buscador fijo para móvil -->
+                    <!-- Buscador fijo para mÃ³vil -->
                     <div class="card-header card-no-border d-md-none"
                         style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
                         <div class="input-group">
@@ -50,7 +50,7 @@
                                                     </button>
                                                     @if($plan->tenants_count == 0)
                                                         <button class="btn btn-danger btn-sm py-0 px-1" style="font-size: 0.65rem;"
-                                                            onclick="confirm('¿Eliminar?') || event.stopImmediatePropagation()"
+                                                            onclick="confirm('Â¿Eliminar?') || event.stopImmediatePropagation()"
                                                             wire:click="delete({{ $plan->id }})" title="Eliminar">
                                                             <i class="fa-solid fa-trash"></i>
                                                         </button>
@@ -67,7 +67,7 @@
                                                     Bs. {{ number_format($plan->precio, 2) }}
                                                 </h5>
                                                 @if($plan->duracion_meses == 0)
-                                                    <span class="badge bg-info" style="font-size: 0.6rem;">15 días</span>
+                                                    <span class="badge bg-info" style="font-size: 0.6rem;">15 dÃ­as</span>
                                                 @else
                                                     <span class="badge bg-primary" style="font-size: 0.6rem;">{{ $plan->duracion_texto }}</span>
                                                 @endif
@@ -80,7 +80,7 @@
                                                 </small>
                                             </div>
 
-                                            <!-- Estadísticas compactas -->
+                                            <!-- EstadÃ­sticas compactas -->
                                             <div class="row g-1 mb-1">
                                                 <div class="col-6">
                                                     <div class="text-center p-1 bg-light rounded" style="font-size: 0.7rem;">
@@ -100,7 +100,7 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Características simplificadas -->
+                                            <!-- CaracterÃ­sticas simplificadas -->
                                             @if($plan->caracteristicas && count($plan->caracteristicas) > 0)
                                                 <div class="mb-1" style="font-size: 0.6rem;">
                                                     @foreach(array_slice($plan->caracteristicas, 0, 3) as $caracteristica)
@@ -110,7 +110,7 @@
                                                         </div>
                                                     @endforeach
                                                     @if(count($plan->caracteristicas) > 3)
-                                                        <small class="text-muted">+{{ count($plan->caracteristicas) - 3 }} más</small>
+                                                        <small class="text-muted">+{{ count($plan->caracteristicas) - 3 }} mÃ¡s</small>
                                                     @endif
                                                 </div>
                                             @endif
@@ -172,15 +172,15 @@
 
                                 <!-- Slug -->
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Slug (identificador único) *</label>
+                                    <label class="form-label">Slug (identificador Ãºnico) *</label>
                                     <input type="text" wire:model="slug" class="form-control @error('slug') is-invalid @enderror">
                                     @error('slug') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                     <small class="text-muted">Ej: mensual, trimestral, anual</small>
                                 </div>
 
-                                <!-- Duración -->
+                                <!-- DuraciÃ³n -->
                                 <div class="col-md-3 mb-3">
-                                    <label class="form-label">Duración (meses) *</label>
+                                    <label class="form-label">DuraciÃ³n (meses) *</label>
                                     <input type="number" wire:model="duracion_meses" class="form-control @error('duracion_meses') is-invalid @enderror" min="0">
                                     @error('duracion_meses') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                     <small class="text-muted">0 = Demo</small>
@@ -193,9 +193,9 @@
                                     @error('precio') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
 
-                                <!-- Descripción -->
+                                <!-- DescripciÃ³n -->
                                 <div class="col-12 mb-3">
-                                    <label class="form-label">Descripción</label>
+                                    <label class="form-label">DescripciÃ³n</label>
                                     <textarea wire:model="descripcion" class="form-control @error('descripcion') is-invalid @enderror" rows="3"></textarea>
                                     @error('descripcion') <div class="invalid-feedback">{{ $message }}</div> @enderror
                                 </div>
@@ -231,7 +231,7 @@
                                                class="form-control @error('qr_imagen') is-invalid @enderror"
                                                accept="image/*">
                                         @error('qr_imagen') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                        <small class="text-muted">Sube una imagen del código QR para pagos (máximo 2MB)</small>
+                                        <small class="text-muted">Sube una imagen del cÃ³digo QR para pagos (mÃ¡ximo 2MB)</small>
                                     @else
                                         <div class="mt-2">
                                             <input type="file"
@@ -239,7 +239,7 @@
                                                    class="form-control @error('qr_imagen') is-invalid @enderror"
                                                    accept="image/*">
                                             @error('qr_imagen') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                            <small class="text-muted">Cargar un nuevo QR (reemplazará el actual)</small>
+                                            <small class="text-muted">Cargar un nuevo QR (reemplazarÃ¡ el actual)</small>
                                         </div>
                                     @endif
 
@@ -256,15 +256,15 @@
                                     @endif
                                 </div>
 
-                                <!-- Características -->
+                                <!-- CaracterÃ­sticas -->
                                 <div class="col-12 mb-3">
-                                    <label class="form-label">Características del Plan</label>
+                                    <label class="form-label">CaracterÃ­sticas del Plan</label>
 
                                     <div class="input-group mb-2">
                                         <input type="text" wire:model="nuevaCaracteristica"
                                             wire:keydown.enter.prevent="agregarCaracteristica"
                                             class="form-control"
-                                            placeholder="Escribe una característica y presiona Enter">
+                                            placeholder="Escribe una caracterÃ­stica y presiona Enter">
                                         <button type="button" wire:click="agregarCaracteristica" class="btn btn-outline-primary">
                                             <i class="fa-solid fa-plus"></i> Agregar
                                         </button>
