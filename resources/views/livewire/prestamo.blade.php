@@ -458,6 +458,24 @@
                         </div>
                     </div>
 
+                    <!-- Detalle del cliente -->
+                    @if($clienteData)
+                        <div class="alert alert-light border mb-3 py-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-user-circle fa-2x text-primary"></i>
+                                <div>
+                                    <div class="fw-bold fs-6">{{ $clienteData['nombre'] }}</div>
+                                    @if(!empty($clienteData['celular']))
+                                        <small class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ $clienteData['celular'] }}</small>
+                                    @endif
+                                    @if(!empty($clienteData['direccion']))
+                                        <small class="text-muted ms-2"><i class="fa-solid fa-map-marker-alt me-1"></i>{{ $clienteData['direccion'] }}</small>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <!-- Alertas según el estado del pago -->
                     @if($faltante > 0)
                         <div class="alert alert-danger mb-0">

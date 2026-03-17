@@ -35,6 +35,7 @@ class Prestamo extends Component
     public $buscarCliente = '';
     public $clientesEncontrados = [];
     public $clienteSeleccionado = null;
+    public $clienteData = null; // datos completos del cliente seleccionado
     public $mostrarFormNuevoCliente = false;
     public $nuevoCliente = [
         'nombre' => '',
@@ -508,6 +509,12 @@ class Prestamo extends Component
     public function seleccionarCliente($clienteId)
     {
         $this->clienteSeleccionado = $clienteId;
+        $cliente = Cliente::find($clienteId);
+        $this->clienteData = $cliente ? [
+            'nombre'    => $cliente->nombre,
+            'celular'   => $cliente->celular,
+            'direccion' => $cliente->direccion,
+        ] : null;
 
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
@@ -622,6 +629,7 @@ class Prestamo extends Component
             // Limpiar datos según el paso
             if ($this->pasoActual === 1) {
                 $this->clienteSeleccionado = null;
+                $this->clienteData = null;
                 $this->mostrarFormNuevoCliente = false;
             } elseif ($this->pasoActual === 2) {
                 // Limpiar datos de pago
@@ -756,6 +764,7 @@ class Prestamo extends Component
     {
         $this->pasoActual = 0;
         $this->clienteSeleccionado = null;
+        $this->clienteData = null;
         $this->mostrarFormNuevoCliente = false;
         $this->montoAñadirCaja = 0;
         $this->montoPagoEfectivo = 0;
