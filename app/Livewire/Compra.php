@@ -704,7 +704,7 @@ class Compra extends Component
                 if ($producto) {
                     $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
-                    if ($producto->control) {
+                    if ((bool)($producto->control ?? false)) {
                         // PRODUCTOS CON CONTROL: Incrementar stock normalmente
                         // Guardar el stock anterior antes de incrementar
                         $stockAnterior = $producto->stock;
