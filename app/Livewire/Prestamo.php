@@ -197,7 +197,7 @@ class Prestamo extends Component
             ->get()
             ->map(function ($producto) {
                 $cantidadPorMedida = $producto->cantidad ?? 1;
-                $tieneControl = $producto->control ?? true;
+                $tieneControl = (bool)($producto->control ?? false);
 
                 // Si el producto NO tiene control de stock, stock siempre es 999999
                 if (!$tieneControl) {
@@ -262,7 +262,7 @@ class Prestamo extends Component
         $precioVenta = $producto->precio_por_menor ?? 0;
 
         // Validar stock disponible solo si el producto tiene control de stock
-        if ($producto->control) {
+        if ((bool)($producto->control ?? false)) {
             $stockComprometido = $this->calcularStockComprometido($productoId);
             $stockDisponible = $producto->stock - $stockComprometido;
 
@@ -325,7 +325,7 @@ class Prestamo extends Component
         // Validar stock disponible solo si el producto tiene control de stock
         $producto = Producto::find($item['producto_id']);
 
-        if ($producto->control) {
+        if ((bool)($producto->control ?? false)) {
             // Calcular stock comprometido en otros préstamos pendientes
             $stockComprometido = $this->calcularStockComprometido($item['producto_id']);
             $stockDisponible = $producto->stock - $stockComprometido;
