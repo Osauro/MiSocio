@@ -424,9 +424,9 @@ class Prestamo extends Component
     public function cancelarVenta()
     {
         $this->confirmDelete(
-            $this->ventaId,
-            '¿Cancelar venta?',
-            '¿Estás seguro de cancelar esta venta? Se eliminarán todos los productos del carrito.',
+            $this->prestamoId,
+            '¿Cancelar préstamo?',
+            '¿Estás seguro de cancelar este préstamo? Se eliminarán todos los productos del carrito.',
             'ejecutarCancelarVenta'
         );
     }
@@ -438,14 +438,14 @@ class Prestamo extends Component
             $prestamo = PrestamoModel::findOrFail($id);
 
             // Eliminar items
-            PrestamoItem::where('venta_id', $id)->delete();
+            PrestamoItem::where('prestamo_id', $id)->delete();
 
-            // Eliminar venta
+            // Eliminar préstamo
             $prestamo->delete();
 
-            $this->toast('success', 'Venta cancelada exitosamente');
+            $this->toast('success', 'Préstamo cancelado exitosamente');
 
-            // Redirigir a la lista de ventas
+            // Redirigir a la lista de préstamos
             return redirect()->route('prestamos');
         } catch (\Exception $e) {
             Log::error('Error al cancelar venta: ' . $e->getMessage());
