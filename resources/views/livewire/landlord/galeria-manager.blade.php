@@ -39,18 +39,22 @@
 
                     <div class="card-body pt-3 pb-4">
 
-                        <!-- Indicador de carga al subir -->
-                        <div wire:loading wire:target="nuevaImagen" class="text-center py-3">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2 text-muted">Subiendo imagen...</p>
-                        </div>
-
                         @error('nuevaImagen')
                             <div class="alert alert-danger py-2 mb-3">{{ $message }}</div>
                         @enderror
 
-                        <!-- Grid de imágenes -->
-                        <div class="row g-3" wire:loading.remove wire:target="nuevaImagen">
+                        <!-- Grid de imágenes (siempre visible; spinner superpuesto durante carga) -->
+                        <div class="position-relative">
+
+                            <!-- Overlay spinner al subir -->
+                            <div wire:loading wire:target="nuevaImagen"
+                                 class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
+                                 style="background:rgba(255,255,255,0.8); z-index:10; min-height:120px;">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <p class="mt-2 text-muted mb-0">Subiendo imagen...</p>
+                            </div>
+
+                            <div class="row g-3">
                             @forelse($imagenes as $imagen)
                                 <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                                     <div class="card h-100 shadow-sm position-relative">
@@ -77,11 +81,18 @@
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
 
-                                        <!-- Info -->
+                                        <!-- Info + botón editar nombre -->
                                         <div class="card-body p-2">
-                                            <p class="small text-muted mb-0 text-truncate" title="{{ basename($imagen->url) }}">
-                                                {{ $imagen->nombre ?? basename($imagen->url) }}
-                                            </p>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <p class="small text-muted mb-0 text-truncate flex-grow-1" title="{{ $imagen->nombre ?? basename($imagen->url) }}">
+                                                    {{ $imagen->nombre ?? '—' }}
+                                                </p>
+                                                <button class="btn btn-sm p-0 text-secondary flex-shrink-0"
+                                                    wire:click="editarNombre({{ $imagen->id }})"
+                                                    title="Editar nombre">
+                                                    <i class="fa-solid fa-pen fa-xs"></i>
+                                                </button>
+                                            </div>
                                             <p class="small text-muted mb-0">
                                                 {{ $imagen->created_at->format('d/m/Y') }}
                                             </p>
@@ -98,7 +109,8 @@
                                     </label>
                                 </div>
                             @endforelse
-                        </div>
+                            </div><!-- /.row -->
+                        </div><!-- /.position-relative -->
 
                     </div>
                 </div>
@@ -161,5 +173,25 @@
             document.body.style.overflow = '';
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarLightbox(); });
+
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('swal:pedir-nombre', (data) => {
+                const id = data[0]?.id ?? data.id;
+                Swal.fire({
+                    title: 'Nombre de la imagen',
+                    input: 'text',
+                    inputPlaceholder: 'Escribe un nombre descriptivo...',
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar',
+                    cancelButtonText: 'Omitir',
+                    confirmButtonColor: '#198754',
+                    inputAttributes: { autocomplete: 'off' },
+                }).then((result) => {
+                    if (result.isConfirmed && result.value.trim() !== '') {
+                        Livewire.dispatch('guardarNombreImagen', { id: id, nombre: result.value.trim() });
+                    }
+                });
+            });
+        });
     </script>
 </div>

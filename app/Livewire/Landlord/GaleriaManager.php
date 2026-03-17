@@ -21,7 +21,7 @@ class GaleriaManager extends Component
     public $perPage = 24;
     public $nuevaImagen;
 
-    protected $listeners = ['eliminarImagen'];
+    protected $listeners = ['eliminarImagen', 'guardarNombreImagen'];
 
     public function mount(): void
     {
@@ -64,7 +64,7 @@ class GaleriaManager extends Component
 
         Storage::disk('public')->put($path, (string) $processed);
 
-        GaleriaImagen::create([
+        $img = GaleriaImagen::create([
             'url'         => $path,
             'nombre'      => null,
             'tags'        => [],
@@ -73,8 +73,20 @@ class GaleriaManager extends Component
         ]);
 
         $this->nuevaImagen = null;
-        $this->toast('success', 'Imagen subida exitosamente.');
         $this->resetPage();
+        $this->dispatch('swal:pedir-nombre', ['id' => $img->id]);
+    }
+
+    public function editarNombre(int $id): void
+    {
+        $this->dispatch('swal:pedir-nombre', ['id' => $id]);
+    }
+
+    public function guardarNombreImagen(int $id, string $nombre): void
+    {
+        $imagen = GaleriaImagen::findOrFail($id);
+        $imagen->update(['nombre' => trim($nombre)]);
+        $this->toast('success', 'Nombre guardado.');
     }
 
     public function confirmarEliminar(int $id): void
