@@ -43,18 +43,7 @@
                             <div class="alert alert-danger py-2 mb-3">{{ $message }}</div>
                         @enderror
 
-                        <!-- Grid de imágenes (siempre visible; spinner superpuesto durante carga) -->
-                        <div class="position-relative">
-
-                            <!-- Overlay spinner al subir -->
-                            <div wire:loading wire:target="nuevaImagen"
-                                 class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center"
-                                 style="background:rgba(255,255,255,0.8); z-index:10; min-height:120px;">
-                                <div class="spinner-border text-primary" role="status"></div>
-                                <p class="mt-2 text-muted mb-0">Subiendo imagen...</p>
-                            </div>
-
-                            <div class="row g-3">
+                        <div class="row g-3">
                             @forelse($imagenes as $imagen)
                                 <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                                     <div class="card h-100 shadow-sm position-relative">
@@ -109,14 +98,21 @@
                                     </label>
                                 </div>
                             @endforelse
-                            </div><!-- /.row -->
-                        </div><!-- /.position-relative -->
+                        </div><!-- /.row -->
 
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Overlay de carga al subir imagen (controlado por $subiendo) -->
+    @if($subiendo)
+        <div style="position:fixed; inset:0; background:rgba(255,255,255,0.75); z-index:9998; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+            <div class="spinner-border text-primary" style="width:3rem; height:3rem;" role="status"></div>
+            <p class="mt-3 fw-semibold text-primary">Subiendo imagen...</p>
+        </div>
+    @endif
 
     <!-- Footer fijo con paginado -->
     <footer class="fixed-footer shadow-sm py-2">

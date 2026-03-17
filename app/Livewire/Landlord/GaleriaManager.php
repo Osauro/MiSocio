@@ -20,6 +20,7 @@ class GaleriaManager extends Component
     public $search = '';
     public $perPage = 24;
     public $nuevaImagen;
+    public bool $subiendo = false;
 
     protected $listeners = ['eliminarImagen', 'guardarNombreImagen'];
 
@@ -55,6 +56,8 @@ class GaleriaManager extends Component
             'nuevaImagen.max'      => 'La imagen no puede superar 10 MB',
         ]);
 
+        $this->subiendo = true;
+
         $filename = time() . '_' . uniqid() . '.jpg';
         $path = 'galeria/' . $filename;
 
@@ -73,6 +76,7 @@ class GaleriaManager extends Component
         ]);
 
         $this->nuevaImagen = null;
+        $this->subiendo = false;
         $this->resetPage();
         $this->dispatch('swal:pedir-nombre', ['id' => $img->id]);
     }
