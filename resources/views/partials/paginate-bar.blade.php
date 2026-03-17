@@ -187,9 +187,9 @@
     }
 
     .paginate-btn:hover:not(:disabled) {
-        background: #1b55e2;
+        background: {{ getThemeColor() }};
         color: #fff;
-        border-color: #1b55e2;
+        border-color: {{ getThemeColor() }};
     }
 
     .paginate-btn:disabled {
@@ -219,8 +219,8 @@
 
     .paginate-page-input:focus {
         outline: none;
-        border-color: #1b55e2;
-        box-shadow: 0 0 0 2px rgba(27, 85, 226, 0.15);
+        border-color: {{ getThemeColor() }};
+        box-shadow: 0 0 0 2px color-mix(in srgb, {{ getThemeColor() }} 20%, transparent);
     }
 
     .paginate-total {

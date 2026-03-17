@@ -68,6 +68,7 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
 </nav>
 
 <style>
+    :root { --paginate-color: {{ getThemeColor() }}; }
     .paginate-btn {
         width: 30px;
         height: 30px;
@@ -83,9 +84,9 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
         transition: background-color 0.15s, color 0.15s;
     }
     .paginate-btn:hover:not(:disabled) {
-        background: #1b55e2;
+        background: var(--paginate-color);
         color: #fff;
-        border-color: #1b55e2;
+        border-color: var(--paginate-color);
     }
     .paginate-btn:disabled { opacity: 0.4; cursor: default; }
     .paginate-page-input {
@@ -104,8 +105,8 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
     .paginate-page-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     .paginate-page-input:focus {
         outline: none;
-        border-color: #1b55e2;
-        box-shadow: 0 0 0 2px rgba(27,85,226,0.15);
+        border-color: var(--paginate-color);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--paginate-color) 20%, transparent);
     }
     .paginate-total { background: #f8f9fa; cursor: default; color: #666; }
 </style>
