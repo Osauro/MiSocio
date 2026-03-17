@@ -433,7 +433,7 @@
                                 id="montoPagoOnline"
                                 class="form-control form-control-lg text-center"
                                 wire:model.live="montoPagoOnline"
-                                wire:keydown.enter="procesarDepósito"
+                                wire:keydown.enter="procesarDeposito"
                                 min="0"
                                 step="0.01"
                                 placeholder="0.00">
@@ -494,11 +494,11 @@
                         <i class="fa-solid fa-times me-1"></i>
                         Cancelar <span class="badge bg-white text-secondary ms-1">Esc</span>
                     </button>
-                    <button type="button" class="btn btn-success" wire:click="procesarDepósito"
-                        wire:loading.attr="disabled" wire:target="procesarDepósito">
-                        <i class="fa-solid fa-check me-1" wire:loading.remove wire:target="procesarDepósito"></i>
-                        <span class="spinner-border spinner-border-sm me-1" wire:loading wire:target="procesarDepósito"></span>
-                        Procesar Depósito <span class="badge bg-white text-success ms-1">Enter</span>
+                    <button type="button" class="btn btn-success" wire:click="procesarDeposito"
+                        wire:loading.attr="disabled" wire:target="procesarDeposito">
+                        <i class="fa-solid fa-check me-1" wire:loading.remove wire:target="procesarDeposito"></i>
+                        <span class="spinner-border spinner-border-sm me-1" wire:loading wire:target="procesarDeposito"></span>
+                        Finalizar <span class="badge bg-white text-success ms-1">Enter</span>
                     </button>
                 </div>
             </div>
@@ -682,7 +682,7 @@
                 if ($wire.pasoActual === 3 && !$wire.procesandoPago) {
                     if (e.key === 'Enter') {
                         e.preventDefault();
-                        $wire.call('procesarDepósito');
+                        $wire.call('procesarDeposito');
                     }
                 }
 

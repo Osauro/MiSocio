@@ -638,7 +638,7 @@ class Prestamo extends Component
         $this->montoPagoEfectivo = max(0, round($efectivoRestante, 2));
     }
 
-    public function procesarDepósito()
+    public function procesarDeposito()
     {
         $total = round(collect($this->items)->sum('subtotal'), 2);
         $totalPagado = round($this->montoPagoEfectivo + $this->montoPagoOnline, 2);
