@@ -326,14 +326,9 @@ class Prestamo extends Component
             }
         }
 
-        // Calcular subtotal: siempre usar precio por menor (precio unitario)
-        $subtotalCalculado = 0;
-
-        if ($cantidadTotal > 0) {
-            // Usar precio_por_menor (precio unitario)
-            $subtotalCalculado = $cantidadTotal * $producto->precio_por_menor;
-            $this->items[$index]['precio'] = $producto->precio_por_menor;
-        }
+        // Calcular subtotal usando el precio que ingresó el usuario (libre)
+        $precioActual = floatval($this->items[$index]['precio']);
+        $subtotalCalculado = $cantidadTotal * $precioActual;
 
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
 
@@ -356,21 +351,8 @@ class Prestamo extends Component
     {
         $item = $this->items[$index];
 
-        // Obtener producto de la base de datos
-        $producto = Producto::find($item['producto_id']);
-
-        // Cantidad total = solo unidades
-        $cantidadTotal = $item['unidades'];
-
-        if ($cantidadTotal > 0) {
-            // Aplicar redondeo al subtotal modificado manualmente
-            $this->items[$index]['subtotal'] = $this->redondearSubtotal($item['subtotal']);
-
-            // Siempre usar precio_por_menor (precio unitario)
-            $this->items[$index]['precio'] = $producto->precio_por_menor;
-        } else {
-            $this->items[$index]['subtotal'] = 0;
-        }
+        // Aplicar redondeo al subtotal modificado manualmente (libre, incluso 0)
+        $this->items[$index]['subtotal'] = $this->redondearSubtotal(floatval($item['subtotal']));
 
                 PrestamoItem::find($item['id'])->update([
             'precio' => $this->items[$index]['precio'],
