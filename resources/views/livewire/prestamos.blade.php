@@ -83,8 +83,8 @@
                                                                 </button>
                                                                 @if (!in_array($estadoReal, ['Vencido', 'Devuelto']))
                                                                     <button class="btn btn-sm btn-success"
-                                                                        wire:click="generarPDF({{ $prestamo->id }})"
-                                                                        title="Generar PDF">
+                                                                        wire:click="imprimirTicket({{ $prestamo->id }})"
+                                                                        title="Imprimir ticket">
                                                                         <i class="fa-solid fa-print"></i>
                                                                     </button>
                                                                 @endif
@@ -379,7 +379,7 @@
 
             async function imprimirTicketPrestamo(prestamoId) {
                 try {
-                    const response = await fetch(`${LICOPOS_URL}/prestamo/${prestamoId}`, {
+                    const response = await fetch(`${LICOPOS_URL}/boleta/${prestamoId}`, {
                         method: 'GET',
                     });
 
@@ -402,23 +402,11 @@
                             timer: 2000
                         });
                     }
-                    return true; // Éxito - no abrir PDF
+                    return true; // Éxito - no abrir HTML
                 } catch (e) {
-                    console.warn('MiSocio Printer no disponible, generando PDF:', e.message);
-                    // Fallback: Generar PDF y abrir para imprimir (compatible con móviles)
-                    const printWindow = window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
-                    if (printWindow) {
-                        // Intentar imprimir automáticamente cuando el PDF cargue
-                        printWindow.onload = function() {
-                            setTimeout(() => {
-                                try {
-                                    printWindow.print();
-                                } catch (err) {
-                                    console.warn('No se pudo imprimir automáticamente:', err);
-                                }
-                            }, 500);
-                        };
-                    }
+                    console.warn('MiSocio Printer no disponible, abriendo ticket HTML:', e.message);
+                    // Fallback: abrir vista HTML con autoprint integrado
+                    window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
                 }
             }
 
