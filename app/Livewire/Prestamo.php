@@ -57,8 +57,14 @@ class Prestamo extends Component
         // Cargar el préstamo
         $this->prestamo = PrestamoModel::findOrFail($prestamoId);
 
-        // Verificar que sea del usuario actual y esté pendiente
-        if ($this->prestamo->user_id !== Auth::id() || $this->prestamo->estado !== 'Pendiente') {
+        // Verificar que esté pendiente
+        if ($this->prestamo->estado !== 'Pendiente') {
+            return redirect()->route('prestamos');
+        }
+
+        // Verificar que sea del usuario actual (o un admin del tenant)
+        $esAdmin = Auth::user()->canManageCurrentTenant();
+        if (!$esAdmin && (int)$this->prestamo->user_id !== (int)Auth::id()) {
             return redirect()->route('prestamos');
         }
 
