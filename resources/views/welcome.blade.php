@@ -658,38 +658,23 @@
 </script>
 
 <!-- Datos Estructurados JSON-LD (Google Rich Results) -->
-<script type="application/ld+json">
-{
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "MiSocio",
-    "applicationCategory": "BusinessApplication",
-    "operatingSystem": "Web, Android, iOS",
-    "url": "{{ config('app.url') }}",
-    "description": "Sistema de gestión de negocios para pequeñas y medianas empresas bolivianas. Ventas, compras, inventario, clientes y reportes en un solo lugar.",
-    "inLanguage": "es-BO",
-    "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "BOB",
-        "description": "Prueba gratuita de 30 días, sin tarjeta de crédito"
-    },
-    "provider": {
-        "@type": "Organization",
-        "name": "MiSocio",
-        "url": "{{ config('app.url') }}"
-    },
-    "featureList": [
-        "Punto de Venta",
-        "Control de Inventario",
-        "Gestión de Compras",
-        "Gestión de Clientes",
-        "Reportes y Kardex",
-        "Préstamos y créditos",
-        "Acceso desde cualquier dispositivo"
-    ]
-}
-</script>
+@php
+    $_schemaUrl = rtrim(config('app.url'), '/');
+    $_schema = json_encode([
+        '@context'            => 'https://schema.org',
+        '@type'               => 'SoftwareApplication',
+        'name'                => 'MiSocio',
+        'applicationCategory' => 'BusinessApplication',
+        'operatingSystem'     => 'Web, Android, iOS',
+        'url'                 => $_schemaUrl,
+        'description'         => 'Sistema de gestión de negocios para pequeñas y medianas empresas bolivianas. Ventas, compras, inventario, clientes y reportes en un solo lugar.',
+        'inLanguage'          => 'es-BO',
+        'offers'  => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'BOB', 'description' => 'Prueba gratuita de 30 días, sin tarjeta de crédito'],
+        'provider'=> ['@type' => 'Organization', 'name' => 'MiSocio', 'url' => $_schemaUrl],
+        'featureList' => ['Punto de Venta','Control de Inventario','Gestión de Compras','Gestión de Clientes','Reportes y Kardex','Préstamos y créditos','Acceso desde cualquier dispositivo'],
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT);
+@endphp
+<script type="application/ld+json">{!! $_schema !!}</script>
 
 </body>
 </html>
