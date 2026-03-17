@@ -19,10 +19,10 @@ class GaleriaModal extends Component
 
     protected $listeners = ['abrir-galeria' => 'abrir'];
 
-    public function abrir(): void
+    public function abrir(string $busqueda = ''): void
     {
         $this->mostrar = true;
-        $this->busqueda = '';
+        $this->busqueda = $busqueda;
         $this->nuevaImagen = null;
         $this->resetErrorBag();
     }

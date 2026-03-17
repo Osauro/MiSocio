@@ -327,7 +327,12 @@ class Productos extends Component
      */
     public function abrirGaleria(): void
     {
-        $this->dispatch('abrir-galeria');
+        if (empty(trim($this->nombre ?? ''))) {
+            $this->addError('nombre', 'Escribe el nombre del producto antes de seleccionar una imagen.');
+            return;
+        }
+
+        $this->dispatch('abrir-galeria', busqueda: trim($this->nombre));
     }
 
     /**

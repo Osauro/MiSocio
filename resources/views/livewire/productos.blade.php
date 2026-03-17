@@ -223,8 +223,9 @@
                                             </div>
                                         @endif
                                         <button type="button"
-                                                class="btn btn-outline-primary btn-sm mt-2"
-                                                wire:click="abrirGaleria">
+                                                class="btn btn-outline-primary btn-sm mt-2 {{ empty(trim($nombre ?? '')) ? 'disabled' : '' }}"
+                                                wire:click="abrirGaleria"
+                                                title="{{ empty(trim($nombre ?? '')) ? 'Escribe el nombre del producto primero' : 'Seleccionar imagen de la galería' }}">
                                             <i class="fa-solid fa-images me-1"></i>
                                             @if ($imagen_preview_url || ($editMode && $producto_actual?->imagen))
                                                 Cambiar imagen
