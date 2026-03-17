@@ -209,7 +209,8 @@ class Prestamos extends Component
         }])
             ->findOrFail($prestamoId);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.prestamo', compact('prestamo'));
+        $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.prestamo', compact('prestamo', 'config'));
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
