@@ -148,6 +148,7 @@ Route::middleware(['auth', 'landlord'])->prefix('admin')->group(function () {
     Route::livewire('tenants', TenantsManager::class)->name('admin.tenants');
     Route::livewire('planes', \App\Livewire\Landlord\PlanesSuscripcion::class)->name('admin.planes');
     Route::livewire('pagos', PagosManager::class)->name('admin.pagos');
+    Route::livewire('galeria', \App\Livewire\Landlord\GaleriaManager::class)->name('admin.galeria');
 });
 
 require __DIR__.'/auth.php';

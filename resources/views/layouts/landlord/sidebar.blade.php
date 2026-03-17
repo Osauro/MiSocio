@@ -44,6 +44,15 @@
                 </a>
             </li>
 
+            <!-- Galería -->
+            <li class="sidebar-list">
+                <i class="fa-solid fa-thumbtack"></i>
+                <a class="sidebar-link" href="{{ route('admin.galeria') }}">
+                    <i class="fa-solid fa-images fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                    <h6 class="f-w-600">Galería</h6>
+                </a>
+            </li>
+
         </ul>
     </div>
     <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
