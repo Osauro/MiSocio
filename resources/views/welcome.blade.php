@@ -4,7 +4,36 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MiSocio — Sistema de Gestión para tu Negocio</title>
-    <meta name="description" content="Controla tus ventas, compras, inventario y más. La solución todo-en-uno para pequeños negocios bolivianos." />
+    <meta name="description" content="Controla tus ventas, compras, inventario y más. La solución todo-en-uno para pequeños negocios bolivianos. ¡Prueba gratis 30 días!" />
+
+    <!-- SEO & Rastreabilidad -->
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="es" />
+    <meta name="geo.region" content="BO" />
+    <meta name="geo.placename" content="Bolivia" />
+    <link rel="canonical" href="{{ config('app.url') }}" />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ config('app.url') }}" />
+    <meta property="og:site_name" content="MiSocio" />
+    <meta property="og:locale" content="es_BO" />
+    <meta property="og:title" content="MiSocio — Sistema de Gestión para tu Negocio" />
+    <meta property="og:description" content="Controla tus ventas, compras, inventario y más. La solución todo-en-uno para pequeños negocios bolivianos. ¡Prueba gratis 30 días!" />
+    {{-- Crea public/assets/images/og-image.png (1200×630 px) para la mejor previsualización en redes --}}
+    <meta property="og:image" content="{{ asset('assets/images/og-image.png') }}" />
+    <meta property="og:image:secure_url" content="{{ asset('assets/images/og-image.png') }}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:alt" content="MiSocio — Sistema de gestión de negocios para Bolivia" />
+
+    <!-- Twitter / X Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="MiSocio — Sistema de Gestión para tu Negocio" />
+    <meta name="twitter:description" content="Controla tus ventas, compras, inventario y más. La solución todo-en-uno para pequeños negocios bolivianos." />
+    <meta name="twitter:image" content="{{ asset('assets/images/og-image.png') }}" />
+    <meta name="twitter:image:alt" content="MiSocio — Sistema de gestión de negocios" />
 
     <!-- Favicon mascota -->
     <link rel="icon" type="image/png" href="{{ asset('assets/images/mascota-sonrisa.png') }}" />
@@ -626,6 +655,40 @@
         });
     }, { threshold: 0.12 });
     revealEls.forEach(el => observer.observe(el));
+</script>
+
+<!-- Datos Estructurados JSON-LD (Google Rich Results) -->
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MiSocio",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web, Android, iOS",
+    "url": "{{ config('app.url') }}",
+    "description": "Sistema de gestión de negocios para pequeñas y medianas empresas bolivianas. Ventas, compras, inventario, clientes y reportes en un solo lugar.",
+    "inLanguage": "es-BO",
+    "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "BOB",
+        "description": "Prueba gratuita de 30 días, sin tarjeta de crédito"
+    },
+    "provider": {
+        "@type": "Organization",
+        "name": "MiSocio",
+        "url": "{{ config('app.url') }}"
+    },
+    "featureList": [
+        "Punto de Venta",
+        "Control de Inventario",
+        "Gestión de Compras",
+        "Gestión de Clientes",
+        "Reportes y Kardex",
+        "Préstamos y créditos",
+        "Acceso desde cualquier dispositivo"
+    ]
+}
 </script>
 
 </body>

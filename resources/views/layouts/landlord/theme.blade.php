@@ -6,12 +6,10 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description"
-        content="Admiro admin is super flexible, powerful, clean &amp; modern responsive bootstrap 5 admin template with unlimited possibilities." />
-    <meta name="keywords"
-        content="admin template, Admiro admin template, best javascript admin, dashboard template, bootstrap admin template, responsive admin template, web app" />
-    <meta name="author" content="pixelstrap" />
-    <title>{{ config('app.name', 'MiSocio') }}</title>
+    <meta name="description" content="MiSocio — Panel de administración del sistema." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="author" content="MiSocio" />
+    <title>@yield('title', config('app.name', 'MiSocio'))</title>
     <!-- Favicon icon-->
     <link rel="icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />

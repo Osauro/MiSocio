@@ -59,6 +59,19 @@ Route::get('/manifest.json', function () {
     ])->header('Content-Type', 'application/manifest+json');
 });
 
+// SEO: Sitemap XML dinámico
+Route::get('/sitemap.xml', function () {
+    $base = rtrim(config('app.url'), '/');
+    $urls = [
+        ['loc' => $base . '/',          'changefreq' => 'weekly',  'priority' => '1.0'],
+        ['loc' => $base . '/login',     'changefreq' => 'monthly', 'priority' => '0.7'],
+        ['loc' => $base . '/register',  'changefreq' => 'monthly', 'priority' => '0.8'],
+    ];
+    return response()
+        ->view('sitemap', compact('urls'))
+        ->header('Content-Type', 'application/xml');
+});
+
 
 
 Route::middleware('auth')->group(function () {
