@@ -23,7 +23,17 @@ class GaleriaManager extends Component
 
     protected $listeners = ['eliminarImagen'];
 
+    public function mount(): void
+    {
+        $this->perPage = $_COOKIE['paginateGaleria'] ?? 24;
+    }
+
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage(): void
     {
         $this->resetPage();
     }

@@ -16,7 +16,6 @@
                                     <input type="text" class="form-control" placeholder="Buscar imagen..."
                                         wire:model.live="search">
                                 </div>
-                                <!-- Botón subir imagen -->
                                 <label class="btn btn-primary mb-0" style="cursor:pointer;" title="Subir imagen">
                                     <i class="fa-solid fa-upload"></i>
                                     <input type="file" wire:model="nuevaImagen" accept="image/*" class="d-none">
@@ -47,7 +46,7 @@
                         </div>
 
                         @error('nuevaImagen')
-                            <div class="alert alert-danger py-2">{{ $message }}</div>
+                            <div class="alert alert-danger py-2 mb-3">{{ $message }}</div>
                         @enderror
 
                         <!-- Grid de imágenes -->
@@ -55,15 +54,19 @@
                             @forelse($imagenes as $imagen)
                                 <div class="col-6 col-sm-4 col-md-3 col-lg-2">
                                     <div class="card h-100 shadow-sm position-relative">
-                                        <!-- Imagen -->
-                                        <img src="{{ asset('storage/' . $imagen->url) }}"
-                                            alt="{{ $imagen->nombre ?? 'Imagen' }}"
-                                            class="card-img-top"
-                                            style="height: 120px; object-fit: cover;">
+
+                                        <!-- Área de imagen clicable para lightbox -->
+                                        <div class="bg-light d-flex align-items-center justify-content-center"
+                                            style="height: 150px; cursor: zoom-in; overflow: hidden; border-radius: 4px 4px 0 0;"
+                                            onclick="abrirLightbox('{{ asset('storage/' . $imagen->url) }}', '{{ $imagen->nombre ?? basename($imagen->url) }}')">
+                                            <img src="{{ asset('storage/' . $imagen->url) }}"
+                                                alt="{{ $imagen->nombre ?? 'Imagen' }}"
+                                                style="max-width: 100%; max-height: 150px; object-fit: contain;">
+                                        </div>
 
                                         <!-- Badge uso -->
                                         <span class="badge bg-secondary position-absolute top-0 start-0 m-1"
-                                            title="Veces usado">
+                                            title="Veces usado en productos">
                                             <i class="fa-solid fa-box me-1"></i>{{ $imagen->veces_usado }}
                                         </span>
 
@@ -74,9 +77,9 @@
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
 
-                                        <!-- Footer info -->
+                                        <!-- Info -->
                                         <div class="card-body p-2">
-                                            <p class="small text-muted mb-0 text-truncate">
+                                            <p class="small text-muted mb-0 text-truncate" title="{{ basename($imagen->url) }}">
                                                 {{ $imagen->nombre ?? basename($imagen->url) }}
                                             </p>
                                             <p class="small text-muted mb-0">
@@ -97,16 +100,66 @@
                             @endforelse
                         </div>
 
-                        <!-- Paginación -->
-                        @if($imagenes->hasPages())
-                            <div class="mt-4 d-flex justify-content-center">
-                                {{ $imagenes->links() }}
-                            </div>
-                        @endif
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Footer fijo con paginado -->
+    <footer class="fixed-footer shadow-sm py-2">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted d-none d-md-block">Created By <a href="https://dieguitosoft.com" target="_blank">DieguitoSoft.com</a></small>
+                <div class="d-flex align-items-center gap-2" x-data="{
+                    init() {
+                        const saved = localStorage.getItem('paginateGaleria') || document.cookie.split('; ').find(row => row.startsWith('paginateGaleria='))?.split('=')[1];
+                        if (saved) {
+                            $wire.set('perPage', parseInt(saved));
+                        }
+                    }
+                }">
+                    <input type="number"
+                           class="form-control form-control-sm text-center"
+                           style="width: 60px;"
+                           wire:model.live="perPage"
+                           min="1"
+                           max="200"
+                           title="Registros por página"
+                           onfocus="this.select()"
+                           @input="
+                               localStorage.setItem('paginateGaleria', $event.target.value);
+                               document.cookie = 'paginateGaleria=' + $event.target.value + '; path=/; max-age=31536000';
+                           ">
+                    {{ $imagenes->links() }}
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lightbox overlay -->
+    <div id="lightbox-overlay"
+         onclick="cerrarLightbox()"
+         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; cursor:zoom-out; align-items:center; justify-content:center;">
+        <button onclick="cerrarLightbox()" style="position:absolute; top:16px; right:20px; background:none; border:none; color:#fff; font-size:2rem; cursor:pointer; line-height:1;">&times;</button>
+        <img id="lightbox-img" src="" alt=""
+             style="max-width:90vw; max-height:90vh; object-fit:contain; border-radius:6px; box-shadow:0 4px 30px rgba(0,0,0,0.5);"
+             onclick="event.stopPropagation()">
+    </div>
+
+    <script>
+        function abrirLightbox(src, alt) {
+            const overlay = document.getElementById('lightbox-overlay');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            img.alt = alt;
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+        function cerrarLightbox() {
+            document.getElementById('lightbox-overlay').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarLightbox(); });
+    </script>
 </div>
