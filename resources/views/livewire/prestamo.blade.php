@@ -739,7 +739,7 @@
 
             async function imprimirTicketPrestamo(prestamoId) {
                 try {
-                    const response = await fetch(`${LICOPOS_URL}/prestamo/${prestamoId}`, {
+                    const response = await fetch(`${LICOPOS_URL}/boleta/${prestamoId}`, {
                         method: 'GET',
                     });
 

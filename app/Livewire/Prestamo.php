@@ -797,8 +797,11 @@ class Prestamo extends Component
                     'autoPrint' => true,
                 ]);
             } else {
-                // Redirigir sin imprimir
-                return redirect()->route('prestamos');
+                // Redirigir sin imprimir (via JS igual que ventas)
+                $this->dispatch('abrir-ticket-prestamo-y-redirigir', [
+                    'prestamoId' => $this->prestamo->id,
+                    'autoPrint' => false,
+                ]);
             }
         } catch (\Exception $e) {
             DB::rollBack();
