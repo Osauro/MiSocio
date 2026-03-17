@@ -224,9 +224,6 @@
                                         @endif
                                         <button type="button"
                                                 class="btn btn-outline-primary btn-sm mt-2"
-                                                x-data
-                                                :disabled="!document.getElementById('nombre')?.value?.trim()"
-                                                :title="!document.getElementById('nombre')?.value?.trim() ? 'Escribe el nombre del producto primero' : 'Seleccionar imagen de la galería'"
                                                 wire:click="abrirGaleria">
                                             <i class="fa-solid fa-images me-1"></i>
                                             @if ($imagen_preview_url || ($editMode && $producto_actual?->imagen))
