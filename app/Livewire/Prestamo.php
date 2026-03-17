@@ -80,6 +80,7 @@ class Prestamo extends Component
         $this->prestamoId = $this->prestamo->id;
         $this->fechaPrestamo = now()->format('Y-m-d');
         $this->cargarItems();
+        $this->cargarProductosCategoria();
     }
 
     public function cargarItems()
@@ -140,6 +141,67 @@ class Prestamo extends Component
     }
 
     /**
+     * Mapear un producto al formato del buscador
+     */
+    private function mapProducto($producto): array
+    {
+        $cantidadPorMedida = $producto->cantidad ?? 1;
+        $tieneControl = (bool)($producto->control ?? false);
+
+        if (!$tieneControl) {
+            $stockDisponible = 999999;
+            $stockFormateado = 'Sin control';
+        } else {
+            $stockComprometido = $this->calcularStockComprometido($producto->id);
+            $stockDisponible = $producto->stock - $stockComprometido;
+
+            if ($cantidadPorMedida > 1) {
+                $enteros = intdiv($stockDisponible, $cantidadPorMedida);
+                $unidades = $stockDisponible % $cantidadPorMedida;
+                $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
+                $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
+            } else {
+                $stockFormateado = $stockDisponible . 'u';
+            }
+        }
+
+        return [
+            'id'              => $producto->id,
+            'nombre'          => $producto->nombre,
+            'codigo'          => $producto->codigo,
+            'imagen'          => $producto->photo_url,
+            'stock'           => $stockDisponible,
+            'stock_formateado'=> $stockFormateado,
+            'precio_por_menor'=> $producto->precio_por_menor,
+            'precio_por_mayor'=> $producto->precio_por_mayor,
+            'medida'          => $producto->medida ?? 'u',
+            'cantidad'        => $cantidadPorMedida,
+            'control'         => $tieneControl,
+        ];
+    }
+
+    /**
+     * Cargar todos los productos de la categoría configurada para préstamos
+     */
+    public function cargarProductosCategoria(): void
+    {
+        $config = TenantConfig::where('tenant_id', currentTenantId())->first();
+        $categoriaId = $config?->prestamos_categoria_id;
+
+        $query = Producto::where('tenant_id', currentTenantId());
+
+        if ($categoriaId) {
+            $query->where('categoria_id', $categoriaId);
+        }
+
+        $this->productosEncontrados = $query
+            ->orderBy('nombre')
+            ->get()
+            ->map(fn($p) => $this->mapProducto($p))
+            ->toArray();
+    }
+
+    /**
      * Formatear cantidad a formato amigable (cajas y unidades)
      */
     private function formatearCantidad($cantidad, $producto)
@@ -170,9 +232,14 @@ class Prestamo extends Component
 
     public function updatedBuscar()
     {
+        // Si está vacío, mostrar todos los productos de la categoría
+        if (trim($this->buscar) === '') {
+            $this->cargarProductosCategoria();
+            return;
+        }
+
         // Solo buscar si hay al menos 2 caracteres
         if (strlen($this->buscar) < 2) {
-            $this->productosEncontrados = [];
             return;
         }
 
@@ -186,53 +253,16 @@ class Prestamo extends Component
         }
 
         $query->where(function ($q) {
-                $q->where('nombre', 'like', '%' . $this->buscar . '%')
-                    ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
-                    ->orWhereHas('tags', function ($subQuery) {
-                        $subQuery->where('nombre', 'like', '%' . $this->buscar . '%');
-                    });
-            });
+            $q->where('nombre', 'like', '%' . $this->buscar . '%')
+                ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
+                ->orWhereHas('tags', function ($subQuery) {
+                    $subQuery->where('nombre', 'like', '%' . $this->buscar . '%');
+                });
+        });
 
-        $this->productosEncontrados = $query->limit(20)
+        $this->productosEncontrados = $query->orderBy('nombre')->limit(50)
             ->get()
-            ->map(function ($producto) {
-                $cantidadPorMedida = $producto->cantidad ?? 1;
-                $tieneControl = (bool)($producto->control ?? false);
-
-                // Si el producto NO tiene control de stock, stock siempre es 999999
-                if (!$tieneControl) {
-                    $stockDisponible = 999999;
-                    $stockFormateado = 'Sin control';
-                } else {
-                    // Calcular stock real disponible (stock - comprometido)
-                    $stockComprometido = $this->calcularStockComprometido($producto->id);
-                    $stockDisponible = $producto->stock - $stockComprometido;
-
-                    // Formatear stock disponible
-                    if ($cantidadPorMedida > 1) {
-                        $enteros = intdiv($stockDisponible, $cantidadPorMedida);
-                        $unidades = $stockDisponible % $cantidadPorMedida;
-                        $medidaAbrev = strtolower(substr($producto->medida ?? 'u', 0, 1));
-                        $stockFormateado = $enteros . $medidaAbrev . ($unidades > 0 ? ' - ' . $unidades . 'u' : '');
-                    } else {
-                        $stockFormateado = $stockDisponible . 'u';
-                    }
-                }
-
-                return [
-                    'id' => $producto->id,
-                    'nombre' => $producto->nombre,
-                    'codigo' => $producto->codigo,
-                    'imagen' => $producto->photo_url,
-                    'stock' => $stockDisponible,
-                    'stock_formateado' => $stockFormateado,
-                    'precio_por_menor' => $producto->precio_por_menor,
-                    'precio_por_mayor' => $producto->precio_por_mayor,
-                    'medida' => $producto->medida ?? 'u',
-                    'cantidad' => $cantidadPorMedida,
-                    'control' => $tieneControl,
-                ];
-            })
+            ->map(fn($p) => $this->mapProducto($p))
             ->toArray();
 
         // Auto-agregar si solo hay 1 resultado con stock disponible
@@ -241,7 +271,6 @@ class Prestamo extends Component
             if ($unico['stock'] > 0) {
                 $this->agregarProducto($unico['id']);
                 $this->buscar = '';
-                $this->productosEncontrados = [];
             }
         }
     }
@@ -305,7 +334,7 @@ class Prestamo extends Component
         ];
 
         $this->buscar = '';
-        $this->productosEncontrados = [];
+        $this->cargarProductosCategoria();
 
         // Devolver el foco al buscador
         $this->dispatch('focusBuscador');
