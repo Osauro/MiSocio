@@ -106,13 +106,11 @@
         </div>
     </div>
 
-    <!-- Overlay de carga al subir imagen (controlado por $subiendo) -->
-    @if($subiendo)
-        <div style="position:fixed; inset:0; background:rgba(255,255,255,0.75); z-index:9998; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-            <div class="spinner-border text-primary" style="width:3rem; height:3rem;" role="status"></div>
-            <p class="mt-3 fw-semibold text-primary">Subiendo imagen...</p>
-        </div>
-    @endif
+    <!-- Overlay de carga al subir imagen (controlado por JS) -->
+    <div id="upload-overlay" style="display:none; position:fixed; inset:0; background:rgba(255,255,255,0.75); z-index:9998; flex-direction:column; align-items:center; justify-content:center;">
+        <div class="spinner-border text-primary" style="width:3rem; height:3rem;" role="status"></div>
+        <p class="mt-3 fw-semibold text-primary">Subiendo imagen...</p>
+    </div>
 
     <!-- Footer fijo con paginado -->
     <footer class="fixed-footer shadow-sm py-2">
@@ -170,7 +168,27 @@
         }
         document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarLightbox(); });
 
+        // Mostrar spinner al seleccionar archivo
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.type === 'file' && e.target.getAttribute('wire:model') === 'nuevaImagen') {
+                if (e.target.files && e.target.files.length > 0) {
+                    const overlay = document.getElementById('upload-overlay');
+                    if (overlay) overlay.style.display = 'flex';
+                }
+            }
+        }, true);
+
         document.addEventListener('livewire:init', () => {
+            Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
+                succeed(() => {
+                    const overlay = document.getElementById('upload-overlay');
+                    if (overlay) overlay.style.display = 'none';
+                });
+                fail(() => {
+                    const overlay = document.getElementById('upload-overlay');
+                    if (overlay) overlay.style.display = 'none';
+                });
+            });
             Livewire.on('swal:pedir-nombre', (data) => {
                 const id = data[0]?.id ?? data.id;
                 Swal.fire({
