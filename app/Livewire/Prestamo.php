@@ -326,10 +326,9 @@ class Prestamo extends Component
             }
         }
 
-        // Calcular subtotal usando el precio que ingresó el usuario (libre)
+        // precio modificado → recalcular subtotal (precio × cantidad)
         $precioActual = floatval($this->items[$index]['precio']);
         $subtotalCalculado = $cantidadTotal * $precioActual;
-
         $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
 
         // Actualizar en base de datos
@@ -351,10 +350,16 @@ class Prestamo extends Component
     {
         $item = $this->items[$index];
 
-        // Aplicar redondeo al subtotal modificado manualmente (libre, incluso 0)
-        $this->items[$index]['subtotal'] = $this->redondearSubtotal(floatval($item['subtotal']));
+        // subtotal modificado → aplicar redondeo y recalcular precio (subtotal / cantidad)
+        $subtotalRedondeado = $this->redondearSubtotal(floatval($item['subtotal']));
+        $this->items[$index]['subtotal'] = $subtotalRedondeado;
 
-                PrestamoItem::find($item['id'])->update([
+        $cantidadTotal = max(1, intval($item['unidades']));
+        $this->items[$index]['precio'] = $cantidadTotal > 0
+            ? round($subtotalRedondeado / $cantidadTotal, 2)
+            : 0;
+
+        PrestamoItem::find($item['id'])->update([
             'precio' => $this->items[$index]['precio'],
             'subtotal' => $this->items[$index]['subtotal'],
         ]);
