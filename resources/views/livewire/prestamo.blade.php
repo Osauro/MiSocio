@@ -752,21 +752,9 @@
                     console.log('Ticket préstamo impreso correctamente por localhost:1013');
                     return true; // Éxito - no abrir PDF
                 } catch (e) {
-                    console.warn('MiSocio Printer no disponible, generando PDF:', e.message);
-                    // Fallback: Generar PDF y abrir para imprimir (compatible con móviles)
-                    const printWindow = window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
-                    if (printWindow) {
-                        // Intentar imprimir automáticamente cuando el PDF cargue
-                        printWindow.onload = function() {
-                            setTimeout(() => {
-                                try {
-                                    printWindow.print();
-                                } catch (err) {
-                                    console.warn('No se pudo imprimir automáticamente:', err);
-                                }
-                            }, 500);
-                        };
-                    }
+                    console.warn('MiSocio Printer no disponible, abriendo ticket HTML:', e.message);
+                    // Fallback: abrir vista HTML con autoprint integrado
+                    window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
                 }
             }
 
