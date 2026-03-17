@@ -459,17 +459,17 @@
                     </div>
 
                     <!-- Detalle del cliente -->
-                    @if($clienteData)
+                    @if($clienteNombre)
                         <div class="alert alert-light border mb-3 py-2">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="fa-solid fa-user-circle fa-2x text-primary"></i>
                                 <div>
-                                    <div class="fw-bold fs-6">{{ $clienteData['nombre'] }}</div>
-                                    @if(!empty($clienteData['celular']))
-                                        <small class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ $clienteData['celular'] }}</small>
+                                    <div class="fw-bold fs-5 text-dark">{{ $clienteNombre }}</div>
+                                    @if($clienteCelular)
+                                        <small class="text-muted"><i class="fa-solid fa-phone me-1"></i>{{ $clienteCelular }}</small>
                                     @endif
-                                    @if(!empty($clienteData['direccion']))
-                                        <small class="text-muted ms-2"><i class="fa-solid fa-map-marker-alt me-1"></i>{{ $clienteData['direccion'] }}</small>
+                                    @if($clienteDireccion)
+                                        <small class="text-muted ms-2"><i class="fa-solid fa-map-marker-alt me-1"></i>{{ $clienteDireccion }}</small>
                                     @endif
                                 </div>
                             </div>
@@ -481,11 +481,6 @@
                         <div class="alert alert-danger mb-0">
                             <i class="fa-solid fa-exclamation-triangle me-1"></i>
                             <strong>Falta por pagar: Bs. {{ number_format($faltante, 2) }}</strong>
-                        </div>
-                    @elseif($totalPagado == $total)
-                        <div class="alert alert-success mb-0">
-                            <i class="fa-solid fa-check-circle me-1"></i>
-                            Pago completo
                         </div>
                     @elseif($totalPagado > $total)
                         <div class="alert alert-warning mb-0">

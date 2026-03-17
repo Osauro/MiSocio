@@ -36,6 +36,9 @@ class Prestamo extends Component
     public $clientesEncontrados = [];
     public $clienteSeleccionado = null;
     public $clienteData = null; // datos completos del cliente seleccionado
+    public $clienteNombre = '';
+    public $clienteCelular = '';
+    public $clienteDireccion = '';
     public $mostrarFormNuevoCliente = false;
     public $nuevoCliente = [
         'nombre' => '',
@@ -515,6 +518,9 @@ class Prestamo extends Component
             'celular'   => $cliente->celular,
             'direccion' => $cliente->direccion,
         ] : null;
+        $this->clienteNombre    = $cliente?->nombre ?? '';
+        $this->clienteCelular   = $cliente?->celular ?? '';
+        $this->clienteDireccion = $cliente?->direccion ?? '';
 
         // Obtener saldo de caja
         $this->obtenerSaldoCaja();
@@ -630,6 +636,9 @@ class Prestamo extends Component
             if ($this->pasoActual === 1) {
                 $this->clienteSeleccionado = null;
                 $this->clienteData = null;
+                $this->clienteNombre = '';
+                $this->clienteCelular = '';
+                $this->clienteDireccion = '';
                 $this->mostrarFormNuevoCliente = false;
             } elseif ($this->pasoActual === 2) {
                 // Limpiar datos de pago
@@ -765,6 +774,9 @@ class Prestamo extends Component
         $this->pasoActual = 0;
         $this->clienteSeleccionado = null;
         $this->clienteData = null;
+        $this->clienteNombre = '';
+        $this->clienteCelular = '';
+        $this->clienteDireccion = '';
         $this->mostrarFormNuevoCliente = false;
         $this->montoAñadirCaja = 0;
         $this->montoPagoEfectivo = 0;
