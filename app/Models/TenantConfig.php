@@ -43,6 +43,9 @@ class TenantConfig extends Model
         'facebook_page_id',
         'facebook_access_token',
         'facebook_enabled',
+        // Módulo Préstamos
+        'prestamos_enabled',
+        'prestamos_categoria_id',
         // Importación
         'ultima_importacion',
         'formato_importacion',
@@ -60,6 +63,8 @@ class TenantConfig extends Model
         'impresion_auto_inventario' => 'boolean',
         'whatsapp_enabled' => 'boolean',
         'facebook_enabled' => 'boolean',
+        'prestamos_enabled' => 'boolean',
+        'prestamos_categoria_id' => 'integer',
         'ultima_importacion' => 'datetime',
     ];
 

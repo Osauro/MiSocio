@@ -30,6 +30,9 @@ class Prestamos extends Component
 
     public function mount()
     {
+        if (!prestamosHabilitados()) {
+            abort(403, 'El módulo de préstamos no está habilitado.');
+        }
         // Cargar perPage desde cookie
         $this->perPage = isset($_COOKIE['paginatePrestamos']) ? (int)$_COOKIE['paginatePrestamos'] : 12;
     }
@@ -170,6 +173,11 @@ class Prestamos extends Component
 
     public function crearPrestamo()
     {
+        if (!prestamosHabilitados()) {
+            $this->toast('error', 'El módulo de préstamos no está habilitado.');
+            return;
+        }
+
         // Verificar si el usuario ya tiene un préstamo pendiente
         $prestamoPendiente = Prestamo::where('user_id', Auth::id())
             ->where('tenant_id', currentTenantId())

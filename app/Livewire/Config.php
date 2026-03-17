@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Categoria;
 use App\Models\TenantConfig;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
@@ -53,6 +54,10 @@ class Config extends Component
     public $whatsapp_phone_id;
     public $whatsapp_enabled;
 
+    // Préstamos
+    public $prestamos_enabled;
+    public $prestamos_categoria_id;
+
     // Facebook API
     public $facebook_page_id;
     public $facebook_access_token;
@@ -96,6 +101,9 @@ class Config extends Component
             'facebook_page_id' => 'nullable|string|max:100',
             'facebook_access_token' => 'nullable|string|max:500',
             'facebook_enabled' => 'boolean',
+            // Préstamos
+            'prestamos_enabled' => 'boolean',
+            'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
             // Importación
             'formato_importacion' => 'required|in:excel,csv,json',
         ];
@@ -104,7 +112,7 @@ class Config extends Component
     public function mount()
     {
         $savedTab = $_COOKIE['config_active_tab'] ?? null;
-        $allowed = ['general', 'impresion', 'whatsapp', 'facebook', 'importacion'];
+        $allowed = ['general', 'impresion', 'whatsapp', 'prestamos', 'importacion'];
         if ($savedTab && in_array($savedTab, $allowed)) {
             $this->activeTab = $savedTab;
         }
@@ -153,6 +161,10 @@ class Config extends Component
         $this->whatsapp_phone_id = $config->whatsapp_phone_id;
         $this->whatsapp_enabled = $config->whatsapp_enabled;
 
+        // Préstamos
+        $this->prestamos_enabled = $config->prestamos_enabled ?? true;
+        $this->prestamos_categoria_id = $config->prestamos_categoria_id;
+
         // Facebook
         $this->facebook_page_id = $config->facebook_page_id;
         $this->facebook_access_token = $config->facebook_access_token;
@@ -164,7 +176,7 @@ class Config extends Component
 
     public function setTab($tab)
     {
-        $allowed = ['general', 'impresion', 'whatsapp', 'facebook', 'importacion'];
+        $allowed = ['general', 'impresion', 'whatsapp', 'prestamos', 'importacion'];
         if (in_array($tab, $allowed)) {
             $this->activeTab = $tab;
         }
@@ -377,6 +389,22 @@ class Config extends Component
         $this->toast('success', 'Facebook guardado');
     }
 
+    public function guardarPrestamos()
+    {
+        $this->validate([
+            'prestamos_enabled' => 'boolean',
+            'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
+        ]);
+
+        $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
+        $config->update([
+            'prestamos_enabled' => $this->prestamos_enabled ?? true,
+            'prestamos_categoria_id' => $this->prestamos_categoria_id,
+        ]);
+
+        $this->toast('success', 'Configuración de préstamos guardada');
+    }
+
     public function guardarImportacion()
     {
         $this->validate([
@@ -522,6 +550,7 @@ class Config extends Component
 
     public function render()
     {
-        return view('livewire.config');
+        $categorias = Categoria::orderBy('nombre')->get();
+        return view('livewire.config', compact('categorias'));
     }
 }

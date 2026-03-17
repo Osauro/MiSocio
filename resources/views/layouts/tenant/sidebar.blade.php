@@ -72,6 +72,17 @@
                 </li>
             @endif
 
+            <!-- Préstamos - Solo Admins si está habilitado -->
+            @if(canManageTenant() && prestamosHabilitados())
+                <li class="sidebar-list">
+                    <i class="fa-solid fa-thumbtack"></i>
+                    <a class="sidebar-link" href="{{ route('prestamos') }}">
+                        <i class="fa-solid fa-handshake fa-fw" style="font-size: 20px; color: var(--theme-default);"></i>
+                        <h6 class="f-w-600">Préstamos</h6>
+                    </a>
+                </li>
+            @endif
+
             <!-- Inventarios - Solo Admins -->
             @if(canManageTenant())
                 <li class="sidebar-list">

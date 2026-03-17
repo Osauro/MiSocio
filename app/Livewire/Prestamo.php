@@ -53,6 +53,11 @@ class Prestamo extends Component
 
     public function mount($prestamoId = null)
     {
+        // Verificar que el módulo esté habilitado
+        if (!prestamosHabilitados()) {
+            return redirect()->route('ventas');
+        }
+
         if (!$prestamoId) {
             // Si no viene ID, redirigir a prestamos
             return redirect()->route('prestamos');
@@ -171,11 +176,16 @@ class Prestamo extends Component
             return;
         }
 
-        $query = Producto::where('tenant_id', currentTenantId())
-            ->whereHas('categoria', function ($q) {
-                $q->where('nombre', 'like', '%Envase%');
-            })
-            ->where(function ($q) {
+        $config = TenantConfig::where('tenant_id', currentTenantId())->first();
+        $categoriaId = $config?->prestamos_categoria_id;
+
+        $query = Producto::where('tenant_id', currentTenantId());
+
+        if ($categoriaId) {
+            $query->where('categoria_id', $categoriaId);
+        }
+
+        $query->where(function ($q) {
                 $q->where('nombre', 'like', '%' . $this->buscar . '%')
                     ->orWhere('codigo', 'like', '%' . $this->buscar . '%')
                     ->orWhereHas('tags', function ($subQuery) {

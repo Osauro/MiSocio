@@ -168,3 +168,18 @@ if (!function_exists('hasRole')) {
         return $currentRole === $roles;
     }
 }
+
+if (!function_exists('prestamosHabilitados')) {
+    /**
+     * Verificar si el módulo de préstamos está habilitado para el tenant actual.
+     */
+    function prestamosHabilitados(): bool
+    {
+        $tenantId = currentTenantId();
+        if (!$tenantId) return false;
+
+        $config = \App\Models\TenantConfig::where('tenant_id', $tenantId)->first();
+        // Si no hay config o el campo es null, se considera habilitado por defecto
+        return $config ? ($config->prestamos_enabled ?? true) : true;
+    }
+}

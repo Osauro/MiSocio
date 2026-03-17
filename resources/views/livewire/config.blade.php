@@ -35,9 +35,9 @@
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link {{ $activeTab === 'facebook' ? 'active' : '' }}"
-                                    wire:click="setTab('facebook')" type="button">
-                                    <i class="fa-brands fa-facebook me-1"></i>Facebook
+                                <button class="nav-link {{ $activeTab === 'prestamos' ? 'active' : '' }}"
+                                    wire:click="setTab('prestamos')" type="button">
+                                    <i class="fa-solid fa-handshake me-1"></i>Préstamos
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -72,11 +72,11 @@
                                 WhatsApp
                             </button>
                             <button type="button"
-                                wire:click="setTab('facebook')"
-                                class="btn btn-sm d-flex flex-column align-items-center justify-content-center py-2 gap-1 {{ $activeTab === 'facebook' ? 'btn-primary' : 'btn-outline-secondary' }}"
+                                wire:click="setTab('prestamos')"
+                                class="btn btn-sm d-flex flex-column align-items-center justify-content-center py-2 gap-1 {{ $activeTab === 'prestamos' ? 'btn-warning' : 'btn-outline-secondary' }}"
                                 style="font-size: 0.65rem;">
-                                <i class="fa-brands fa-facebook" style="font-size: 1.2rem;"></i>
-                                Facebook
+                                <i class="fa-solid fa-handshake" style="font-size: 1.2rem;"></i>
+                                Préstamos
                             </button>
                             <button type="button"
                                 wire:click="setTab('importacion')"
@@ -542,50 +542,46 @@
                             </div>
                             @endif
 
-                            <!-- Tab Facebook -->
-                            @if($activeTab === 'facebook')
+                            <!-- Tab Préstamos -->
+                            @if($activeTab === 'prestamos')
                             <div class="tab-pane fade show active">
-                                <div class="alert alert-info mb-4">
-                                    <i class="fa-solid fa-info-circle me-2"></i>
-                                    <strong>Nota:</strong> Esta funcionalidad está en desarrollo. Próximamente podrás publicar automáticamente en Facebook.
-                                </div>
                                 <div class="row">
                                     <div class="col-md-8">
                                         <div class="card border shadow-sm">
-                                            <div class="card-header bg-primary text-white">
+                                            <div class="card-header bg-warning text-dark">
                                                 <h5 class="mb-0">
-                                                    <i class="fa-brands fa-facebook me-2"></i>
-                                                    API de Facebook
+                                                    <i class="fa-solid fa-handshake me-2"></i>
+                                                    Módulo de Préstamos
                                                 </h5>
                                             </div>
                                             <div class="card-body">
-                                                <div class="mb-3">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="facebook_enabled"
-                                                            wire:change="guardarFacebook"
-                                                            id="facebookEnabled">
-                                                        <label class="form-check-label fw-semibold" for="facebookEnabled">
-                                                            Habilitar Facebook
-                                                        </label>
+                                                <!-- Habilitar módulo -->
+                                                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Habilitar módulo de préstamos</p>
+                                                        <small class="text-muted">Si está desactivado, la opción no aparecerá en el menú ni en el header y no se podrán crear nuevos préstamos.</small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0 ms-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="prestamos_enabled"
+                                                               wire:change="guardarPrestamos"
+                                                               id="prestamosEnabled"
+                                                               style="width: 3rem; height: 1.5rem;">
                                                     </div>
                                                 </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Page ID</label>
-                                                    <input type="text" class="form-control"
-                                                        wire:model="facebook_page_id"
-                                                        wire:blur="guardarFacebook"
-                                                        placeholder="ID de la página de Facebook">
-                                                    @error('facebook_page_id') <span class="text-danger small">{{ $message }}</span> @enderror
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label fw-semibold">Access Token</label>
-                                                    <input type="password" class="form-control"
-                                                        wire:model="facebook_access_token"
-                                                        wire:blur="guardarFacebook"
-                                                        placeholder="Token de acceso de la página">
-                                                    <small class="text-muted">Obténlo desde Facebook Developers</small>
-                                                    @error('facebook_access_token') <span class="text-danger small">{{ $message }}</span> @enderror
+
+                                                <!-- Categoría de productos -->
+                                                <div>
+                                                    <label class="form-label fw-semibold">Categoría de productos para préstamos</label>
+                                                    <select class="form-select"
+                                                            wire:model="prestamos_categoria_id"
+                                                            wire:change="guardarPrestamos">
+                                                        <option value="">-- Todas las categorías --</option>
+                                                        @foreach($categorias as $cat)
+                                                            <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <small class="text-muted">Solo se mostrarán productos de esta categoría al agregar items al préstamo. Si no se selecciona ninguna, se usará la búsqueda estándar.</small>
                                                 </div>
                                             </div>
                                         </div>

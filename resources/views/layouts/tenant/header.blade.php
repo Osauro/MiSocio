@@ -40,9 +40,11 @@
                     @livewire('compra-cart')
                 </li>
                 @endif
+                @if(prestamosHabilitados())
                 <li class="cart-nav">
                     @livewire('prestamo-cart')
                 </li>
+                @endif
                 <li class="profile-nav">
                     <div class="user-img" id="toggleProfileSidebar" style="cursor: pointer;">
                         <img id="headerAvatar" src="{{ Auth::user()->photo_url }}" alt="user"
