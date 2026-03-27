@@ -18,7 +18,7 @@ class Productos extends Component
     use WithPagination, SweetAlertTrait, RequiresTenant;
 
     public $search = '';
-    public $perPage;
+    public $perPage = 15;
     public $editMode = false;
     public $addingNewCategoria = false;
     public $addingNewMedida = false;
@@ -79,7 +79,7 @@ class Productos extends Component
 
     public function mount()
     {
-        $this->perPage = $_COOKIE['paginateProductos'] ?? 15;
+        $this->perPage = isset($_COOKIE['paginateProductos']) ? (int)$_COOKIE['paginateProductos'] : 15;
     }
 
     public function render()

@@ -49,7 +49,7 @@
 
         {{-- Paginación compacta: < [página]/[total] > --}}
         @if($results->lastPage() > 1)
-        <div class="paginate-nav" x-data="{
+        <div class="paginate-nav" wire:key="paginate-nav-{{ $results->currentPage() }}" x-data="{
             current: {{ $results->currentPage() }},
             last: {{ $results->lastPage() }},
             goToPage(val) {
@@ -65,7 +65,7 @@
             @if($results->onFirstPage())
                 <button class="paginate-btn" disabled><i class="fa-solid fa-chevron-left"></i></button>
             @else
-                <button class="paginate-btn" wire:click="previousPage" wire:loading.attr="disabled"><i class="fa-solid fa-chevron-left"></i></button>
+                <button class="paginate-btn" @click="current = Math.max(1, current - 1); $wire.previousPage()" wire:loading.attr="disabled"><i class="fa-solid fa-chevron-left"></i></button>
             @endif
 
             {{-- Input página actual --}}
@@ -85,7 +85,7 @@
 
             {{-- Siguiente --}}
             @if($results->hasMorePages())
-                <button class="paginate-btn" wire:click="nextPage" wire:loading.attr="disabled"><i class="fa-solid fa-chevron-right"></i></button>
+                <button class="paginate-btn" @click="current = Math.min(last, current + 1); $wire.nextPage()" wire:loading.attr="disabled"><i class="fa-solid fa-chevron-right"></i></button>
             @else
                 <button class="paginate-btn" disabled><i class="fa-solid fa-chevron-right"></i></button>
             @endif

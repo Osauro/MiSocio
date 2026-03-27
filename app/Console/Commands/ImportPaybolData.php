@@ -490,22 +490,22 @@ class ImportPaybolData extends Command
                 ? $this->clienteMap[$prestamo->cliente_id]
                 : null;
 
-            // Mapear estado (Caducado -> Vencido)
-            $estado = $prestamo->estado;
-            if ($estado === 'Caducado') {
-                $estado = 'Vencido';
-            }
+            // Mapear estado al enum actual: Pendiente, Prestado, Devuelto, Vencido
+            $estadoMap = [
+                'Caducado'  => 'Vencido',
+                'Completo'  => 'Prestado',
+                'Eliminado' => 'Devuelto',
+            ];
+            $estado = $estadoMap[$prestamo->estado] ?? $prestamo->estado;
 
             $newId = DB::table('prestamos')->insertGetId([
                 'numero_folio' => $prestamo->id,
                 'tenant_id' => $this->tenantId,
                 'user_id' => $defaultUserId,
                 'cliente_id' => $clienteId,
-                'deposito' => $prestamo->efectivo ?? 0,
+                'total' => $prestamo->efectivo ?? 0,
                 'estado' => $estado,
-                'fecha_prestamo' => $prestamo->created_at ? date('Y-m-d', strtotime($prestamo->created_at)) : null,
-                'fecha_vencimiento' => $prestamo->expired_at ? date('Y-m-d', strtotime($prestamo->expired_at)) : null,
-                'fecha_devolucion' => $prestamo->estado === 'Devuelto' ? date('Y-m-d', strtotime($prestamo->updated_at)) : null,
+                'expired_at' => $prestamo->expired_at ? date('Y-m-d', strtotime($prestamo->expired_at)) : null,
                 'created_at' => $prestamo->created_at,
                 'updated_at' => $prestamo->updated_at,
             ]);
