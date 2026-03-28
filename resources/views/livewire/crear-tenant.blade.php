@@ -122,18 +122,33 @@
 
                                         <div class="mb-3">
                                             <label class="form-label">Tema de Colores</label>
-                                            <select class="form-select" wire:model="theme_number">
-                                                <option value="1">Tema 1 - Azul</option>
-                                                <option value="2">Tema 2 - Verde</option>
-                                                <option value="3">Tema 3 - Rojo</option>
-                                                <option value="4">Tema 4 - Naranja</option>
-                                                <option value="5">Tema 5 - Púrpura</option>
-                                                <option value="6">Tema 6 - Turquesa</option>
-                                                <option value="7">Tema 7 - Rosa</option>
-                                                <option value="8">Tema 8 - Amarillo</option>
-                                                <option value="9">Tema 9 - Gris</option>
-                                                <option value="10">Tema 10 - Negro</option>
-                                            </select>
+                                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                                @php
+                                                    $temas = [
+                                                        1 => ['color' => '#308e87', 'nombre' => 'Verde azulado'],
+                                                        2 => ['color' => '#57375d', 'nombre' => 'Púrpura'],
+                                                        3 => ['color' => '#0766ad', 'nombre' => 'Azul'],
+                                                        4 => ['color' => '#025464', 'nombre' => 'Verde oscuro'],
+                                                        5 => ['color' => '#884a39', 'nombre' => 'Marrón'],
+                                                        6 => ['color' => '#0c356a', 'nombre' => 'Azul oscuro'],
+                                                        7 => ['color' => '#c7253e', 'nombre' => 'Rojo'],
+                                                        8 => ['color' => '#16423c', 'nombre' => 'Verde bosque'],
+                                                        9 => ['color' => '#5c469c', 'nombre' => 'Púrpura oscuro'],
+                                                        10 => ['color' => '#1a1a40', 'nombre' => 'Azul marino'],
+                                                    ];
+                                                @endphp
+                                                @foreach($temas as $num => $tema)
+                                                    <button type="button"
+                                                        wire:click="$set('theme_number', {{ $num }})"
+                                                        title="{{ $tema['nombre'] }}"
+                                                        class="btn-theme-color {{ $theme_number == $num ? 'active' : '' }}"
+                                                        style="background-color: {{ $tema['color'] }};">
+                                                        @if($theme_number == $num)
+                                                            <i class="fa-solid fa-check"></i>
+                                                        @endif
+                                                    </button>
+                                                @endforeach
+                                            </div>
                                         </div>
 
                                         <div class="d-grid gap-2 mt-4">
@@ -278,6 +293,37 @@
     </div>
 
     <style>
+        .btn-theme-color {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            padding: 0;
+            color: white;
+            font-size: 14px;
+        }
+
+        .btn-theme-color:hover {
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-theme-color.active {
+            border-color: #fff;
+            box-shadow: 0 0 0 3px currentBackgroundColor, 0 2px 10px rgba(0, 0, 0, 0.3);
+            transform: scale(1.15);
+        }
+
+        .btn-theme-color.active {
+            outline: 3px solid #333;
+            outline-offset: 2px;
+        }
+
         .plan-card {
             background: white;
             border-radius: 16px;

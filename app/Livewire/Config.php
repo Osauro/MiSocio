@@ -413,6 +413,7 @@ class Config extends Component
         ]);
 
         $this->toast('success', 'Módulos guardados');
+        $this->dispatch('recargar-pagina');
     }
 
     public function guardarImportacion()

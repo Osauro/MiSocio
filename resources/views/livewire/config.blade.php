@@ -715,6 +715,10 @@
         $wire.$watch('activeTab', value => {
             document.cookie = `config_active_tab=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
         });
+
+        $wire.on('recargar-pagina', () => {
+            setTimeout(() => window.location.reload(), 500);
+        });
     </script>
     @endscript
 </div>

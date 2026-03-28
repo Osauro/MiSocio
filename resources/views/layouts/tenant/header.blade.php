@@ -45,6 +45,13 @@
                     @livewire('prestamo-cart')
                 </li>
                 @endif
+                @if(hospedajesHabilitados())
+                <li class="cart-nav">
+                    <a href="{{ route('habitaciones') }}" class="cart-icon-link position-relative" title="Habitaciones">
+                        <i class="fa-solid fa-bed fa-lg"></i>
+                    </a>
+                </li>
+                @endif
                 <li class="profile-nav">
                     <div class="user-img" id="toggleProfileSidebar" style="cursor: pointer;">
                         <img id="headerAvatar" src="{{ Auth::user()->photo_url }}" alt="user"
