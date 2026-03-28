@@ -58,6 +58,9 @@ class Config extends Component
     public $prestamos_enabled;
     public $prestamos_categoria_id;
 
+    // Hospedajes
+    public $hospedajes_enabled;
+
     // Facebook API
     public $facebook_page_id;
     public $facebook_access_token;
@@ -104,6 +107,8 @@ class Config extends Component
             // Préstamos
             'prestamos_enabled' => 'boolean',
             'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
+            // Hospedajes
+            'hospedajes_enabled' => 'boolean',
             // Importación
             'formato_importacion' => 'required|in:excel,csv,json',
         ];
@@ -112,7 +117,7 @@ class Config extends Component
     public function mount()
     {
         $savedTab = $_COOKIE['config_active_tab'] ?? null;
-        $allowed = ['general', 'impresion', 'whatsapp', 'prestamos', 'importacion'];
+        $allowed = ['general', 'impresion', 'whatsapp', 'modulos', 'importacion'];
         if ($savedTab && in_array($savedTab, $allowed)) {
             $this->activeTab = $savedTab;
         }
@@ -165,6 +170,9 @@ class Config extends Component
         $this->prestamos_enabled = $config->prestamos_enabled ?? true;
         $this->prestamos_categoria_id = $config->prestamos_categoria_id;
 
+        // Hospedajes
+        $this->hospedajes_enabled = $config->hospedajes_enabled ?? false;
+
         // Facebook
         $this->facebook_page_id = $config->facebook_page_id;
         $this->facebook_access_token = $config->facebook_access_token;
@@ -176,7 +184,7 @@ class Config extends Component
 
     public function setTab($tab)
     {
-        $allowed = ['general', 'impresion', 'whatsapp', 'prestamos', 'importacion'];
+        $allowed = ['general', 'impresion', 'whatsapp', 'modulos', 'importacion'];
         if (in_array($tab, $allowed)) {
             $this->activeTab = $tab;
         }
@@ -389,20 +397,22 @@ class Config extends Component
         $this->toast('success', 'Facebook guardado');
     }
 
-    public function guardarPrestamos()
+    public function guardarModulos()
     {
         $this->validate([
             'prestamos_enabled' => 'boolean',
             'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
+            'hospedajes_enabled' => 'boolean',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
         $config->update([
-            'prestamos_enabled' => $this->prestamos_enabled ?? true,
+            'prestamos_enabled'      => $this->prestamos_enabled ?? true,
             'prestamos_categoria_id' => $this->prestamos_categoria_id,
+            'hospedajes_enabled'     => $this->hospedajes_enabled ?? false,
         ]);
 
-        $this->toast('success', 'Configuración de préstamos guardada');
+        $this->toast('success', 'Módulos guardados');
     }
 
     public function guardarImportacion()

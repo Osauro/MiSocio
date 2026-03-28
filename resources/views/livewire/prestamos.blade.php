@@ -100,7 +100,8 @@
                                                                     x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                                                     title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
                                                                     <img src="{{ $item->producto->photo_url ?? '' }}"
-                                                                        alt="{{ $item->producto->nombre ?? 'Producto' }}">
+                                                                        alt="{{ $item->producto->nombre ?? 'Producto' }}"
+                                                                        data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
                                                                     <span
                                                                         class="quantity-badge">{{ $item->cantidad }}</span>
                                                                 </div>

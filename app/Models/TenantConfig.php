@@ -46,6 +46,8 @@ class TenantConfig extends Model
         // Módulo Préstamos
         'prestamos_enabled',
         'prestamos_categoria_id',
+        // Módulo Hospedajes
+        'hospedajes_enabled',
         // Importación
         'ultima_importacion',
         'formato_importacion',
@@ -65,6 +67,7 @@ class TenantConfig extends Model
         'facebook_enabled' => 'boolean',
         'prestamos_enabled' => 'boolean',
         'prestamos_categoria_id' => 'integer',
+        'hospedajes_enabled' => 'boolean',
         'ultima_importacion' => 'datetime',
     ];
 

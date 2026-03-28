@@ -183,3 +183,17 @@ if (!function_exists('prestamosHabilitados')) {
         return $config ? ($config->prestamos_enabled ?? true) : true;
     }
 }
+
+if (!function_exists('hospedajesHabilitados')) {
+    /**
+     * Verificar si el módulo de hospedajes está habilitado para el tenant actual.
+     */
+    function hospedajesHabilitados(): bool
+    {
+        $tenantId = currentTenantId();
+        if (!$tenantId) return false;
+
+        $config = \App\Models\TenantConfig::where('tenant_id', $tenantId)->first();
+        return $config ? ($config->hospedajes_enabled ?? false) : false;
+    }
+}

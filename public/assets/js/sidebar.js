@@ -97,6 +97,7 @@ sidebarListItems.forEach((item) => {
 const pinTitle = document.querySelector(".pin-title");
 let pinIcon = document.querySelectorAll(".sidebar-list .fa-thumbtack");
 function togglePinnedName() {
+  if (!pinTitle) return;
   if (document.getElementsByClassName("pined").length) {
     if (!pinTitle.classList.contains("show")) pinTitle.classList.add("show");
   } else {

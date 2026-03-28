@@ -61,6 +61,7 @@
                                                     <img src="{{ $producto->photo_url }}"
                                                         alt="{{ $producto->nombre }}" class="rounded"
                                                         style="width: 80px; height: 80px; object-fit: cover; border: 2px solid #e9ecef; cursor: pointer;"
+                                                        data-fallback="{{ asset('assets/images/product-placeholder.svg') }}"
                                                         x-on:click="$dispatch('mostrarKardex', { productoId: {{ $producto->id }} })"
                                                         title="Ver movimientos de Kardex">
                                                 </div>
@@ -186,7 +187,8 @@
                                                 style="max-width: 100%; max-height: 230px; object-fit: contain; border-radius: 6px; margin-bottom: 10px;">
                                         @elseif ($editMode && $producto_actual && $producto_actual->imagen)
                                             <img src="{{ $producto_actual->photo_url }}" alt="Producto"
-                                                style="max-width: 100%; max-height: 230px; object-fit: contain; border-radius: 6px; margin-bottom: 10px;">
+                                                style="max-width: 100%; max-height: 230px; object-fit: contain; border-radius: 6px; margin-bottom: 10px;"
+                                                data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
                                         @else
                                             <div class="text-muted mb-3">
                                                 <i class="fa-solid fa-image fa-3x mb-2 opacity-50"></i>

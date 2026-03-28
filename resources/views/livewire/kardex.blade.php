@@ -63,7 +63,8 @@
                                             <td>
                                                 <img src="{{ $item->producto->photo_url }}"
                                                     alt="{{ $item->producto->nombre }}" class="rounded"
-                                                    style="width: 64px; height: 64px; object-fit: cover;">
+                                                    style="width: 64px; height: 64px; object-fit: cover;"
+                                                    data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
                                             </td>
                                             <td class="text-center text-truncate">
                                                 {{ $item->created_at->format('d/m/Y') }}

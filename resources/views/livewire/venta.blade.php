@@ -92,7 +92,8 @@
                                                         <div class="col-5">
                                                             <img src="{{ $item['imagen'] }}" alt="{{ $item['nombre'] }}"
                                                                 class="rounded w-100"
-                                                                style="aspect-ratio: 1/1; object-fit: cover;">
+                                                                style="aspect-ratio: 1/1; object-fit: cover;"
+                                                                data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
                                                         </div>
 
                                                         <!-- Inputs (Derecha) -->
@@ -225,7 +226,8 @@
                                                                 <img src="{{ $producto['imagen'] }}"
                                                                     alt="{{ $producto['nombre'] }}"
                                                                     class="rounded"
-                                                                    style="width: 40px; height: 40px; object-fit: cover;">
+                                                                    style="width: 40px; height: 40px; object-fit: cover;"
+                                                                    data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
                                                                 <div class="flex-grow-1">
                                                                     <div class="fw-bold small" :title="'{{ addslashes($producto['nombre']) }}'" x-text="truncateMiddle('{{ addslashes($producto['nombre']) }}', 'search')"></div>
                                                                     <div class="d-flex gap-1 mt-1">

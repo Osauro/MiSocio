@@ -35,9 +35,9 @@
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
-                                <button class="nav-link {{ $activeTab === 'prestamos' ? 'active' : '' }}"
-                                    wire:click="setTab('prestamos')" type="button">
-                                    <i class="fa-solid fa-handshake me-1"></i>Préstamos
+                                <button class="nav-link {{ $activeTab === 'modulos' ? 'active' : '' }}"
+                                    wire:click="setTab('modulos')" type="button">
+                                    <i class="fa-solid fa-puzzle-piece me-1"></i>Módulos
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -72,11 +72,11 @@
                                 WhatsApp
                             </button>
                             <button type="button"
-                                wire:click="setTab('prestamos')"
-                                class="btn btn-sm d-flex flex-column align-items-center justify-content-center py-2 gap-1 {{ $activeTab === 'prestamos' ? 'btn-warning' : 'btn-outline-secondary' }}"
+                                wire:click="setTab('modulos')"
+                                class="btn btn-sm d-flex flex-column align-items-center justify-content-center py-2 gap-1 {{ $activeTab === 'modulos' ? 'btn-warning' : 'btn-outline-secondary' }}"
                                 style="font-size: 0.65rem;">
-                                <i class="fa-solid fa-handshake" style="font-size: 1.2rem;"></i>
-                                Préstamos
+                                <i class="fa-solid fa-puzzle-piece" style="font-size: 1.2rem;"></i>
+                                Módulos
                             </button>
                             <button type="button"
                                 wire:click="setTab('importacion')"
@@ -542,12 +542,14 @@
                             </div>
                             @endif
 
-                            <!-- Tab Préstamos -->
-                            @if($activeTab === 'prestamos')
+                            <!-- Tab Módulos -->
+                            @if($activeTab === 'modulos')
                             <div class="tab-pane fade show active">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <div class="card border shadow-sm">
+                                <div class="row g-3">
+
+                                    <!-- Módulo Préstamos -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-sm h-100">
                                             <div class="card-header bg-warning text-dark">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-handshake me-2"></i>
@@ -559,12 +561,12 @@
                                                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                                                     <div>
                                                         <p class="fw-semibold mb-0">Habilitar módulo de préstamos</p>
-                                                        <small class="text-muted">Si está desactivado, la opción no aparecerá en el menú ni en el header y no se podrán crear nuevos préstamos.</small>
+                                                        <small class="text-muted">Si está desactivado, la opción no aparecerá en el menú ni en el header.</small>
                                                     </div>
                                                     <div class="form-check form-switch mb-0 ms-3">
                                                         <input class="form-check-input" type="checkbox" role="switch"
                                                                wire:model="prestamos_enabled"
-                                                               wire:change="guardarPrestamos"
+                                                               wire:change="guardarModulos"
                                                                id="prestamosEnabled"
                                                                style="width: 3rem; height: 1.5rem;">
                                                     </div>
@@ -575,17 +577,65 @@
                                                     <label class="form-label fw-semibold">Categoría de productos para préstamos</label>
                                                     <select class="form-select"
                                                             wire:model="prestamos_categoria_id"
-                                                            wire:change="guardarPrestamos">
+                                                            wire:change="guardarModulos">
                                                         <option value="">-- Todas las categorías --</option>
                                                         @foreach($categorias as $cat)
                                                             <option value="{{ $cat->id }}">{{ $cat->nombre }}</option>
                                                         @endforeach
                                                     </select>
-                                                    <small class="text-muted">Solo se mostrarán productos de esta categoría al agregar items al préstamo. Si no se selecciona ninguna, se usará la búsqueda estándar.</small>
+                                                    <small class="text-muted">Solo se mostrarán productos de esta categoría al agregar ítems al préstamo.</small>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- Módulo Hospedajes -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-header bg-primary text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="fa-solid fa-hotel me-2"></i>
+                                                    Módulo de Hospedajes
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Habilitar módulo de hospedajes</p>
+                                                        <small class="text-muted">
+                                                            Activa el control de habitaciones, check-in/check-out y panel visual de estado de habitaciones.
+                                                            <br>Ideal para hoteles, hospedajes y alojamientos.
+                                                        </small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0 ms-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="hospedajes_enabled"
+                                                               wire:change="guardarModulos"
+                                                               id="hospedajesEnabled"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+
+                                                @if($hospedajes_enabled)
+                                                <div class="mt-3 pt-3 border-top">
+                                                    <p class="small text-muted mb-2"><i class="fa-solid fa-circle-info me-1"></i>Módulo habilitado. Accede desde el menú lateral:</p>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <a href="{{ route('habitaciones') }}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fa-solid fa-door-open me-1"></i>Panel de Habitaciones
+                                                        </a>
+                                                        <a href="{{ route('hospedajes') }}" class="btn btn-sm btn-outline-secondary">
+                                                            <i class="fa-solid fa-clipboard-list me-1"></i>Historial
+                                                        </a>
+                                                        <a href="{{ route('tipos-habitacion') }}" class="btn btn-sm btn-outline-secondary">
+                                                            <i class="fa-solid fa-layer-group me-1"></i>Tipos y Tarifas
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
                                 </div>
                             </div>
                             @endif

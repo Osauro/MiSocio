@@ -124,6 +124,27 @@ function initSweetAlertListeners() {
 // Auto-inicializar listeners
 initSweetAlertListeners();
 
+// ── Fallback de imágenes rotas (data-fallback) ──────────────
+function applyImageFallbacks(root) {
+    (root || document).querySelectorAll('img[data-fallback]').forEach(function(img) {
+        img.onerror = function() {
+            this.onerror = null;
+            this.src = this.dataset.fallback;
+        };
+        if (img.complete && img.naturalHeight === 0 && img.src !== img.dataset.fallback) {
+            img.src = img.dataset.fallback;
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() { applyImageFallbacks(); });
+document.addEventListener('livewire:init', function() {
+    Livewire.hook('morph.updated', function(data) { applyImageFallbacks(); });
+    Livewire.hook('commit', function(data) {
+        setTimeout(function() { applyImageFallbacks(); }, 100);
+    });
+});
+
 // Poner foco en el input de búsqueda al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');

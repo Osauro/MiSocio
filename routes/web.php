@@ -7,6 +7,8 @@ use App\Livewire\Clientes;
 use App\Livewire\Compra;
 use App\Livewire\Compras;
 use App\Livewire\Config;
+use App\Livewire\Habitaciones;
+use App\Livewire\Hospedajes;
 use App\Livewire\Inventario;
 use App\Livewire\Inventarios;
 use App\Livewire\CrearTenant;
@@ -15,11 +17,13 @@ use App\Livewire\HomeTenant;
 use App\Livewire\Kardex;
 use App\Livewire\Landlord\PagosManager;
 use App\Livewire\Landlord\TenantsManager;
+use App\Livewire\Modalidades;
 use App\Livewire\Movimientos;
 use App\Livewire\Prestamo;
 use App\Livewire\Prestamos;
 use App\Livewire\Productos;
 use App\Livewire\Suscripcion;
+use App\Livewire\TiposHabitacion;
 use App\Livewire\Usuarios;
 use App\Livewire\Venta;
 use App\Livewire\Ventas;
@@ -136,6 +140,12 @@ Route::middleware(['auth', 'tenant', 'tenant.active', 'tenant.manage'])->group(f
 
     // Préstamos - Solo administradores
     Route::livewire('prestamos', Prestamos::class)->name('prestamos');
+
+    // Hospedajes - Solo administradores (si módulo habilitado)
+    Route::livewire('habitaciones', Habitaciones::class)->name('habitaciones');
+    Route::livewire('hospedajes', Hospedajes::class)->name('hospedajes');
+    Route::livewire('tipos-habitacion', TiposHabitacion::class)->name('tipos-habitacion');
+    Route::livewire('modalidades', Modalidades::class)->name('modalidades');
 
     // Configuración del sistema - Solo administradores
     Route::livewire('config', Config::class)->name('config');

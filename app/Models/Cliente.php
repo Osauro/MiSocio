@@ -17,6 +17,7 @@ class Cliente extends Model
         'tenant_id',
         'nombre',
         'celular',
+        'ci',
         'direccion',
         'nit',
         'correo',
