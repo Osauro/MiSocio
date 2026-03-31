@@ -371,7 +371,7 @@
                                     class="form-control text-center"
                                     wire:model="nuevoCliente.nombre"
                                     x-init="$nextTick(() => $el.focus())"
-                                    @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
+                                    @keydown.enter="if($el.value.trim() !== '') { $wire.call('crearYSeleccionarCliente') }">
                                 @error('nuevoCliente.nombre') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
                             <div class="col-md-6">
@@ -379,7 +379,7 @@
                                 <input type="text"
                                     class="form-control text-center"
                                     wire:model="nuevoCliente.celular"
-                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
+                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') }">
                                 @error('nuevoCliente.celular') <span class="text-danger small">{{ $message }}</span> @enderror
                             </div>
                             <div class="col-md-6">
@@ -387,14 +387,14 @@
                                 <input type="text"
                                     class="form-control text-center"
                                     wire:model="nuevoCliente.direccion"
-                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
+                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') }">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">NIT</label>
                                 <input type="text"
                                     class="form-control text-center"
                                     wire:model="nuevoCliente.nit"
-                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') } else { $wire.call('avanzarPaso2SinCliente') }">
+                                    @keydown.enter="if($wire.nuevoCliente.nombre && $wire.nuevoCliente.nombre.trim() !== '') { $wire.call('crearYSeleccionarCliente') }">
                             </div>
                         </div>
                     @endif
@@ -404,10 +404,17 @@
                         <i class="fa-solid fa-times me-1"></i>
                         Cancelar
                     </button>
-                    <button type="button" class="btn btn-warning" wire:click="avanzarPaso2SinCliente">
-                        <i class="fa-solid fa-forward me-1"></i>
-                        Continuar sin Cliente
-                    </button>
+                    @if($mostrarFormNuevoCliente)
+                        <button type="button" class="btn btn-success" wire:click="crearYSeleccionarCliente">
+                            <i class="fa-solid fa-save me-1"></i>
+                            Guardar y Continuar
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-warning" wire:click="avanzarPaso2SinCliente">
+                            <i class="fa-solid fa-forward me-1"></i>
+                            Continuar sin Cliente
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
