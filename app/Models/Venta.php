@@ -23,6 +23,8 @@ class Venta extends Model
     ];
 
     protected $casts = [
+        'user_id' => 'integer',
+        'tenant_id' => 'integer',
         'efectivo' => 'decimal:2',
         'online' => 'decimal:2',
         'credito' => 'decimal:2',

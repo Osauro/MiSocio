@@ -96,7 +96,7 @@ class Venta extends Component
         }
 
         // Verificar que sea del usuario actual O que el usuario pueda gestionar el tenant
-        if ($this->venta->user_id !== Auth::id() && !canManageTenant()) {
+        if ((int)$this->venta->user_id !== (int)Auth::id() && !canManageTenant()) {
             Log::error('Sin permiso para editar venta', [
                 'venta_user_id' => $this->venta->user_id,
                 'auth_user_id' => Auth::id(),
@@ -807,9 +807,9 @@ class Venta extends Component
         try {
             DB::beginTransaction();
 
-            // Guard contra doble procesamiento: verificar estado actual en BD
-            $this->venta->refresh();
-            if ($this->venta->estado !== 'Pendiente') {
+            // Guard contra doble procesamiento: recargar la venta desde BD
+            $this->venta = VentaModel::withoutGlobalScopes()->find($this->ventaId);
+            if (!$this->venta || $this->venta->estado !== 'Pendiente') {
                 DB::rollBack();
                 return;
             }
