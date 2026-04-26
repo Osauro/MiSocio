@@ -397,7 +397,7 @@ class Config extends Component
             '¡Configuración correcta!',
             (bool) $this->corte_automatico,
             (bool) $this->abrir_cajon,
-            3, $cols
+            5, $cols
         );
 
         $job = [

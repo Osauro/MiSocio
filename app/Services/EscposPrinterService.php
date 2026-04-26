@@ -32,9 +32,10 @@ class EscposPrinterService
     const SIZE_2X = "\x1D\x21\x11";   // Doble alto + ancho
     const BOLD_ON = "\x1B\x45\x01";
     const BOLD_OFF = "\x1B\x45\x00";
-    const CUT     = "\x1D\x56\x00";   // Corte completo
-    const CUT_P   = "\x1D\x56\x41\x00"; // Corte parcial
-    const DRAWER  = "\x1B\x70\x00\x32\xFA"; // Apertura de caja
+    const CUT          = "\x1D\x56\x00";       // Corte completo
+    const CUT_P        = "\x1D\x56\x41\x00";   // Corte parcial
+    const DRAWER       = "\x1B\x70\x00\x32\xFA"; // Apertura de caja
+    const CODEPAGE_CP850 = "\x1B\x74\x02";     // Página de código CP850 (español/acentos)
 
     protected string $secretKey;
     protected string $baseUrl;
@@ -99,24 +100,25 @@ class EscposPrinterService
     {
         $b = '';
         $b .= self::INIT;
+        $b .= self::CODEPAGE_CP850;  // Seleccionar CP850 para acentos en español
 
         // Nombre de la tienda (centrado, doble alto+ancho)
         if (!empty($data['store'])) {
             $b .= self::ALIGN_C . self::BOLD_ON . self::SIZE_2X;
-            $b .= mb_strtoupper($data['store']) . self::LF;
+            $b .= $this->encode(mb_strtoupper($data['store'])) . self::LF;
             $b .= self::SIZE_N . self::BOLD_OFF;
         }
 
         // Dirección / teléfono / NIT
         $b .= self::ALIGN_C;
         if (!empty($data['address'])) {
-            $b .= $data['address'] . self::LF;
+            $b .= $this->encode($data['address']) . self::LF;
         }
         if (!empty($data['phone'])) {
-            $b .= 'Tel: ' . $data['phone'] . self::LF;
+            $b .= $this->encode('Tel: ' . $data['phone']) . self::LF;
         }
         if (!empty($data['nit'])) {
-            $b .= 'NIT: ' . $data['nit'] . self::LF;
+            $b .= $this->encode('NIT: ' . $data['nit']) . self::LF;
         }
 
         // Separador
@@ -126,7 +128,7 @@ class EscposPrinterService
         // Título de la sección (ej: "VENTA #23721")
         if (!empty($data['title'])) {
             $b .= self::ALIGN_C . self::BOLD_ON;
-            $b .= $data['title'] . self::LF;
+            $b .= $this->encode($data['title']) . self::LF;
             $b .= self::BOLD_OFF;
         }
 
@@ -135,13 +137,13 @@ class EscposPrinterService
         // Datos de la transacción
         $b .= self::ALIGN_L;
         if (!empty($data['date'])) {
-            $b .= $this->padLine('Fecha:', $data['date'], $cols) . self::LF;
+            $b .= $this->padLine('Fecha:', $this->encode($data['date']), $cols) . self::LF;
         }
         if (!empty($data['user'])) {
-            $b .= $this->padLine('Cajero:', $data['user'], $cols) . self::LF;
+            $b .= $this->padLine('Cajero:', $this->encode($data['user']), $cols) . self::LF;
         }
         if (!empty($data['client'])) {
-            $b .= $this->padLine('Cliente:', $data['client'], $cols) . self::LF;
+            $b .= $this->padLine('Cliente:', $this->encode($data['client']), $cols) . self::LF;
         }
 
         $b .= str_repeat('-', $cols) . self::LF;
@@ -172,15 +174,15 @@ class EscposPrinterService
         $b .= str_repeat('-', $cols) . self::LF;
 
         foreach ($items as $item) {
-            $nombre   = $item['nombre']   ?? 'Producto';
+            $nombre   = $this->encode($item['nombre']   ?? 'Producto');
             $cant     = $item['cantidad'] ?? '';           // Ya formateado: "2p - 3u"
             $subtotal = $item['subtotal'] ?? 0;
             $precio   = $item['precio']   ?? 0;
 
             $subtStr = 'Bs.' . number_format($subtotal, 2);
 
-            // Línea 1: nombre (truncado si no cabe)
-            $nombreTrunc = mb_strlen($nombre) > $cols ? mb_substr($nombre, 0, $cols - 1) : $nombre;
+            // Línea 1: nombre (truncado si no cabe; strlen porque ya es CP850)
+            $nombreTrunc = strlen($nombre) > $cols ? substr($nombre, 0, $cols - 1) : $nombre;
             $b .= $nombreTrunc . self::LF;
 
             // Línea 2: cantidad y precio → subtotal (alineado derecha)
@@ -218,7 +220,7 @@ class EscposPrinterService
         $map = [
             'efectivo' => 'Efectivo',
             'online'   => 'Online / QR',
-            'credito'  => 'Crédito',
+            'credito'  => $this->encode('Crédito'),
             'cambio'   => 'Cambio',
         ];
 
@@ -247,18 +249,19 @@ class EscposPrinterService
         string $message = '¡Gracias por su compra!',
         bool $cut = true,
         bool $cashDrawer = false,
-        int $feeds = 3,
+        int $feeds = 5,
         int $cols = 48
     ): string {
         $b = '';
 
         if ($message) {
             $b .= self::ALIGN_C . self::BOLD_ON;
-            $b .= $message . self::LF;
+            $b .= $this->encode($message) . self::LF;
             $b .= self::BOLD_OFF;
         }
 
         // Avances de línea para que el corte quede fuera del área impresa
+        // (la distancia física cabezal-cuchilla es ~4-5 líneas en papel térmico)
         for ($i = 0; $i < $feeds; $i++) {
             $b .= self::LF;
         }
@@ -361,7 +364,7 @@ class EscposPrinterService
             'header' => $this->encryptSection($key, $this->buildEscHeader($header, $cols)),
             'body'   => $this->encryptSection($key, $this->buildEscBody($items, $cols)),
             'totals' => $this->encryptSection($key, $this->buildEscTotals($totals, $cols)),
-            'footer' => $this->encryptSection($key, $this->buildEscFooter($footerMsg, $cut, $cashDrawer, 3, $cols)),
+            'footer' => $this->encryptSection($key, $this->buildEscFooter($footerMsg, $cut, $cashDrawer, 5, $cols)),
         ];
 
         return $this->print($printerName, $job);
@@ -377,12 +380,22 @@ class EscposPrinterService
      */
     public function padLine(string $left, string $right, int $cols): string
     {
-        $spaces = $cols - mb_strlen($left) - mb_strlen($right);
+        // Usar strlen (no mb_strlen) porque los textos ya están en CP850 (1 byte = 1 char)
+        $spaces = $cols - strlen($left) - strlen($right);
         if ($spaces < 1) {
             $spaces = 1;
         }
 
-        return $left . str_repeat('.', $spaces) . $right;
+        return $left . str_repeat(' ', $spaces) . $right;
+    }
+
+    /**
+     * Convierte texto UTF-8 a CP850 para compatibilidad con impresoras térmicas ESC/POS.
+     * Los caracteres sin equivalente se transliteran o eliminan.
+     */
+    protected function encode(string $text): string
+    {
+        return iconv('UTF-8', 'CP850//TRANSLIT//IGNORE', $text) ?: $text;
     }
 
     /**
