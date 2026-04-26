@@ -470,7 +470,7 @@
                                                                     <i class="fa-solid {{ $opt['icon'] }} {{ $opt['color'] }}"></i>
                                                                 </div>
                                                                 <div>
-                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">{{ $opt['label'] }}</p>
+                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">{{ $opt['label'] }}</p>
                                                                     <small class="text-muted">{{ $opt['desc'] }}</small>
                                                                 </div>
                                                             </div>
@@ -500,7 +500,7 @@
                                                                     <i class="fa-solid fa-cart-shopping text-danger"></i>
                                                                 </div>
                                                                 <div>
-                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">Ventas</p>
+                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Ventas</p>
                                                                     <small class="text-muted">Al cerrar venta</small>
                                                                 </div>
                                                             </div>
@@ -522,7 +522,7 @@
                                                                     <i class="fa-solid fa-hand-holding-dollar text-warning"></i>
                                                                 </div>
                                                                 <div>
-                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">Préstamos</p>
+                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Préstamos</p>
                                                                     <small class="text-muted">Al cerrar préstamo</small>
                                                                 </div>
                                                             </div>
@@ -544,7 +544,7 @@
                                                                     <i class="fa-solid fa-boxes-stacked text-info"></i>
                                                                 </div>
                                                                 <div>
-                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">Inventario</p>
+                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Inventario</p>
                                                                     <small class="text-muted">Al cerrar inventario</small>
                                                                 </div>
                                                             </div>
