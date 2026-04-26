@@ -179,51 +179,8 @@
                                             </div>
                                         </div>
 
-                                        <!-- Logo de la Tienda -->
+                                        <!-- Configuración de Sueldos -->
                                         <div class="card border shadow-sm mt-3">
-                                            <div class="card-header bg-warning text-dark">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-image me-2"></i>
-                                                    Logo de la Tienda
-                                                </h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="row align-items-center">
-                                                    <div class="col-4 text-center">
-                                                        @if($logo_actual)
-                                                            <img src="{{ Storage::url($logo_actual) }}" alt="Logo"
-                                                                class="img-fluid rounded shadow" style="max-height: 80px;">
-                                                        @elseif($nuevo_logo)
-                                                            <img src="{{ $nuevo_logo->temporaryUrl() }}" alt="Preview"
-                                                                class="img-fluid rounded shadow" style="max-height: 80px;">
-                                                        @else
-                                                            <div class="bg-light rounded p-3">
-                                                                <i class="fa-solid fa-image fa-3x text-muted"></i>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                    <div class="col-8">
-                                                        <input type="file" class="form-control form-control-sm"
-                                                            wire:model="nuevo_logo" accept="image/*">
-                                                        <small class="text-muted">PNG o JPG. Máx 1MB</small>
-                                                        @error('nuevo_logo') <span class="text-danger small d-block">{{ $message }}</span> @enderror
-                                                        @if($logo_actual)
-                                                            <button type="button" class="btn btn-sm btn-outline-danger mt-2"
-                                                                wire:click="eliminarLogo" wire:confirm="¿Eliminar el logo?">
-                                                                <i class="fa-solid fa-trash me-1"></i> Eliminar
-                                                            </button>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <!-- Configuración de Sueldos -->
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card border shadow-sm">
                                             <div class="card-header bg-info text-white">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-money-bill-wave me-2"></i>
@@ -242,29 +199,6 @@
                                                     </div>
                                                     <small class="text-muted">Sueldo base mensual para cálculos</small>
                                                     @error('sueldo_base') <span class="text-danger small">{{ $message }}</span> @enderror
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Configuración de Red -->
-                                    <div class="col-md-6 mb-3">
-                                        <div class="card border shadow-sm">
-                                            <div class="card-header bg-secondary text-white">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-network-wired me-2"></i>
-                                                    Configuración de Red
-                                                </h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <div class="mb-0">
-                                                    <label class="form-label fw-semibold">IP Local del Tenant</label>
-                                                    <input type="text" class="form-control"
-                                                        wire:model="ip_local"
-                                                        wire:blur="guardarGeneral"
-                                                        placeholder="192.168.1.100">
-                                                    <small class="text-muted">Dirección IP para comunicación local</small>
-                                                    @error('ip_local') <span class="text-danger small">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                         </div>
