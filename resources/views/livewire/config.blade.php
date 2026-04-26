@@ -306,10 +306,12 @@
                                 <div class="row g-4 align-items-start">
 
                                     {{-- ══ Columna izquierda ══ --}}
-                                    <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+                                    <div class="col-12 col-xl-4" x-data="{ mostrar: false }">
 
-                                        {{-- Card: Print Agent --}}
+                                        {{-- Card unificada: Print Agent + Clave de Seguridad --}}
                                         <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+
+                                            {{-- Header --}}
                                             <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
                                                  style="background:linear-gradient(135deg,#0d6efd,#0a58ca);">
                                                 <i class="fa-solid fa-server text-white fs-5"></i>
@@ -318,7 +320,9 @@
                                                     <small class="text-white-50">Servicio local de impresión</small>
                                                 </div>
                                             </div>
-                                            <div class="card-body px-4 py-3 d-flex flex-column gap-2">
+
+                                            {{-- Sección: URL + Descargar --}}
+                                            <div class="px-4 pt-3 pb-2 d-flex flex-column gap-2">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <i class="fa-solid fa-circle-dot text-success" style="font-size:.7rem;"></i>
                                                     <span class="text-muted small font-monospace">{{ $printAgentUrl }}</span>
@@ -329,6 +333,44 @@
                                                     <span>Descargar Instalador</span>
                                                 </a>
                                             </div>
+
+                                            {{-- Divider: Clave de Seguridad --}}
+                                            <div class="px-4 pt-3 pb-1 border-top mt-1">
+                                                <p class="text-uppercase fw-bold mb-2 d-flex align-items-center gap-2"
+                                                   style="font-size:.65rem;letter-spacing:.1em;color:#495057;">
+                                                    <i class="fa-solid fa-shield-halved text-secondary"></i>
+                                                    Clave de Seguridad
+                                                </p>
+                                                <div class="input-group input-group-sm mb-2">
+                                                    <input :type="mostrar ? 'text' : 'password'"
+                                                           class="form-control font-monospace"
+                                                           wire:model.blur="print_agent_secret_key"
+                                                           wire:change="guardarImpresion"
+                                                           placeholder="Clave AES-256 hex (64 chars)"
+                                                           maxlength="64">
+                                                    <button class="btn btn-outline-secondary" type="button"
+                                                            @click="mostrar = !mostrar" title="Mostrar / ocultar">
+                                                        <i :class="mostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" type="button"
+                                                            @click="navigator.clipboard.writeText($wire.print_agent_secret_key)"
+                                                            title="Copiar al portapapeles">
+                                                        <i class="fa-solid fa-copy"></i>
+                                                    </button>
+                                                </div>
+                                                @error('print_agent_secret_key')
+                                                    <p class="text-danger small mb-2">{{ $message }}</p>
+                                                @enderror
+                                                <button class="btn btn-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-2 mb-3"
+                                                        wire:click="regenerarPrintKey"
+                                                        wire:confirm="¿Regenerar la clave? Deberás actualizarla también en el Print Agent."
+                                                        wire:loading.attr="disabled">
+                                                    <i class="fa-solid fa-rotate"></i>
+                                                    <span>Regenerar clave</span>
+                                                </button>
+                                            </div>
+
+                                            {{-- Footer: Pruebas de impresión --}}
                                             <div class="card-footer bg-light border-top px-4 py-3">
                                                 <p class="text-uppercase text-muted fw-bold mb-2"
                                                    style="font-size:.65rem;letter-spacing:.1em;">Pruebas de impresión</p>
@@ -362,51 +404,8 @@
                                                     @endif
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {{-- Card: Clave de seguridad --}}
-                                        <div class="card shadow-sm border-0 rounded-3 overflow-hidden"
-                                             x-data="{ mostrar: false }">
-                                            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
-                                                 style="background:linear-gradient(135deg,#6c757d,#495057);">
-                                                <i class="fa-solid fa-shield-halved text-white fs-5"></i>
-                                                <div>
-                                                    <h6 class="mb-0 text-white fw-bold">Clave de Seguridad</h6>
-                                                    <small class="text-white-50">Debe coincidir con el agente</small>
-                                                </div>
-                                            </div>
-                                            <div class="card-body px-4 py-3">
-                                                <label class="form-label small text-muted mb-1">Clave AES-256 (hex 64 chars)</label>
-                                                <div class="input-group mb-2">
-                                                    <input :type="mostrar ? 'text' : 'password'"
-                                                           class="form-control font-monospace"
-                                                           wire:model.blur="print_agent_secret_key"
-                                                           wire:change="guardarImpresion"
-                                                           placeholder="Pega la clave del agente aquí"
-                                                           maxlength="64">
-                                                    <button class="btn btn-outline-secondary" type="button"
-                                                            @click="mostrar = !mostrar" title="Mostrar / ocultar">
-                                                        <i :class="mostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
-                                                    </button>
-                                                    <button class="btn btn-outline-secondary" type="button"
-                                                            @click="navigator.clipboard.writeText($wire.print_agent_secret_key)"
-                                                            title="Copiar al portapapeles">
-                                                        <i class="fa-solid fa-copy"></i>
-                                                    </button>
-                                                </div>
-                                                @error('print_agent_secret_key')
-                                                    <p class="text-danger small mb-2">{{ $message }}</p>
-                                                @enderror
-                                                <button class="btn btn-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
-                                                        wire:click="regenerarPrintKey"
-                                                        wire:confirm="¿Regenerar la clave? Deberás actualizarla también en el Print Agent."
-                                                        wire:loading.attr="disabled">
-                                                    <i class="fa-solid fa-rotate"></i>
-                                                    <span>Regenerar clave</span>
-                                                </button>
-                                            </div>
                                         </div>
-
                                     </div>
 
                                     {{-- ══ Columna derecha ══ --}}
