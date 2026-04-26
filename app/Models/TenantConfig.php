@@ -70,6 +70,7 @@ class TenantConfig extends Model
         'impresion_auto_venta' => 'boolean',
         'impresion_auto_prestamo' => 'boolean',
         'impresion_auto_inventario' => 'boolean',
+        'mostrar_logo' => 'boolean',
         'whatsapp_enabled' => 'boolean',
         'facebook_enabled' => 'boolean',
         'prestamos_enabled' => 'boolean',
