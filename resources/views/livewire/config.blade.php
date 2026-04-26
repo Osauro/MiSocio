@@ -303,67 +303,87 @@
                                  }"
                                  @enviar-a-agente.window="enviarAgente($event.detail.agentUrl, $event.detail.job, $event.detail.successMsg)">
 
-                                <div class="row g-4">
+                                <div class="row g-4 align-items-start">
 
-                                    <!-- ══ Columna izquierda ══ -->
-                                    <div class="col-12 col-md-3 d-flex flex-column gap-3">
+                                    {{-- ══ Columna izquierda ══ --}}
+                                    <div class="col-12 col-xl-4 d-flex flex-column gap-3">
 
-                                        <!-- App de Impresión -->
-                                        <div class="card border-0 shadow-sm">
-                                            <div class="card-header bg-primary text-white py-2">
-                                                <span class="fw-semibold"><i class="fa-solid fa-server me-2"></i>App de Impresión</span>
+                                        {{-- Card: Print Agent --}}
+                                        <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                                            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
+                                                 style="background:linear-gradient(135deg,#0d6efd,#0a58ca);">
+                                                <i class="fa-solid fa-server text-white fs-5"></i>
+                                                <div>
+                                                    <h6 class="mb-0 text-white fw-bold">Print Agent</h6>
+                                                    <small class="text-white-50">Servicio local de impresión</small>
+                                                </div>
                                             </div>
-                                            <div class="card-body p-3 d-flex flex-column gap-2">
-                                                <p class="text-muted small mb-0">
-                                                    <i class="fa-solid fa-link me-1"></i>{{ $printAgentUrl }}
-                                                </p>
+                                            <div class="card-body px-4 py-3 d-flex flex-column gap-2">
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <span class="badge bg-light text-secondary border">
+                                                        <i class="fa-solid fa-circle-dot text-success me-1" style="font-size:.6rem;"></i>
+                                                        {{ $printAgentUrl }}
+                                                    </span>
+                                                </div>
                                                 <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat"
-                                                   class="btn btn-success btn-sm w-100">
-                                                    <i class="fa-solid fa-download me-1"></i>Descargar Instalador
+                                                   class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
+                                                    <i class="fa-solid fa-download"></i>
+                                                    <span>Descargar Instalador</span>
                                                 </a>
-                                                <hr class="my-1">
-                                                <button type="button"
-                                                        class="btn btn-outline-primary btn-sm w-100"
-                                                        wire:click="impresionPruebaLegacy"
-                                                        wire:loading.attr="disabled"
-                                                        :disabled="printando">
-                                                    <span x-show="printando" class="spinner-border spinner-border-sm me-1" role="status"></span>
-                                                    <i class="fa-solid fa-print me-1" x-show="!printando"></i>
-                                                    Imprimir Prueba
-                                                </button>
-                                                <div class="d-grid gap-2">
-                                                    <button type="button"
-                                                            class="btn btn-outline-danger btn-sm"
-                                                            wire:click="imprimirUltimaVenta"
-                                                            wire:loading.attr="disabled"
-                                                            :disabled="printando">
-                                                        <i class="fa-solid fa-cart-shopping me-1"></i>Última Venta
-                                                    </button>
-                                                    @if(prestamosHabilitados())
-                                                    <button type="button"
-                                                            class="btn btn-outline-warning btn-sm"
-                                                            wire:click="imprimirUltimoPrestamo"
-                                                            wire:loading.attr="disabled"
-                                                            :disabled="printando">
-                                                        <i class="fa-solid fa-hand-holding-dollar me-1"></i>Último Préstamo
-                                                    </button>
-                                                    @endif
+                                                <div class="border-top pt-2 mt-1">
+                                                    <p class="text-muted small fw-semibold mb-2 text-uppercase" style="font-size:.65rem;letter-spacing:.06em;">Pruebas de impresión</p>
+                                                    <div class="d-grid gap-2">
+                                                        <button type="button"
+                                                                class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                                wire:click="impresionPruebaLegacy"
+                                                                wire:loading.attr="disabled"
+                                                                :disabled="printando">
+                                                            <span x-show="printando" class="spinner-border spinner-border-sm" role="status"></span>
+                                                            <i class="fa-solid fa-print" x-show="!printando"></i>
+                                                            <span>Imprimir Prueba</span>
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                                wire:click="imprimirUltimaVenta"
+                                                                wire:loading.attr="disabled"
+                                                                :disabled="printando">
+                                                            <i class="fa-solid fa-cart-shopping"></i>
+                                                            <span>Última Venta</span>
+                                                        </button>
+                                                        @if(prestamosHabilitados())
+                                                        <button type="button"
+                                                                class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                                wire:click="imprimirUltimoPrestamo"
+                                                                wire:loading.attr="disabled"
+                                                                :disabled="printando">
+                                                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                                                            <span>Último Préstamo</span>
+                                                        </button>
+                                                        @endif
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Clave del Print Agent -->
-                                        <div class="card border-0 shadow-sm" x-data="{ mostrar: false }">
-                                            <div class="card-header bg-secondary text-white py-2">
-                                                <span class="fw-semibold"><i class="fa-solid fa-key me-2"></i>Clave del Agente</span>
+                                        {{-- Card: Clave de seguridad --}}
+                                        <div class="card shadow-sm border-0 rounded-3 overflow-hidden"
+                                             x-data="{ mostrar: false }">
+                                            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
+                                                 style="background:linear-gradient(135deg,#6c757d,#495057);">
+                                                <i class="fa-solid fa-shield-halved text-white fs-5"></i>
+                                                <div>
+                                                    <h6 class="mb-0 text-white fw-bold">Clave de Seguridad</h6>
+                                                    <small class="text-white-50">Debe coincidir con el agente</small>
+                                                </div>
                                             </div>
-                                            <div class="card-body p-3 d-flex flex-column gap-2">
-                                                <div class="input-group input-group-sm">
+                                            <div class="card-body px-4 py-3">
+                                                <label class="form-label small text-muted mb-1">Clave AES-256 (hex 64 chars)</label>
+                                                <div class="input-group mb-2">
                                                     <input :type="mostrar ? 'text' : 'password'"
                                                            class="form-control font-monospace"
                                                            wire:model.blur="print_agent_secret_key"
                                                            wire:change="guardarImpresion"
-                                                           placeholder="Pega la clave aquí"
+                                                           placeholder="Pega la clave del agente aquí"
                                                            maxlength="64">
                                                     <button class="btn btn-outline-secondary" type="button"
                                                             @click="mostrar = !mostrar" title="Mostrar / ocultar">
@@ -371,45 +391,59 @@
                                                     </button>
                                                     <button class="btn btn-outline-secondary" type="button"
                                                             @click="navigator.clipboard.writeText($wire.print_agent_secret_key)"
-                                                            title="Copiar">
+                                                            title="Copiar al portapapeles">
                                                         <i class="fa-solid fa-copy"></i>
                                                     </button>
                                                 </div>
                                                 @error('print_agent_secret_key')
-                                                    <span class="text-danger small">{{ $message }}</span>
+                                                    <p class="text-danger small mb-2">{{ $message }}</p>
                                                 @enderror
-                                                <button class="btn btn-warning btn-sm w-100"
+                                                <button class="btn btn-warning btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
                                                         wire:click="regenerarPrintKey"
                                                         wire:confirm="¿Regenerar la clave? Deberás actualizarla también en el Print Agent."
                                                         wire:loading.attr="disabled">
-                                                    <i class="fa-solid fa-rotate me-1"></i>Regenerar clave
+                                                    <i class="fa-solid fa-rotate"></i>
+                                                    <span>Regenerar clave</span>
                                                 </button>
                                             </div>
                                         </div>
 
                                     </div>
 
-                                    <!-- ══ Columna derecha ══ -->
-                                    <div class="col-12 col-md-9">
-                                        <div class="card border-0 shadow-sm h-100">
-                                            <div class="card-header bg-info text-white py-2">
-                                                <span class="fw-semibold"><i class="fa-solid fa-print me-2"></i>Configuración del Ticket</span>
+                                    {{-- ══ Columna derecha ══ --}}
+                                    <div class="col-12 col-xl-8">
+                                        <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
+                                            <div class="card-header d-flex align-items-center gap-2 py-3 px-4"
+                                                 style="background:linear-gradient(135deg,#0dcaf0,#0aa2c0);">
+                                                <i class="fa-solid fa-sliders text-white fs-5"></i>
+                                                <div>
+                                                    <h6 class="mb-0 text-white fw-bold">Configuración del Ticket</h6>
+                                                    <small class="text-white-50">Impresora, papel y opciones</small>
+                                                </div>
                                             </div>
-                                            <div class="card-body p-3">
+                                            <div class="card-body px-4 py-4">
 
-                                                <!-- Fila: Nombre + Papel -->
-                                                <div class="row g-3 mb-3">
-                                                    <div class="col-sm-7">
-                                                        <label class="form-label fw-semibold small mb-1">Nombre en el agente</label>
-                                                        <input type="text" class="form-control"
+                                                {{-- Sección: impresora --}}
+                                                <div class="row g-3 mb-4">
+                                                    <div class="col-md-7">
+                                                        <label class="form-label fw-semibold mb-1">
+                                                            <i class="fa-solid fa-tag text-secondary me-1"></i>
+                                                            Nombre en el agente
+                                                        </label>
+                                                        <input type="text"
+                                                               class="form-control"
                                                                wire:model.blur="impresora_nombre"
                                                                wire:change="guardarImpresion"
-                                                               placeholder="Ej: Fadi, MiSocioPOS">
-                                                        <div class="form-text">Nombre exacto de la impresora en el Print Agent.</div>
-                                                        @error('impresora_nombre') <span class="text-danger small">{{ $message }}</span> @enderror
+                                                               placeholder="Nombre exacto de la impresora en el agente">
+                                                        @error('impresora_nombre')
+                                                            <div class="text-danger small mt-1">{{ $message }}</div>
+                                                        @enderror
                                                     </div>
-                                                    <div class="col-sm-5">
-                                                        <label class="form-label fw-semibold small mb-1">Tamaño de papel</label>
+                                                    <div class="col-md-5">
+                                                        <label class="form-label fw-semibold mb-1">
+                                                            <i class="fa-solid fa-scroll text-secondary me-1"></i>
+                                                            Tamaño de papel
+                                                        </label>
                                                         <select class="form-select"
                                                                 wire:model="papel_tamano"
                                                                 wire:change="guardarImpresion">
@@ -419,104 +453,101 @@
                                                     </div>
                                                 </div>
 
-                                                <!-- Separador: Opciones del ticket -->
-                                                <p class="text-uppercase text-muted fw-semibold" style="font-size:.7rem;letter-spacing:.08em;">
+                                                {{-- Sección: opciones del ticket --}}
+                                                <p class="text-uppercase text-muted fw-bold mb-3"
+                                                   style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">
                                                     Opciones del ticket
                                                 </p>
-                                                <ul class="list-group list-group-flush mb-3">
-                                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fa-solid fa-image text-primary me-2"></i>
-                                                            <span class="fw-semibold">Logo</span>
-                                                            <small class="text-muted ms-2">Mostrar logo de la empresa</small>
+                                                <div class="row g-3 mb-4">
+                                                    @foreach([
+                                                        ['field'=>'mostrar_logo',    'label'=>'Logo',             'desc'=>'Imprimir el logo de la empresa',    'icon'=>'fa-image',         'color'=>'text-primary'],
+                                                        ['field'=>'corte_automatico','label'=>'Corte automático', 'desc'=>'Cortar el papel al finalizar',      'icon'=>'fa-scissors',      'color'=>'text-danger'],
+                                                        ['field'=>'abrir_cajon',     'label'=>'Abrir cajón',      'desc'=>'Pulso eléctrico al imprimir venta', 'icon'=>'fa-cash-register', 'color'=>'text-success'],
+                                                    ] as $opt)
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
+                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
+                                                                    <i class="fa-solid {{ $opt['icon'] }} {{ $opt['color'] }}"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">{{ $opt['label'] }}</p>
+                                                                    <small class="text-muted">{{ $opt['desc'] }}</small>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="{{ $opt['field'] }}"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.8rem;height:1.4rem;">
+                                                            </div>
                                                         </div>
-                                                        <div class="form-check form-switch mb-0">
-                                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                                   wire:model="mostrar_logo"
-                                                                   wire:change="guardarImpresion"
-                                                                   style="width:2.8rem;height:1.4rem;">
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fa-solid fa-scissors text-danger me-2"></i>
-                                                            <span class="fw-semibold">Corte automático</span>
-                                                            <small class="text-muted ms-2">Cortar papel al finalizar</small>
-                                                        </div>
-                                                        <div class="form-check form-switch mb-0">
-                                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                                   wire:model="corte_automatico"
-                                                                   wire:change="guardarImpresion"
-                                                                   style="width:2.8rem;height:1.4rem;">
-                                                        </div>
-                                                    </li>
-                                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fa-solid fa-cash-register text-success me-2"></i>
-                                                            <span class="fw-semibold">Abrir cajón</span>
-                                                            <small class="text-muted ms-2">Pulso al imprimir venta</small>
-                                                        </div>
-                                                        <div class="form-check form-switch mb-0">
-                                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                                   wire:model="abrir_cajon"
-                                                                   wire:change="guardarImpresion"
-                                                                   style="width:2.8rem;height:1.4rem;">
-                                                        </div>
-                                                    </li>
-                                                </ul>
+                                                    </div>
+                                                    @endforeach
+                                                </div>
 
-                                                <!-- Separador: Impresión automática -->
-                                                <p class="text-uppercase text-muted fw-semibold" style="font-size:.7rem;letter-spacing:.08em;">
+                                                {{-- Sección: impresión automática --}}
+                                                <p class="text-uppercase text-muted fw-bold mb-2"
+                                                   style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">
                                                     Impresión automática
                                                 </p>
-                                                <p class="text-muted small mb-2">Al finalizar el proceso se imprime el ticket correspondiente (requiere el agente activo).</p>
-                                                <ul class="list-group list-group-flush">
+                                                <p class="text-muted small mb-3">
+                                                    Se imprime el ticket correspondiente al cerrar cada proceso (requiere el agente activo).
+                                                </p>
+                                                <div class="d-flex flex-column gap-2">
                                                     @if(ventasHabilitados())
-                                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fa-solid fa-cart-shopping text-danger me-2"></i>
-                                                            <span class="fw-semibold">Ventas</span>
-                                                            <small class="text-muted ms-2">Imprimir ticket al cerrar venta</small>
+                                                    <div class="border rounded-3 px-4 py-3 d-flex align-items-center justify-content-between gap-3">
+                                                        <div class="d-flex align-items-center gap-3">
+                                                            <i class="fa-solid fa-cart-shopping text-danger fs-5" style="width:1.4rem;text-align:center;"></i>
+                                                            <div>
+                                                                <p class="mb-0 fw-semibold">Ventas</p>
+                                                                <small class="text-muted">Imprimir ticket al cerrar una venta</small>
+                                                            </div>
                                                         </div>
-                                                        <div class="form-check form-switch mb-0">
+                                                        <div class="form-check form-switch mb-0 flex-shrink-0">
                                                             <input class="form-check-input" type="checkbox" role="switch"
                                                                    wire:model="impresion_auto_venta"
                                                                    wire:change="guardarImpresion"
                                                                    style="width:2.8rem;height:1.4rem;">
                                                         </div>
-                                                    </li>
+                                                    </div>
                                                     @endif
                                                     @if(prestamosHabilitados())
-                                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fa-solid fa-hand-holding-dollar text-warning me-2"></i>
-                                                            <span class="fw-semibold">Préstamos</span>
-                                                            <small class="text-muted ms-2">Imprimir recibo al cerrar préstamo</small>
+                                                    <div class="border rounded-3 px-4 py-3 d-flex align-items-center justify-content-between gap-3">
+                                                        <div class="d-flex align-items-center gap-3">
+                                                            <i class="fa-solid fa-hand-holding-dollar text-warning fs-5" style="width:1.4rem;text-align:center;"></i>
+                                                            <div>
+                                                                <p class="mb-0 fw-semibold">Préstamos</p>
+                                                                <small class="text-muted">Imprimir recibo al cerrar un préstamo</small>
+                                                            </div>
                                                         </div>
-                                                        <div class="form-check form-switch mb-0">
+                                                        <div class="form-check form-switch mb-0 flex-shrink-0">
                                                             <input class="form-check-input" type="checkbox" role="switch"
                                                                    wire:model="impresion_auto_prestamo"
                                                                    wire:change="guardarImpresion"
                                                                    style="width:2.8rem;height:1.4rem;">
                                                         </div>
-                                                    </li>
+                                                    </div>
                                                     @endif
                                                     @if(comprasHabilitados())
-                                                    <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <i class="fa-solid fa-boxes-stacked text-info me-2"></i>
-                                                            <span class="fw-semibold">Inventario</span>
-                                                            <small class="text-muted ms-2">Imprimir reporte al cerrar inventario</small>
+                                                    <div class="border rounded-3 px-4 py-3 d-flex align-items-center justify-content-between gap-3">
+                                                        <div class="d-flex align-items-center gap-3">
+                                                            <i class="fa-solid fa-boxes-stacked text-info fs-5" style="width:1.4rem;text-align:center;"></i>
+                                                            <div>
+                                                                <p class="mb-0 fw-semibold">Inventario</p>
+                                                                <small class="text-muted">Imprimir reporte al cerrar un inventario</small>
+                                                            </div>
                                                         </div>
-                                                        <div class="form-check form-switch mb-0">
+                                                        <div class="form-check form-switch mb-0 flex-shrink-0">
                                                             <input class="form-check-input" type="checkbox" role="switch"
                                                                    wire:model="impresion_auto_inventario"
                                                                    wire:change="guardarImpresion"
                                                                    style="width:2.8rem;height:1.4rem;">
                                                         </div>
-                                                    </li>
+                                                    </div>
                                                     @endif
-                                                </ul>
+                                                </div>
 
                                             </div>
                                         </div>
