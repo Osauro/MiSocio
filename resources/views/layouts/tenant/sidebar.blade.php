@@ -15,7 +15,7 @@
             @endif
 
             {{-- ===== POS ===== --}}
-            @if(canManageTenant())
+            @if(canManageTenant() && (ventasHabilitados() || comprasHabilitados()))
                 <li class="sidebar-list {{ request()->routeIs('productos') ? 'active' : '' }}">
                     <i class="fa-solid fa-thumbtack"></i>
                     <a class="sidebar-link {{ request()->routeIs('productos') ? 'active' : '' }}" href="{{ route('productos') }}">
@@ -67,7 +67,7 @@
                 </a>
             </li>
             @endif
-            @if(canManageTenant())
+            @if(canManageTenant() && comprasHabilitados())
                 <li class="sidebar-list {{ request()->routeIs('inventarios') ? 'active' : '' }}">
                     <i class="fa-solid fa-thumbtack"></i>
                     <a class="sidebar-link {{ request()->routeIs('inventarios') ? 'active' : '' }}" href="{{ route('inventarios') }}">
