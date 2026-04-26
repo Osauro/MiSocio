@@ -426,6 +426,7 @@ class Config extends Component
             $compraIds    = \Illuminate\Support\Facades\DB::table('compras')->where('tenant_id', $tenantId)->pluck('id');
             $prestamoIds  = \Illuminate\Support\Facades\DB::table('prestamos')->where('tenant_id', $tenantId)->pluck('id');
             $hospedajeIds = \Illuminate\Support\Facades\DB::table('hospedajes')->where('tenant_id', $tenantId)->pluck('id');
+            $inventarioIds = \Illuminate\Support\Facades\DB::table('inventarios')->where('tenant_id', $tenantId)->pluck('id');
 
             // Borrar hijos primero
             if ($ventaIds->isNotEmpty()) {
@@ -440,12 +441,16 @@ class Config extends Component
             if ($hospedajeIds->isNotEmpty()) {
                 \Illuminate\Support\Facades\DB::table('hospedaje_habitaciones')->whereIn('hospedaje_id', $hospedajeIds)->delete();
             }
+            if ($inventarioIds->isNotEmpty()) {
+                \Illuminate\Support\Facades\DB::table('inventario_items')->whereIn('inventario_id', $inventarioIds)->delete();
+            }
 
             // Borrar padres
             \Illuminate\Support\Facades\DB::table('ventas')->where('tenant_id', $tenantId)->delete();
             \Illuminate\Support\Facades\DB::table('compras')->where('tenant_id', $tenantId)->delete();
             \Illuminate\Support\Facades\DB::table('prestamos')->where('tenant_id', $tenantId)->delete();
             \Illuminate\Support\Facades\DB::table('hospedajes')->where('tenant_id', $tenantId)->delete();
+            \Illuminate\Support\Facades\DB::table('inventarios')->where('tenant_id', $tenantId)->delete();
             \Illuminate\Support\Facades\DB::table('movimientos')->where('tenant_id', $tenantId)->delete();
             \Illuminate\Support\Facades\DB::table('kardex')->where('tenant_id', $tenantId)->delete();
         });

@@ -654,7 +654,7 @@
                                                         <p class="fw-semibold mb-1 text-danger">Resetear todos los datos de movimiento</p>
                                                         <small class="text-muted">
                                                             Elimina permanentemente todas las ventas, compras, préstamos, hospedajes,
-                                                            movimientos y kardex de este tenant. Los productos, categorías, clientes
+                                                            inventarios, movimientos y kardex de este tenant. Los productos, categorías, clientes
                                                             y configuración <strong>no</strong> se eliminan.
                                                             <br><strong class="text-danger">Esta acción no se puede deshacer.</strong>
                                                         </small>
@@ -757,7 +757,7 @@
         window.confirmarResetTenant = function () {
             Swal.fire({
                 title: '¿Resetear todos los datos?',
-                html: 'Esta acción eliminará permanentemente todas las <strong>ventas, compras, préstamos, hospedajes, movimientos y kardex</strong>.<br><br>Los productos, categorías, clientes y configuración <strong>no</strong> se eliminarán.<br><br><span class="text-danger fw-bold">Esta acción no se puede deshacer.</span>',
+                html: 'Esta acción eliminará permanentemente todas las <strong>ventas, compras, préstamos, hospedajes, inventarios, movimientos y kardex</strong>.<br><br>Los productos, categorías, clientes y configuración <strong>no</strong> se eliminarán.<br><br><span class="text-danger fw-bold">Esta acción no se puede deshacer.</span>',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
