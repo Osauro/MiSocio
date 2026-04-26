@@ -7,6 +7,8 @@ return [
     | Clave secreta AES-256-GCM (hex, 64 caracteres = 32 bytes)
     |--------------------------------------------------------------------------
     | Debe coincidir exactamente con la configurada en el Print Agent local.
+    | Esta clave es de infraestructura y es compartida por todos los tenants
+    | que usen el mismo Print Agent.
     */
     'secret_key' => env('PRINT_AGENT_SECRET_KEY', ''),
 
@@ -14,7 +16,8 @@ return [
     |--------------------------------------------------------------------------
     | URL base del Print Agent
     |--------------------------------------------------------------------------
-    | Por defecto el agente corre en localhost:9876.
+    | El agente corre localmente (mismo servidor o equipo del cliente).
+    | No varía por tenant; es una configuración de infraestructura.
     */
     'base_url' => env('PRINT_AGENT_URL', 'http://localhost:9876'),
 
@@ -27,34 +30,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Impresoras disponibles en el agente
+    | NOTA: Configuración de impresora por tenant
     |--------------------------------------------------------------------------
-    | Nombre lógico => nombre exacto del dispositivo Windows / nombre en el agente.
-    | Estos nombres deben estar registrados en el Print Agent.
+    | El nombre de la impresora, tamaño de papel, corte automático, apertura
+    | de cajón y ancho en caracteres se almacenan en la tabla tenant_configs
+    | (campos: impresora_nombre, papel_tamano, corte_automatico, abrir_cajon,
+    | ancho_caracteres) y se leen desde el modelo TenantConfig.
     |
-    | Estructura:
-    |   'nombre_logico' => [
-    |       'name'  => 'NombreEnAgente',   // nombre exacto que el agente conoce
-    |       'paper' => '80mm',             // 58mm | 80mm
-    |       'cols'  => 48,                 // caracteres por línea
-    |   ]
+    | No definas impresoras aquí — cada tenant gestiona la suya desde la
+    | sección "Impresión" del panel de configuración.
     */
-    'printers' => [
-        'fadi' => [
-            'name'  => 'Fadi',
-            'paper' => '80mm',
-            'cols'  => 48,
-        ],
-        'inventarios' => [
-            'name'  => 'Inventarios',
-            'paper' => '58mm',
-            'cols'  => 32,
-        ],
-        'misociopos' => [
-            'name'  => 'MiSocioPOS',
-            'paper' => '80mm',
-            'cols'  => 48,
-        ],
-    ],
 
 ];
+

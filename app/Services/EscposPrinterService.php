@@ -394,14 +394,6 @@ class EscposPrinterService
     }
 
     /**
-     * Devuelve las impresoras configuradas en el agente (desde config).
-     */
-    public function getPrinters(): array
-    {
-        return config('print_agent.printers', []);
-    }
-
-    /**
      * Verifica si el agente local está disponible (health-check).
      *
      * @return bool
