@@ -390,8 +390,8 @@ class Config extends Component
               . "Papel: {$this->papel_tamano}\n"
               . "Ancho: {$cols} caracteres\n"
               . str_repeat('-', $cols) . "\n"
-              . "Corte: " . ($this->corte_automatico ? 'SÍ' : 'NO') . "\n"
-              . "Cajón: " . ($this->abrir_cajon ? 'SÍ' : 'NO') . "\n";
+              . 'Corte: ' . ($this->corte_automatico ? $svc->encode('SÍ') : 'NO') . "\n"
+              . $svc->encode('Cajón: ') . ($this->abrir_cajon ? $svc->encode('SÍ') : 'NO') . "\n";
 
         $footer = $svc->buildEscFooter(
             '¡Configuración correcta!',

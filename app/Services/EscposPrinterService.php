@@ -35,7 +35,7 @@ class EscposPrinterService
     const CUT          = "\x1D\x56\x00";       // Corte completo
     const CUT_P        = "\x1D\x56\x41\x00";   // Corte parcial
     const DRAWER       = "\x1B\x70\x00\x32\xFA"; // Apertura de caja
-    const CODEPAGE_CP850 = "\x1B\x74\x02";     // Página de código CP850 (español/acentos)
+    const CODEPAGE_WIN1252 = "\x1B\x74\x10";   // Windows-1252 (Latin-1 compatible, codepage nativa Windows)
 
     protected string $secretKey;
     protected string $baseUrl;
@@ -100,7 +100,7 @@ class EscposPrinterService
     {
         $b = '';
         $b .= self::INIT;
-        $b .= self::CODEPAGE_CP850;  // Seleccionar CP850 para acentos en español
+        $b .= self::CODEPAGE_WIN1252;  // Seleccionar Windows-1252 para acentos en español
 
         // Nombre de la tienda (centrado, doble alto+ancho)
         if (!empty($data['store'])) {
@@ -390,12 +390,26 @@ class EscposPrinterService
     }
 
     /**
-     * Convierte texto UTF-8 a CP850 para compatibilidad con impresoras térmicas ESC/POS.
-     * Los caracteres sin equivalente se transliteran o eliminan.
+     * Convierte texto UTF-8 a Windows-1252 (Latin-1) para impresoras térmicas ESC/POS.
+     * Usa mapa estático — no depende de iconv ni mbstring. Fiable en cualquier SO.
      */
-    protected function encode(string $text): string
+    public function encode(string $text): string
     {
-        return iconv('UTF-8', 'CP850//TRANSLIT//IGNORE', $text) ?: $text;
+        static $map = [
+            // Minúsculas con tilde
+            'á' => "\xE1", 'é' => "\xE9", 'í' => "\xED", 'ó' => "\xF3", 'ú' => "\xFA",
+            // Mayúsculas con tilde
+            'Á' => "\xC1", 'É' => "\xC9", 'Í' => "\xCD", 'Ó' => "\xD3", 'Ú' => "\xDA",
+            // Eñe
+            'ñ' => "\xF1", 'Ñ' => "\xD1",
+            // Diéresis
+            'ü' => "\xFC", 'Ü' => "\xDC",
+            // Signos españoles
+            '¿' => "\xBF", '¡' => "\xA1",
+            // Otros comunes
+            '°' => "\xB0", '·' => "\xB7", '«' => "\xAB", '»' => "\xBB",
+        ];
+        return strtr($text, $map);
     }
 
     /**
