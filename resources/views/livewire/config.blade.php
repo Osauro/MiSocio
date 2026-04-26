@@ -547,6 +547,36 @@
                             <div class="tab-pane fade show active">
                                 <div class="row g-3">
 
+                                    <!-- Módulo Compras & Stock -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-header bg-secondary text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="fa-solid fa-basket-shopping me-2"></i>
+                                                    Módulo de Compras y Stock
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Habilitar compras y control de stock</p>
+                                                        <small class="text-muted">
+                                                            Si está desactivado, el menú de Compras y Kardex desaparece.
+                                                            Las ventas no verificarán ni modificarán el stock de productos.
+                                                        </small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0 ms-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="compras_enabled"
+                                                               wire:change="guardarModulos"
+                                                               id="comprasEnabled"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Módulo Préstamos -->
                                     <div class="col-md-6">
                                         <div class="card border shadow-sm h-100">

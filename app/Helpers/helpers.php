@@ -197,3 +197,18 @@ if (!function_exists('hospedajesHabilitados')) {
         return $config ? ($config->hospedajes_enabled ?? false) : false;
     }
 }
+
+if (!function_exists('comprasHabilitados')) {
+    /**
+     * Verificar si el módulo de compras (y kardex/stock) está habilitado para el tenant actual.
+     */
+    function comprasHabilitados(): bool
+    {
+        $tenantId = currentTenantId();
+        if (!$tenantId) return true;
+
+        $config = \App\Models\TenantConfig::where('tenant_id', $tenantId)->first();
+        // Por defecto habilitado
+        return $config ? ($config->compras_enabled ?? true) : true;
+    }
+}

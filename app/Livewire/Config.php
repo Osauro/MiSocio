@@ -61,6 +61,9 @@ class Config extends Component
     // Hospedajes
     public $hospedajes_enabled;
 
+    // Compras
+    public $compras_enabled;
+
     // Facebook API
     public $facebook_page_id;
     public $facebook_access_token;
@@ -109,6 +112,8 @@ class Config extends Component
             'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
             // Hospedajes
             'hospedajes_enabled' => 'boolean',
+            // Compras
+            'compras_enabled' => 'boolean',
             // Importación
             'formato_importacion' => 'required|in:excel,csv,json',
         ];
@@ -172,6 +177,9 @@ class Config extends Component
 
         // Hospedajes
         $this->hospedajes_enabled = $config->hospedajes_enabled ?? false;
+
+        // Compras
+        $this->compras_enabled = $config->compras_enabled ?? true;
 
         // Facebook
         $this->facebook_page_id = $config->facebook_page_id;
@@ -403,6 +411,7 @@ class Config extends Component
             'prestamos_enabled' => 'boolean',
             'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
             'hospedajes_enabled' => 'boolean',
+            'compras_enabled' => 'boolean',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -410,6 +419,7 @@ class Config extends Component
             'prestamos_enabled'      => $this->prestamos_enabled ?? true,
             'prestamos_categoria_id' => $this->prestamos_categoria_id,
             'hospedajes_enabled'     => $this->hospedajes_enabled ?? false,
+            'compras_enabled'        => $this->compras_enabled ?? true,
         ]);
 
         $this->toast('success', 'Módulos guardados');

@@ -48,6 +48,8 @@ class TenantConfig extends Model
         'prestamos_categoria_id',
         // Módulo Hospedajes
         'hospedajes_enabled',
+        // Módulo Compras
+        'compras_enabled',
         // Importación
         'ultima_importacion',
         'formato_importacion',
@@ -68,6 +70,7 @@ class TenantConfig extends Model
         'prestamos_enabled' => 'boolean',
         'prestamos_categoria_id' => 'integer',
         'hospedajes_enabled' => 'boolean',
+        'compras_enabled' => 'boolean',
         'ultima_importacion' => 'datetime',
     ];
 

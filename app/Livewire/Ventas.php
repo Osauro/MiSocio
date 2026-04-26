@@ -328,6 +328,20 @@ class Ventas extends Component
             foreach ($venta->ventaItems as $item) {
                 $producto = $item->producto;
 
+                if (!comprasHabilitados()) {
+                    // Sin control de stock: no devolver stock ni registrar en kardex
+                    $productosAfectados[] = [
+                        'nombre' => $producto->nombre,
+                        'cantidad' => $item->cantidad,
+                        'cantidad_formateada' => $item->cantidad_formateada,
+                        'stock_anterior' => 0,
+                        'stock_anterior_formateado' => '-',
+                        'stock_nuevo' => 0,
+                        'stock_nuevo_formateado' => '-',
+                    ];
+                    continue;
+                }
+
                 // Devolver el stock
                 $stockAnterior = $producto->stock;
                 $producto->stock += $item->cantidad;

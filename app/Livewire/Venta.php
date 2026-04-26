@@ -272,6 +272,46 @@ class Venta extends Component
 
         $cantidadPorMedida = $producto->cantidad ?? 1;
 
+        // Si compras/stock está deshabilitado, agregar sin verificar stock
+        if (!comprasHabilitados()) {
+            $entrerosInicial = 1;
+            $unidadesInicial = 0;
+            $cantidadInicial = $cantidadPorMedida;
+            $precioVenta = $producto->precio_por_mayor;
+            $subtotalInicial = $this->redondearSubtotal($precioVenta);
+            $precioCompra = $producto->precio_de_compra;
+            $beneficio = (($precioVenta / $cantidadPorMedida) - ($precioCompra / $cantidadPorMedida)) * $cantidadInicial;
+
+            $ventaItem = VentaItem::create([
+                'venta_id' => $this->ventaId,
+                'producto_id' => $productoId,
+                'cantidad' => $cantidadInicial,
+                'precio_compra' => $precioCompra,
+                'precio' => $precioVenta,
+                'beneficio' => $beneficio,
+                'subtotal' => $subtotalInicial,
+            ]);
+
+            $this->items[] = [
+                'id' => $ventaItem->id,
+                'producto_id' => $productoId,
+                'nombre' => $producto->nombre,
+                'imagen' => $producto->photo_url,
+                'medida' => $producto->medida ?? 'u',
+                'cantidad_por_medida' => $cantidadPorMedida,
+                'enteros' => $entrerosInicial,
+                'unidades' => $unidadesInicial,
+                'precio' => $precioVenta,
+                'subtotal' => $subtotalInicial,
+            ];
+
+            $this->buscar = '';
+            $this->productosEncontrados = [];
+            $this->dispatch('focusBuscador');
+            $this->dispatch('actualizar-badge-venta');
+            return;
+        }
+
         // Validar stock disponible considerando stock comprometido
         $stockComprometido = $this->calcularStockComprometido($productoId);
         $stockDisponible = $producto->stock - $stockComprometido;
@@ -361,6 +401,10 @@ class Venta extends Component
         // Validar stock disponible
         $producto = Producto::find($item['producto_id']);
 
+        // Si compras/stock está deshabilitado, omitir validación de stock
+        if (!comprasHabilitados()) {
+            $cantidadTotal = ($this->items[$index]['enteros'] * $item['cantidad_por_medida']) + $this->items[$index]['unidades'];
+        } else {
         // Calcular stock comprometido en otras ventas pendientes
         $stockComprometido = $this->calcularStockComprometido($item['producto_id']);
         $stockDisponible = $producto->stock - $stockComprometido;
@@ -376,6 +420,7 @@ class Venta extends Component
             $this->items[$index]['enteros'] = intdiv($stockDisponible, $item['cantidad_por_medida']);
             $this->items[$index]['unidades'] = $stockDisponible % $item['cantidad_por_medida'];
             $cantidadTotal = $stockDisponible;
+        }
         }
 
         // Determinar qué precio usar según si hay enteros o solo unidades
@@ -855,7 +900,9 @@ class Venta extends Component
                 $producto = Producto::lockForUpdate()->find($item['producto_id']);
                 $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
-                if ($producto->control) {
+                if (!comprasHabilitados()) {
+                    // SIN control de stock: no tocar stock ni kardex
+                } elseif ($producto->control) {
                     // PRODUCTOS CON CONTROL: Reducir stock normalmente
                     // Reducir stock
                     $stockAnterior = $producto->stock;
