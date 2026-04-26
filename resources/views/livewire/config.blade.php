@@ -278,7 +278,7 @@
                             @if($activeTab === 'impresion')
                             <div class="tab-pane fade show active">
 
-                                <!-- Botón descargar instalador a la derecha (solo PC) -->
+                                <!-- Botón descargar instalador -->
                                 <div class="d-none d-md-flex justify-content-end mb-3">
                                     <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat"
                                        class="btn btn-success">
@@ -288,47 +288,43 @@
                                 </div>
 
                                 <div class="row g-3">
-                                    <!-- Tarjeta estado del servicio de impresión (solo PC) -->
-                                    <div class="col-md-4 d-none d-md-block">
-                                        <div class="card border shadow-sm h-100"
-                                             x-data="{
-                                                estado: 'verificando',
-                                                version: '',
-                                                async verificar() {
-                                                    console.log('Verificando servicio de impresión desde el navegador...');
-                                                    this.estado = 'verificando';
 
-                                                    try {
-                                                        const controller = new AbortController();
-                                                        const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-                                                        const response = await fetch('http://localhost:1013/status', {
-                                                            signal: controller.signal,
-                                                            mode: 'cors'
-                                                        });
-
-                                                        clearTimeout(timeoutId);
-
-                                                        if (response.ok) {
-                                                            const data = await response.json();
-                                                            this.estado = 'conectado';
-                                                            this.version = data.version || '';
-                                                            console.log('✓ Conectado a localhost:1013', data);
-                                                        } else {
-                                                            this.estado = 'desconectado';
-                                                            console.log('✗ Respuesta no ok:', response.status);
-                                                        }
-                                                    } catch (error) {
+                                    <!-- ── Card: App de Impresión (status + prueba) ── -->
+                                    <div class="col-md-4 d-none d-md-block"
+                                         x-data="{
+                                            estado: 'verificando',
+                                            version: '',
+                                            agentUrl: '{{ $printAgentUrl }}',
+                                            async verificar() {
+                                                this.estado = 'verificando';
+                                                try {
+                                                    const ctrl = new AbortController();
+                                                    const tid  = setTimeout(() => ctrl.abort(), 3000);
+                                                    const res  = await fetch(this.agentUrl + '/health', {
+                                                        signal: ctrl.signal,
+                                                        mode: 'cors'
+                                                    });
+                                                    clearTimeout(tid);
+                                                    if (res.ok) {
+                                                        const d = await res.json();
+                                                        this.estado  = 'conectado';
+                                                        this.version = d.version || '';
+                                                    } else {
                                                         this.estado = 'desconectado';
-                                                        console.log('✗ Error conectando a localhost:1013:', error.message);
                                                     }
+                                                } catch (e) {
+                                                    this.estado = 'desconectado';
                                                 }
-                                             }"
-                                             x-init="verificar()">
+                                            }
+                                         }"
+                                         x-init="verificar()"
+                                         @printer-status.window="estado = $event.detail.connected ? 'conectado' : 'desconectado'; version = $event.detail.version || ''">
+
+                                        <div class="card border shadow-sm h-100">
                                             <div class="card-header d-flex justify-content-between align-items-center"
                                                  :class="{
                                                     'bg-success text-white': estado === 'conectado',
-                                                    'bg-danger text-white': estado === 'desconectado' || estado === 'error',
+                                                    'bg-danger text-white':  estado === 'desconectado',
                                                     'bg-secondary text-white': estado === 'verificando'
                                                  }">
                                                 <h5 class="mb-0">
@@ -339,45 +335,59 @@
                                                 <span class="badge bg-white bg-opacity-25 d-flex align-items-center gap-1">
                                                     <i class="fa-solid fa-circle small"
                                                        :class="{
-                                                           'text-success': estado === 'conectado',
-                                                           'text-danger': estado === 'desconectado' || estado === 'error',
-                                                           'text-warning': estado === 'verificando'
+                                                           'text-success':  estado === 'conectado',
+                                                           'text-danger':   estado === 'desconectado',
+                                                           'text-warning':  estado === 'verificando'
                                                        }"></i>
-                                                    <span x-text="estado === 'conectado' ? 'Conectado' : (estado === 'desconectado' ? 'Desconectado' : (estado === 'error' ? 'Error' : 'Verificando...'))"></span>
+                                                    <span x-text="estado === 'conectado' ? 'Conectado' : (estado === 'verificando' ? 'Verificando...' : 'Desconectado')"></span>
                                                 </span>
                                             </div>
+
                                             <div class="card-body">
                                                 <p class="text-muted small mb-3">
                                                     <i class="fa-solid fa-link me-1"></i>
-                                                    localhost:1013
+                                                    <span x-text="agentUrl"></span>
                                                 </p>
 
-                                                <!-- Botones de prueba -->
-                                                <p class="fw-semibold mb-2">Pruebas de impresión:</p>
+                                                <p class="fw-semibold mb-2">Prueba de impresión:</p>
                                                 <div class="d-flex flex-wrap gap-2">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                                    <button type="button"
+                                                            class="btn btn-outline-primary btn-sm"
                                                             :disabled="estado !== 'conectado'"
-                                                            @click="$wire.dispatch('imprimir-prueba-tipo', { tipo: 'venta' })">
+                                                            wire:click="impresionPruebaLegacy">
+                                                        <i class="fa-solid fa-print me-1"></i>
+                                                        Imprimir Prueba
+                                                    </button>
+                                                </div>
+
+                                                <x-divider class="my-3"/>
+
+                                                <p class="fw-semibold mb-1 small text-muted">Accesos directos</p>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <button type="button"
+                                                            class="btn btn-outline-danger btn-sm"
+                                                            :disabled="estado !== 'conectado'"
+                                                            wire:click="imprimirUltimaVenta">
                                                         <i class="fa-solid fa-cart-shopping me-1"></i>
                                                         Última Venta
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-warning btn-sm"
+                                                    @if(prestamosHabilitados())
+                                                    <button type="button"
+                                                            class="btn btn-outline-warning btn-sm"
                                                             :disabled="estado !== 'conectado'"
-                                                            @click="$wire.dispatch('imprimir-prueba-tipo', { tipo: 'prestamo' })">
+                                                            wire:click="imprimirUltimoPrestamo">
                                                         <i class="fa-solid fa-hand-holding-dollar me-1"></i>
                                                         Último Préstamo
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-info btn-sm"
-                                                            :disabled="estado !== 'conectado'"
-                                                            @click="$wire.dispatch('imprimir-prueba-tipo', { tipo: 'inventario' })">
-                                                        <i class="fa-solid fa-boxes-stacked me-1"></i>
-                                                        Último Inventario
-                                                    </button>
+                                                    @endif
                                                 </div>
                                             </div>
+
                                             <div class="card-footer d-flex justify-content-end">
-                                                <button type="button" class="btn btn-sm btn-outline-secondary"
-                                                        @click="verificar()">
+                                                <button type="button"
+                                                        class="btn btn-sm btn-outline-secondary"
+                                                        wire:click="verificarServicioImpresion"
+                                                        @click="estado = 'verificando'">
                                                     <i class="fa-solid fa-rotate-right me-1"></i>
                                                     Verificar conexión
                                                 </button>
@@ -385,53 +395,96 @@
                                         </div>
                                     </div>
 
-                                    <!-- Tarjeta configuración de papel -->
+                                    <!-- ── Card: Configuración de Impresora (por tenant) ── -->
                                     <div class="col-md-4">
                                         <div class="card border shadow-sm h-100">
                                             <div class="card-header bg-info text-white">
                                                 <h5 class="mb-0">
-                                                    <i class="fa-solid fa-file me-2"></i>
-                                                    Configuración de Papel
+                                                    <i class="fa-solid fa-print me-2"></i>
+                                                    Configuración de Impresora
                                                 </h5>
                                             </div>
-                                            <div class="card-body">
-                                                <div class="mb-0">
+                                            <div class="card-body d-flex flex-column gap-3">
+
+                                                <!-- Nombre de la impresora en el agente -->
+                                                <div>
+                                                    <label class="form-label fw-semibold">Nombre en el agente</label>
+                                                    <input type="text" class="form-control"
+                                                           wire:model.blur="impresora_nombre"
+                                                           wire:change="guardarImpresion"
+                                                           placeholder="Ej: Fadi, MiSocioPOS, Recibos">
+                                                    <small class="text-muted">
+                                                        <i class="fa-solid fa-info-circle me-1"></i>
+                                                        Nombre exacto de la impresora registrada en el Print Agent.
+                                                    </small>
+                                                    @error('impresora_nombre') <span class="text-danger small d-block mt-1">{{ $message }}</span> @enderror
+                                                </div>
+
+                                                <!-- Tamaño de papel -->
+                                                <div>
                                                     <label class="form-label fw-semibold">Tamaño de Papel</label>
                                                     <select class="form-select"
                                                             wire:model="papel_tamano"
                                                             wire:change="guardarImpresion">
-                                                        <option value="58mm">58mm (Térmico pequeño)</option>
-                                                        <option value="80mm">80mm (Térmico estándar)</option>
+                                                        <option value="58mm">58mm — Térmico pequeño (32 col)</option>
+                                                        <option value="80mm">80mm — Térmico estándar (48 col)</option>
                                                     </select>
-                                                    <small class="text-muted">
-                                                        <i class="fa-solid fa-info-circle me-1"></i>
-                                                        Selecciona el ancho del papel de tu impresora térmica. Esto afecta tanto la impresión directa como los PDFs generados.
-                                                    </small>
                                                     @error('papel_tamano') <span class="text-danger small d-block mt-1">{{ $message }}</span> @enderror
                                                 </div>
+
+                                                <!-- Corte automático -->
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Corte automático</p>
+                                                        <small class="text-muted">Cortar papel al finalizar</small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="corte_automatico"
+                                                               wire:change="guardarImpresion"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Abrir cajón -->
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Abrir cajón de dinero</p>
+                                                        <small class="text-muted">Pulso tras imprimir venta</small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="abrir_cajon"
+                                                               wire:change="guardarImpresion"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Tarjeta configuración impresión automática -->
+                                    <!-- ── Card: Impresión Automática ── -->
                                     <div class="col-md-4">
                                         <div class="card border shadow-sm h-100">
-                                            <div class="card-header bg-primary text-white">
+                                            <div class="card-header bg-danger text-white">
                                                 <h5 class="mb-0">
-                                                    <i class="fa-solid fa-print me-2"></i>
+                                                    <i class="fa-solid fa-bolt me-2"></i>
                                                     Impresión Automática
                                                 </h5>
                                             </div>
                                             <div class="card-body">
                                                 <p class="text-muted small mb-3">
-                                                    Al finalizar el proceso se imprimirá automáticamente el ticket correspondiente (requiere la app de impresión activa).
+                                                    Al finalizar el proceso se imprimirá automáticamente el ticket
+                                                    correspondiente (requiere la app de impresión activa).
                                                 </p>
 
                                                 <!-- Toggle Ventas -->
+                                                @if(ventasHabilitados())
                                                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                                                     <div>
                                                         <p class="fw-semibold mb-0">
-                                                            <i class="fa-solid fa-cart-shopping me-2 text-primary"></i>
+                                                            <i class="fa-solid fa-cart-shopping me-2 text-danger"></i>
                                                             Ventas
                                                         </p>
                                                         <small class="text-muted">Imprimir ticket al finalizar una venta</small>
@@ -444,8 +497,10 @@
                                                                style="width: 3rem; height: 1.5rem;">
                                                     </div>
                                                 </div>
+                                                @endif
 
                                                 <!-- Toggle Préstamos -->
+                                                @if(prestamosHabilitados())
                                                 <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                                                     <div>
                                                         <p class="fw-semibold mb-0">
@@ -462,8 +517,10 @@
                                                                style="width: 3rem; height: 1.5rem;">
                                                     </div>
                                                 </div>
+                                                @endif
 
                                                 <!-- Toggle Inventario -->
+                                                @if(comprasHabilitados())
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div>
                                                         <p class="fw-semibold mb-0">
@@ -480,13 +537,13 @@
                                                                style="width: 3rem; height: 1.5rem;">
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div class="card-footer border-0">
+                                                @endif
+
                                             </div>
                                         </div>
                                     </div>
-                                </div>
 
+                                </div>
                             </div>
                             @endif
 

@@ -399,6 +399,92 @@ class Config extends Component
         }
     }
 
+    public function imprimirUltimaVenta()
+    {
+        $tenantId = $this->getTenantId();
+        $venta = \App\Models\Venta::with(['cliente', 'user', 'ventaItems.producto' => fn($q) => $q->withTrashed()])
+            ->where('tenant_id', $tenantId)
+            ->latest()
+            ->first();
+
+        if (!$venta) {
+            $this->alertError('No hay ventas registradas');
+            return;
+        }
+
+        // Redirigir al TicketController (devuelve JSON) o usar el servicio directamente
+        /** @var \App\Services\EscposPrinterService $svc */
+        $svc    = app(\App\Services\EscposPrinterService::class);
+        $config = \App\Models\TenantConfig::getOrCreateForTenant($tenantId);
+        $cols   = ($config->papel_tamano === '58mm') ? 32 : 48;
+        $key    = $svc->getSecretKey();
+
+        $header = [
+            'store'   => $config->nombre_tienda ?? 'MI TIENDA',
+            'address' => $config->direccion ?? '',
+            'phone'   => $config->telefono ?? '',
+            'nit'     => $config->nit ?? '',
+            'title'   => 'VENTA #' . $venta->numero_folio,
+            'date'    => $venta->created_at->format('d/m/Y H:i:s'),
+            'user'    => $venta->user->name ?? '',
+            'client'  => $venta->cliente->nombre ?? '',
+        ];
+
+        $items = $venta->ventaItems->map(function ($item) {
+            $nombre = $item->producto ? $item->producto->nombre : ($item->nombre ?? 'Producto');
+            return [
+                'nombre'   => $nombre,
+                'cantidad' => $item->cantidad . ($item->medida ? ' ' . $item->medida : ''),
+                'precio'   => (float) $item->precio_unitario,
+                'subtotal' => (float) $item->subtotal,
+            ];
+        })->toArray();
+
+        $totales = array_filter([
+            'TOTAL'    => (float) $venta->total,
+            'efectivo' => (float) ($venta->efectivo ?? 0),
+            'online'   => (float) ($venta->online   ?? 0),
+            'credito'  => (float) ($venta->credito  ?? 0),
+            'cambio'   => (float) ($venta->cambio   ?? 0),
+        ], fn($v) => $v > 0);
+        $totales['TOTAL'] = (float) $venta->total;
+
+        $job = [
+            'logo'   => (bool) ($config->logo ?? false),
+            'header' => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
+            'body'   => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
+            'totals' => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
+            'footer' => $svc->encryptSection($key, $svc->buildEscFooter(
+                '¡Gracias por su compra!',
+                (bool) ($config->corte_automatico ?? true),
+                (bool) ($config->abrir_cajon ?? false),
+                3, $cols
+            )),
+        ];
+
+        $result = $svc->print($config->impresora_nombre ?? '', $job);
+
+        if ($result['ok']) {
+            $this->alertSuccess('Venta #' . $venta->numero_folio . ' enviada a imprimir');
+        } else {
+            $this->alertError('Error: ' . ($result['error'] ?? 'Agente no disponible'));
+        }
+    }
+
+    public function imprimirUltimoPrestamo()
+    {
+        $tenantId = $this->getTenantId();
+        $prestamo = \App\Models\Prestamo::where('tenant_id', $tenantId)->latest()->first();
+
+        if (!$prestamo) {
+            $this->alertError('No hay préstamos registrados');
+            return;
+        }
+
+        // Por ahora solo confirmamos — el ticket de préstamo se puede extender igual que venta
+        $this->alertSuccess('Préstamo #' . ($prestamo->numero_folio ?? $prestamo->id) . ' (próximamente)');
+    }
+
     public function guardarWhatsApp()
     {
         $this->validate([
@@ -593,61 +679,48 @@ class Config extends Component
 
     public function verificarServicioImpresion()
     {
+        $baseUrl = rtrim(config('print_agent.base_url', 'http://localhost:9876'), '/');
         $connected = false;
-        $version = '';
+        $version   = '';
 
         try {
-            // Intentar hacer petición HTTP a la app de impresión
-            $ch = curl_init('http://127.0.0.1:1013/status');
+            $ch = curl_init($baseUrl . '/health');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_TIMEOUT, 3);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Accept: application/json',
-                'Origin: ' . request()->getSchemeAndHttpHost()
-            ]);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json']);
 
-            $response = curl_exec($ch);
+            $response  = curl_exec($ch);
+            $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             $curlError = curl_error($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-
-            // Log para debugging
-            \Log::info('Verificación servicio impresión', [
-                'httpCode' => $httpCode,
-                'response' => $response,
-                'curlError' => $curlError
-            ]);
 
             if ($httpCode >= 200 && $httpCode < 400) {
                 $connected = true;
                 if ($response) {
                     $data = json_decode($response, true);
-                    if (isset($data['version'])) {
-                        $version = $data['version'];
-                    }
+                    $version = $data['version'] ?? '';
                 }
-            } elseif (!$curlError && $httpCode > 0) {
-                // Si responde con cualquier código HTTP válido, está conectado
-                $connected = true;
             }
         } catch (\Throwable $e) {
-            \Log::warning('Error en verificación HTTP servicio impresión: ' . $e->getMessage());
+            \Log::warning('PrintAgent: error verificando servicio: ' . $e->getMessage());
         }
 
-        // Fallback: verificar si el puerto está abierto con socket
+        // Fallback: verificar si el puerto está abierto
         if (!$connected) {
+            $parsed = parse_url($baseUrl);
+            $host   = $parsed['host'] ?? '127.0.0.1';
+            $port   = $parsed['port'] ?? 9876;
             try {
-                $socket = @fsockopen('127.0.0.1', 1013, $errno, $errstr, 2);
+                $socket = @fsockopen($host, $port, $errno, $errstr, 2);
                 if ($socket) {
                     fclose($socket);
                     $connected = true;
-                    \Log::info('Servicio de impresión detectado por socket (puerto abierto)');
                 }
             } catch (\Throwable $e) {
-                \Log::warning('No se pudo conectar al servicio de impresión');
+                // sin conexión
             }
         }
 
@@ -656,7 +729,8 @@ class Config extends Component
 
     public function render()
     {
-        $categorias = Categoria::orderBy('nombre')->get();
-        return view('livewire.config', compact('categorias'));
+        $categorias     = Categoria::orderBy('nombre')->get();
+        $printAgentUrl  = rtrim(config('print_agent.base_url', 'http://localhost:9876'), '/');
+        return view('livewire.config', compact('categorias', 'printAgentUrl'));
     }
 }
