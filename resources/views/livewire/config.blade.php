@@ -485,6 +485,30 @@
                                                     @endforeach
                                                 </div>
 
+                                                {{-- Sección: footer del ticket --}}
+                                                <p class="text-uppercase text-muted fw-bold mb-3 mt-4"
+                                                   style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">
+                                                    Footer del ticket
+                                                </p>
+                                                <div class="border rounded-3 p-3 bg-light bg-opacity-50 mb-4">
+                                                    <div class="d-flex align-items-start gap-3 mb-2">
+                                                        <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center flex-shrink-0"
+                                                             style="width:2.4rem;height:2.4rem;">
+                                                            <i class="fa-solid fa-ticket text-secondary"></i>
+                                                        </div>
+                                                        <div class="flex-grow-1">
+                                                            <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Mensaje de cierre</p>
+                                                            <small class="text-muted">Se imprime automáticamente al final del ticket:</small>
+                                                            <div class="mt-2 p-2 bg-white border rounded-2 text-center" style="font-size:.8rem; font-family:monospace; color:#444; line-height:1.6;">
+                                                                <strong>¡Gracias por su compra!</strong><br>
+                                                                @if($propietario_nombre) {{ $propietario_nombre }}<br>@endif
+                                                                @if($propietario_celular) {{ $propietario_celular }}<br>@endif
+                                                            </div>
+                                                            <small class="text-muted mt-1 d-block">El nombre y teléfono del propietario se configuran en el tab <strong>General</strong>.</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 {{-- Sección: impresión automática --}}
                                                 <p class="text-uppercase text-muted fw-bold mb-3"
                                                    style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">

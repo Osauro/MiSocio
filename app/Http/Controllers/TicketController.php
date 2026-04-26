@@ -122,10 +122,14 @@ class TicketController extends Controller
             'body'   => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
             'totals' => $svc->encryptSection($key, $svc->buildEscTotals($totalesData, $cols)),
             'footer' => $svc->encryptSection($key, $svc->buildEscFooter(
-                '¡Gracias por su compra!',
+                array_filter([
+                    '¡Gracias por su compra!',
+                    $config->propietario_nombre ?? null,
+                    $config->propietario_celular ?? null,
+                ], fn($l) => !empty($l)),
                 (bool) ($config->corte_automatico ?? true),
                 (bool) ($config->abrir_cajon      ?? false),
-                3,
+                5,
                 $cols
             )),
         ];

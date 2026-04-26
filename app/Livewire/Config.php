@@ -51,6 +51,9 @@ class Config extends Component
     public $print_agent_secret_key;
     public $mostrar_logo;
 
+    // Impresión - footer
+    public $ticket_footer_texto;
+
     // WhatsApp API
     public $whatsapp_token;
     public $whatsapp_phone_id;
@@ -176,6 +179,7 @@ class Config extends Component
         $this->impresion_auto_inventario = $config->impresion_auto_inventario ?? false;
         $this->print_agent_secret_key = $config->print_agent_secret_key ?? '';
         $this->mostrar_logo = $config->mostrar_logo ?? true;
+        $this->ticket_footer_texto = $config->ticket_footer_texto ?? '';
 
         // WhatsApp
         $this->whatsapp_token = $config->whatsapp_token;
@@ -290,6 +294,7 @@ class Config extends Component
             'impresion_auto_inventario' => 'boolean',
             'print_agent_secret_key' => 'nullable|string|size:64|regex:/^[a-fA-F0-9]+$/',
             'mostrar_logo' => 'boolean',
+            'ticket_footer_texto' => 'nullable|string|max:255',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -307,6 +312,7 @@ class Config extends Component
             'impresion_auto_inventario' => $this->impresion_auto_inventario ?? false,
             'print_agent_secret_key' => $this->print_agent_secret_key ?: null,
             'mostrar_logo' => $this->mostrar_logo ?? true,
+            'ticket_footer_texto' => $this->ticket_footer_texto ?: null,
         ]);
 
         $this->toast('success', 'Impresión guardada');
@@ -366,6 +372,22 @@ class Config extends Component
         ]);
     }
 
+    /**
+     * Devuelve las líneas del footer del ticket:
+     * "¡Gracias por su compra!" + nombre del propietario + celular (si existen).
+     */
+    private function footerMsg(?string $propietarioNombre = null, ?string $propietarioCelular = null): array
+    {
+        $lines = ['¡Gracias por su compra!'];
+        if (!empty($propietarioNombre)) {
+            $lines[] = $propietarioNombre;
+        }
+        if (!empty($propietarioCelular)) {
+            $lines[] = $propietarioCelular;
+        }
+        return $lines;
+    }
+
     public function impresionPruebaLegacy()
     {
         if (!$this->impresora_nombre) {
@@ -398,7 +420,7 @@ class Config extends Component
               . $svc->encode('Cajón: ') . ($this->abrir_cajon ? $svc->encode('SÍ') : 'NO') . "\n";
 
         $footer = $svc->buildEscFooter(
-            '¡Configuración correcta!',
+            $this->footerMsg($this->propietario_nombre, $this->propietario_celular),
             (bool) $this->corte_automatico,
             (bool) $this->abrir_cajon,
             5, $cols
@@ -482,7 +504,7 @@ class Config extends Component
             'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
             'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
             'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
-                '¡Gracias por su compra!',
+                $this->footerMsg($config->propietario_nombre, $config->propietario_celular),
                 (bool) ($config->corte_automatico ?? true),
                 (bool) ($config->abrir_cajon ?? false),
                 5, $cols
@@ -551,7 +573,7 @@ class Config extends Component
             'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
             'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
             'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
-                '¡Gracias!',
+                $this->footerMsg($config->propietario_nombre, $config->propietario_celular),
                 (bool) ($config->corte_automatico ?? true),
                 false, 5, $cols
             )),

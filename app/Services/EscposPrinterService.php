@@ -246,7 +246,7 @@ class EscposPrinterService
      * @return string              Bytes ESC/POS
      */
     public function buildEscFooter(
-        string $message = '¡Gracias por su compra!',
+        string|array $message = '¡Gracias por su compra!',
         bool $cut = true,
         bool $cashDrawer = false,
         int $feeds = 5,
@@ -254,9 +254,12 @@ class EscposPrinterService
     ): string {
         $b = '';
 
-        if ($message) {
+        $lines = is_array($message) ? $message : [$message];
+        $lines = array_filter($lines, fn($l) => $l !== '' && $l !== null);
+
+        foreach ($lines as $line) {
             $b .= self::ALIGN_C . self::BOLD_ON;
-            $b .= $this->encode($message) . self::LF;
+            $b .= $this->encode((string) $line) . self::LF;
             $b .= self::BOLD_OFF;
         }
 
