@@ -406,7 +406,7 @@ class Config extends Component
 
         $job = [
             'printer' => $this->impresora_nombre,
-            'logo'    => false,
+            'logo'    => (bool) ($this->mostrar_logo ?? true),
             'header'  => $svc->encryptSection($key, $header),
             'body'    => $svc->encryptSection($key, $body),
             'footer'  => $svc->encryptSection($key, $footer),
