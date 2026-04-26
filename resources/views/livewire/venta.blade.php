@@ -210,7 +210,7 @@
                                                 @forelse($productosEncontrados as $producto)
                                                     @php
                                                         $yaAgregado = collect($items)->firstWhere('producto_id', $producto['id']);
-                                                        $sinStock = $producto['stock'] <= 0;
+                                                        $sinStock = comprasHabilitados() && $producto['stock'] <= 0;
                                                         $deshabilitado = $yaAgregado || $sinStock;
                                                     @endphp
                                                     <div class="card mb-2 border-0 shadow-sm producto-result {{ $deshabilitado ? 'disabled' : '' }}"
@@ -231,9 +231,11 @@
                                                                 <div class="flex-grow-1">
                                                                     <div class="fw-bold small" :title="'{{ addslashes($producto['nombre']) }}'" x-text="truncateMiddle('{{ addslashes($producto['nombre']) }}', 'search')"></div>
                                                                     <div class="d-flex gap-1 mt-1">
+                                                                        @if(comprasHabilitados())
                                                                         <span class="badge {{ $sinStock ? 'bg-danger' : 'bg-info text-dark' }}">
                                                                             Stock: {{ $producto['stock_formateado'] }}
                                                                         </span>
+                                                                        @endif
                                                                         @if(!ventasSoloUnidad())
                                                                         <span class="badge bg-secondary">
                                                                             {{ $producto['medida'] }} ({{ $producto['cantidad'] }}u)

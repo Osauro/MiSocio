@@ -76,7 +76,7 @@
                                                         @if ($producto->codigo)
                                                             <span class="text-muted ms-1">{{ $producto->codigo }}</span>
                                                         @endif
-                                                        @if(!$producto->control)
+                                                        @if(!$producto->control && comprasHabilitados())
                                                             <span class="badge bg-warning text-dark ms-1" title="Control de stock desactivado">
                                                                 <i class="fa-solid fa-eye-slash"></i> Sin control
                                                             </span>
@@ -97,12 +97,14 @@
                                                         @endif
                                                     </div>
                                                     <div class="small text-muted mb-2">
+                                                        @if(comprasHabilitados())
                                                         <i class="fa-solid fa-box text-primary me-1"></i>
                                                         Stock: {{ $producto->stock_formateado }}
                                                         @if($producto->vencidos > 0)
                                                             <span class="text-danger ms-1" title="Stock vencido/pinchado">
                                                                 <i class="fa-solid fa-triangle-exclamation"></i> {{ $producto->vencidos }}
                                                             </span>
+                                                        @endif
                                                         @endif
                                                         @if(!ventasSoloUnidad())
                                                         <span class="ms-2">
