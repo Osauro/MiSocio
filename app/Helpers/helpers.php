@@ -212,3 +212,31 @@ if (!function_exists('comprasHabilitados')) {
         return $config ? ($config->compras_enabled ?? true) : true;
     }
 }
+
+if (!function_exists('ventasHabilitados')) {
+    /**
+     * Verificar si el módulo de ventas está habilitado para el tenant actual.
+     */
+    function ventasHabilitados(): bool
+    {
+        $tenantId = currentTenantId();
+        if (!$tenantId) return true;
+
+        $config = \App\Models\TenantConfig::where('tenant_id', $tenantId)->first();
+        return $config ? ($config->ventas_enabled ?? true) : true;
+    }
+}
+
+if (!function_exists('ventasSoloUnidad')) {
+    /**
+     * Verificar si el tenant vende solo por unidad (sin medida/cantidad/precio_mayor).
+     */
+    function ventasSoloUnidad(): bool
+    {
+        $tenantId = currentTenantId();
+        if (!$tenantId) return false;
+
+        $config = \App\Models\TenantConfig::where('tenant_id', $tenantId)->first();
+        return $config ? ($config->ventas_solo_unidad ?? false) : false;
+    }
+}

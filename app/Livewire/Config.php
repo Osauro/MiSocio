@@ -64,6 +64,10 @@ class Config extends Component
     // Compras
     public $compras_enabled;
 
+    // Ventas
+    public $ventas_enabled;
+    public $ventas_solo_unidad;
+
     // Facebook API
     public $facebook_page_id;
     public $facebook_access_token;
@@ -114,6 +118,9 @@ class Config extends Component
             'hospedajes_enabled' => 'boolean',
             // Compras
             'compras_enabled' => 'boolean',
+            // Ventas
+            'ventas_enabled' => 'boolean',
+            'ventas_solo_unidad' => 'boolean',
             // Importación
             'formato_importacion' => 'required|in:excel,csv,json',
         ];
@@ -180,6 +187,10 @@ class Config extends Component
 
         // Compras
         $this->compras_enabled = $config->compras_enabled ?? true;
+
+        // Ventas
+        $this->ventas_enabled = $config->ventas_enabled ?? true;
+        $this->ventas_solo_unidad = $config->ventas_solo_unidad ?? false;
 
         // Facebook
         $this->facebook_page_id = $config->facebook_page_id;
@@ -412,6 +423,8 @@ class Config extends Component
             'prestamos_categoria_id' => 'nullable|integer|exists:categorias,id',
             'hospedajes_enabled' => 'boolean',
             'compras_enabled' => 'boolean',
+            'ventas_enabled' => 'boolean',
+            'ventas_solo_unidad' => 'boolean',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -420,6 +433,8 @@ class Config extends Component
             'prestamos_categoria_id' => $this->prestamos_categoria_id,
             'hospedajes_enabled'     => $this->hospedajes_enabled ?? false,
             'compras_enabled'        => $this->compras_enabled ?? true,
+            'ventas_enabled'         => $this->ventas_enabled ?? true,
+            'ventas_solo_unidad'     => $this->ventas_solo_unidad ?? false,
         ]);
 
         $this->toast('success', 'Módulos guardados');

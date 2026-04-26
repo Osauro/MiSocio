@@ -234,9 +234,11 @@
                                                                         <span class="badge {{ $sinStock ? 'bg-danger' : 'bg-info text-dark' }}">
                                                                             Stock: {{ $producto['stock_formateado'] }}
                                                                         </span>
+                                                                        @if(!ventasSoloUnidad())
                                                                         <span class="badge bg-secondary">
                                                                             {{ $producto['medida'] }} ({{ $producto['cantidad'] }}u)
                                                                         </span>
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                                 @if($yaAgregado)

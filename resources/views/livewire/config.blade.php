@@ -547,6 +547,55 @@
                             <div class="tab-pane fade show active">
                                 <div class="row g-3">
 
+                                    <!-- Módulo Ventas -->
+                                    <div class="col-md-6">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-header bg-success text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="fa-solid fa-shopping-cart me-2"></i>
+                                                    Módulo de Ventas
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <!-- Habilitar módulo -->
+                                                <div class="d-flex justify-content-between align-items-center pb-3 mb-3"
+                                                     :class="{ 'border-bottom': $wire.ventas_enabled }">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Habilitar módulo de ventas</p>
+                                                        <small class="text-muted">Si está desactivado, el menú de Ventas desaparece y no se puede vender.</small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0 ms-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="ventas_enabled"
+                                                               wire:change="guardarModulos"
+                                                               id="ventasEnabled"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+
+                                                <!-- Solo por unidad (solo si ventas habilitado) -->
+                                                @if($ventas_enabled)
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Vender solo por unidad</p>
+                                                        <small class="text-muted">
+                                                            Oculta los campos de medida, cantidad y precio por mayor.
+                                                            Todas las ventas se realizan por unidad al precio menor.
+                                                        </small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0 ms-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="ventas_solo_unidad"
+                                                               wire:change="guardarModulos"
+                                                               id="ventasSoloUnidad"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <!-- Módulo Compras & Stock -->
                                     <div class="col-md-6">
                                         <div class="card border shadow-sm h-100">

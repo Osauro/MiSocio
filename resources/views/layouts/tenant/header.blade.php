@@ -33,7 +33,9 @@
                 </li>
                 <!-- Cart Icons -->
                 <li class="cart-nav">
+                    @if(ventasHabilitados())
                     @livewire('venta-cart')
+                    @endif
                 </li>
                 @if (Auth::user()->canManageCurrentTenant() && comprasHabilitados())
                 <li class="cart-nav">

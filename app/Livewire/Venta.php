@@ -210,13 +210,13 @@ class Venta extends Component
                 ->orWhereHas('tags', function ($query) {
                     $query->where('nombre', 'like', '%' . $this->buscar . '%');
                 })
-                ->limit(10)
+                        ->limit(10)
                 ->get()
                 ->map(function ($producto) {
-                    $cantidadPorMedida = $producto->cantidad ?? 1;
+                    $cantidadPorMedida = ventasSoloUnidad() ? 1 : ($producto->cantidad ?? 1);
 
                     // Calcular stock real disponible (stock - comprometido)
-                    $stockComprometido = $this->calcularStockComprometido($producto->id);
+                    $stockComprometido = comprasHabilitados() ? $this->calcularStockComprometido($producto->id) : 0;
                     $stockDisponible = $producto->stock - $stockComprometido;
 
                     // Formatear stock disponible
@@ -234,7 +234,7 @@ class Venta extends Component
                         'nombre' => $producto->nombre,
                         'codigo' => $producto->codigo,
                         'imagen' => $producto->photo_url,
-                        'stock' => $stockDisponible,
+                        'stock' => comprasHabilitados() ? $stockDisponible : PHP_INT_MAX,
                         'stock_formateado' => $stockFormateado,
                         'precio_por_menor' => $producto->precio_por_menor,
                         'precio_por_mayor' => $producto->precio_por_mayor,
@@ -271,6 +271,44 @@ class Venta extends Component
         }
 
         $cantidadPorMedida = $producto->cantidad ?? 1;
+
+        // Si modo solo unidad, tratar todo como 1 unidad al precio menor
+        if (ventasSoloUnidad()) {
+            $cantidadInicial = 1;
+            $precioVenta = $producto->precio_por_menor;
+            $subtotalInicial = $this->redondearSubtotal($precioVenta);
+            $precioCompra = $producto->precio_de_compra;
+            $beneficio = $precioVenta - $precioCompra;
+
+            $ventaItem = VentaItem::create([
+                'venta_id'     => $this->ventaId,
+                'producto_id'  => $productoId,
+                'cantidad'     => $cantidadInicial,
+                'precio_compra'=> $precioCompra,
+                'precio'       => $precioVenta,
+                'beneficio'    => $beneficio,
+                'subtotal'     => $subtotalInicial,
+            ]);
+
+            $this->items[] = [
+                'id'                => $ventaItem->id,
+                'producto_id'       => $productoId,
+                'nombre'            => $producto->nombre,
+                'imagen'            => $producto->photo_url,
+                'medida'            => 'u',
+                'cantidad_por_medida' => 1,
+                'enteros'           => 0,
+                'unidades'          => 1,
+                'precio'            => $precioVenta,
+                'subtotal'          => $subtotalInicial,
+            ];
+
+            $this->buscar = '';
+            $this->productosEncontrados = [];
+            $this->dispatch('focusBuscador');
+            $this->dispatch('actualizar-badge-venta');
+            return;
+        }
 
         // Si compras/stock está deshabilitado, agregar sin verificar stock
         if (!comprasHabilitados()) {
@@ -402,7 +440,26 @@ class Venta extends Component
         $producto = Producto::find($item['producto_id']);
 
         // Si compras/stock está deshabilitado, omitir validación de stock
-        if (!comprasHabilitados()) {
+        if (ventasSoloUnidad()) {
+            // Modo solo unidad: solo unidades, precio menor
+            $this->items[$index]['enteros'] = 0;
+            $cantidadTotal = $this->items[$index]['unidades'];
+            $subtotalCalculado = $cantidadTotal * $producto->precio_por_menor;
+            $this->items[$index]['precio'] = $producto->precio_por_menor;
+            $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalCalculado);
+            $precioCompra = $producto->precio_de_compra;
+            $beneficio = ($producto->precio_por_menor - $precioCompra) * $cantidadTotal;
+            VentaItem::find($item['id'])->update([
+                'cantidad'      => $cantidadTotal,
+                'precio_compra' => $precioCompra,
+                'precio'        => $this->items[$index]['precio'],
+                'beneficio'     => $beneficio,
+                'subtotal'      => $this->items[$index]['subtotal'],
+            ]);
+            $this->actualizarTotales();
+            $this->dispatch('focusBuscador');
+            return;
+        } elseif (!comprasHabilitados()) {
             $cantidadTotal = ($this->items[$index]['enteros'] * $item['cantidad_por_medida']) + $this->items[$index]['unidades'];
         } else {
         // Calcular stock comprometido en otras ventas pendientes

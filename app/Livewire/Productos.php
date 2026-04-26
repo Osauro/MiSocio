@@ -44,18 +44,30 @@ class Productos extends Component
     public $control = true;
     public $tags_input = '';
 
-    protected $rules = [
-        'categoria_id' => 'required|exists:categorias,id',
-        'nombre' => 'required|string|max:255',
-        'codigo' => 'nullable|string|max:255',
-        'medida' => 'required|string|max:10',
-        'cantidad' => 'required|integer|min:1',
-        'precio_de_compra' => 'required|numeric|min:0',
-        'precio_por_mayor' => 'required|numeric|min:0',
-        'precio_por_menor' => 'required|numeric|min:0',
-        'control' => 'boolean',
-        'tags_input' => 'nullable|string',
-    ];
+    protected function rules(): array
+    {
+        $rules = [
+            'categoria_id' => 'required|exists:categorias,id',
+            'nombre' => 'required|string|max:255',
+            'codigo' => 'nullable|string|max:255',
+            'precio_de_compra' => comprasHabilitados() ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
+            'precio_por_menor' => 'required|numeric|min:0',
+            'control' => 'boolean',
+            'tags_input' => 'nullable|string',
+        ];
+
+        if (ventasSoloUnidad()) {
+            $rules['medida'] = 'nullable|string|max:10';
+            $rules['cantidad'] = 'nullable|integer|min:1';
+            $rules['precio_por_mayor'] = 'nullable|numeric|min:0';
+        } else {
+            $rules['medida'] = 'required|string|max:10';
+            $rules['cantidad'] = 'required|integer|min:1';
+            $rules['precio_por_mayor'] = 'required|numeric|min:0';
+        }
+
+        return $rules;
+    }
 
     protected $messages = [
         'categoria_id.required' => 'La categoría es obligatoria',
@@ -235,6 +247,18 @@ class Productos extends Component
 
         // Ahora validar con el ID correcto
         $this->validate();
+
+        // Si compras deshabilitado, forzar control de stock a false
+        if (!comprasHabilitados()) {
+            $this->control = false;
+        }
+
+        // Si solo unidad, asignar defaults para medida/cantidad/precio_por_mayor
+        if (ventasSoloUnidad()) {
+            $this->medida = $this->medida ?: 'u';
+            $this->cantidad = $this->cantidad ?: 1;
+            $this->precio_por_mayor = $this->precio_por_mayor ?: $this->precio_por_menor;
+        }
 
         // Verificar nombre duplicado en el tenant
         $nombreDuplicado = Producto::where('tenant_id', currentTenantId())

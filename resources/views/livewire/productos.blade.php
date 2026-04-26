@@ -104,10 +104,12 @@
                                                                 <i class="fa-solid fa-triangle-exclamation"></i> {{ $producto->vencidos }}
                                                             </span>
                                                         @endif
+                                                        @if(!ventasSoloUnidad())
                                                         <span class="ms-2">
                                                             <i class="fa-solid fa-ruler text-info me-1"></i>
                                                             {{ $producto->medida_formateada }} ({{ $producto->cantidad }})
                                                         </span>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
@@ -126,6 +128,7 @@
                                                     <small class="d-block" style="font-size: 0.65rem;">Compra</small>
                                                 </div>
                                                 @endif
+                                                @if(!ventasSoloUnidad())
                                                 <div class="badge bg-success text-center py-2 px-2" style="min-width: 80px;">
                                                     <div style="font-weight: 600; line-height: 1.2;">
                                                         @php
@@ -136,6 +139,7 @@
                                                     </div>
                                                     <small class="d-block" style="font-size: 0.65rem;">Mayor</small>
                                                 </div>
+                                                @endif
                                                 <div class="badge bg-danger text-center py-2 px-2" style="min-width: 80px;">
                                                     <div style="font-weight: 600; line-height: 1.2;">
                                                         @php
@@ -211,6 +215,7 @@
                                 </div>
 
                                 <!-- Control de Stock debajo de la imagen -->
+                                                @if(comprasHabilitados())
                                 <div class="mb-3">
                                     <label class="form-label">Control de Stock</label>
                                     <div class="form-check form-switch">
@@ -222,6 +227,7 @@
                                     </div>
                                     <small class="text-muted">Si está desactivado, no se restará del stock al vender</small>
                                 </div>
+                                                @endif
                             </div>
 
                             <!-- Columna Derecha: Formulario -->
@@ -286,6 +292,7 @@
                                     </div>
 
                                     <!-- Medida -->
+                                    @if(!ventasSoloUnidad())
                                     <div class="col-md-6 mb-3">
                                         <label for="medida" class="form-label">Medida <span
                                                 class="text-danger">*</span></label>
@@ -329,6 +336,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    @endif
 
                                     <!-- Precio de Compra -->
                                     @if(comprasHabilitados())
@@ -345,6 +353,7 @@
                                     @endif
 
                                     <!-- Precio por Mayor -->
+                                    @if(!ventasSoloUnidad())
                                     <div class="col-md-4 mb-3">
                                         <label for="precio_por_mayor" class="form-label">Precio Mayor (Bs.) <span
                                                 class="text-danger">*</span></label>
@@ -355,6 +364,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    @endif
 
                                     <!-- Precio por Menor -->
                                     <div class="col-md-4 mb-3">

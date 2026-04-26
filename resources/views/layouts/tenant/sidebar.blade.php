@@ -31,6 +31,7 @@
                     </a>
                 </li>
             @endif
+            @if(ventasHabilitados())
             <li class="sidebar-list {{ request()->routeIs('ventas') ? 'active' : '' }}">
                 <i class="fa-solid fa-thumbtack"></i>
                 <a class="sidebar-link {{ request()->routeIs('ventas') ? 'active' : '' }}" href="{{ route('ventas') }}">
@@ -38,6 +39,7 @@
                     <h6 class="f-w-600">Ventas</h6>
                 </a>
             </li>
+            @endif
             @if(canManageTenant() && comprasHabilitados())
                 <li class="sidebar-list {{ request()->routeIs('compras') ? 'active' : '' }}">
                     <i class="fa-solid fa-thumbtack"></i>
