@@ -35,7 +35,7 @@
                 <li class="cart-nav">
                     @livewire('venta-cart')
                 </li>
-                @if (Auth::user()->canManageCurrentTenant())
+                @if (Auth::user()->canManageCurrentTenant() && comprasHabilitados())
                 <li class="cart-nav">
                     @livewire('compra-cart')
                 </li>
