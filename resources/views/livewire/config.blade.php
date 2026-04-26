@@ -319,48 +319,47 @@
                                                 </div>
                                             </div>
                                             <div class="card-body px-4 py-3 d-flex flex-column gap-2">
-                                                <div class="d-flex align-items-center gap-2 mb-1">
-                                                    <span class="badge bg-light text-secondary border">
-                                                        <i class="fa-solid fa-circle-dot text-success me-1" style="font-size:.6rem;"></i>
-                                                        {{ $printAgentUrl }}
-                                                    </span>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <i class="fa-solid fa-circle-dot text-success" style="font-size:.7rem;"></i>
+                                                    <span class="text-muted small font-monospace">{{ $printAgentUrl }}</span>
                                                 </div>
                                                 <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat"
                                                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
                                                     <i class="fa-solid fa-download"></i>
                                                     <span>Descargar Instalador</span>
                                                 </a>
-                                                <div class="border-top pt-2 mt-1">
-                                                    <p class="text-muted small fw-semibold mb-2 text-uppercase" style="font-size:.65rem;letter-spacing:.06em;">Pruebas de impresión</p>
-                                                    <div class="d-grid gap-2">
-                                                        <button type="button"
-                                                                class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2"
-                                                                wire:click="impresionPruebaLegacy"
-                                                                wire:loading.attr="disabled"
-                                                                :disabled="printando">
-                                                            <span x-show="printando" class="spinner-border spinner-border-sm" role="status"></span>
-                                                            <i class="fa-solid fa-print" x-show="!printando"></i>
-                                                            <span>Imprimir Prueba</span>
-                                                        </button>
-                                                        <button type="button"
-                                                                class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center gap-2"
-                                                                wire:click="imprimirUltimaVenta"
-                                                                wire:loading.attr="disabled"
-                                                                :disabled="printando">
-                                                            <i class="fa-solid fa-cart-shopping"></i>
-                                                            <span>Última Venta</span>
-                                                        </button>
-                                                        @if(prestamosHabilitados())
-                                                        <button type="button"
-                                                                class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center gap-2"
-                                                                wire:click="imprimirUltimoPrestamo"
-                                                                wire:loading.attr="disabled"
-                                                                :disabled="printando">
-                                                            <i class="fa-solid fa-hand-holding-dollar"></i>
-                                                            <span>Último Préstamo</span>
-                                                        </button>
-                                                        @endif
-                                                    </div>
+                                            </div>
+                                            <div class="card-footer bg-light border-top px-4 py-3">
+                                                <p class="text-uppercase text-muted fw-bold mb-2"
+                                                   style="font-size:.65rem;letter-spacing:.1em;">Pruebas de impresión</p>
+                                                <div class="d-grid gap-2">
+                                                    <button type="button"
+                                                            class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                            wire:click="impresionPruebaLegacy"
+                                                            wire:loading.attr="disabled"
+                                                            :disabled="printando">
+                                                        <span x-show="printando" class="spinner-border spinner-border-sm" role="status"></span>
+                                                        <i class="fa-solid fa-print" x-show="!printando"></i>
+                                                        <span>Imprimir Prueba</span>
+                                                    </button>
+                                                    <button type="button"
+                                                            class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                            wire:click="imprimirUltimaVenta"
+                                                            wire:loading.attr="disabled"
+                                                            :disabled="printando">
+                                                        <i class="fa-solid fa-cart-shopping"></i>
+                                                        <span>Última Venta</span>
+                                                    </button>
+                                                    @if(prestamosHabilitados())
+                                                    <button type="button"
+                                                            class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center gap-2"
+                                                            wire:click="imprimirUltimoPrestamo"
+                                                            wire:loading.attr="disabled"
+                                                            :disabled="printando">
+                                                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                                                        <span>Último Préstamo</span>
+                                                    </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
@@ -488,62 +487,74 @@
                                                 </div>
 
                                                 {{-- Sección: impresión automática --}}
-                                                <p class="text-uppercase text-muted fw-bold mb-2"
+                                                <p class="text-uppercase text-muted fw-bold mb-3"
                                                    style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">
                                                     Impresión automática
                                                 </p>
-                                                <p class="text-muted small mb-3">
-                                                    Se imprime el ticket correspondiente al cerrar cada proceso (requiere el agente activo).
-                                                </p>
-                                                <div class="d-flex flex-column gap-2">
+                                                <div class="row g-3">
                                                     @if(ventasHabilitados())
-                                                    <div class="border rounded-3 px-4 py-3 d-flex align-items-center justify-content-between gap-3">
-                                                        <div class="d-flex align-items-center gap-3">
-                                                            <i class="fa-solid fa-cart-shopping text-danger fs-5" style="width:1.4rem;text-align:center;"></i>
-                                                            <div>
-                                                                <p class="mb-0 fw-semibold">Ventas</p>
-                                                                <small class="text-muted">Imprimir ticket al cerrar una venta</small>
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
+                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
+                                                                    <i class="fa-solid fa-cart-shopping text-danger"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">Ventas</p>
+                                                                    <small class="text-muted">Al cerrar venta</small>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="form-check form-switch mb-0 flex-shrink-0">
-                                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                                   wire:model="impresion_auto_venta"
-                                                                   wire:change="guardarImpresion"
-                                                                   style="width:2.8rem;height:1.4rem;">
+                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="impresion_auto_venta"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.8rem;height:1.4rem;">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     @endif
                                                     @if(prestamosHabilitados())
-                                                    <div class="border rounded-3 px-4 py-3 d-flex align-items-center justify-content-between gap-3">
-                                                        <div class="d-flex align-items-center gap-3">
-                                                            <i class="fa-solid fa-hand-holding-dollar text-warning fs-5" style="width:1.4rem;text-align:center;"></i>
-                                                            <div>
-                                                                <p class="mb-0 fw-semibold">Préstamos</p>
-                                                                <small class="text-muted">Imprimir recibo al cerrar un préstamo</small>
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
+                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
+                                                                    <i class="fa-solid fa-hand-holding-dollar text-warning"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">Préstamos</p>
+                                                                    <small class="text-muted">Al cerrar préstamo</small>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="form-check form-switch mb-0 flex-shrink-0">
-                                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                                   wire:model="impresion_auto_prestamo"
-                                                                   wire:change="guardarImpresion"
-                                                                   style="width:2.8rem;height:1.4rem;">
+                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="impresion_auto_prestamo"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.8rem;height:1.4rem;">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     @endif
                                                     @if(comprasHabilitados())
-                                                    <div class="border rounded-3 px-4 py-3 d-flex align-items-center justify-content-between gap-3">
-                                                        <div class="d-flex align-items-center gap-3">
-                                                            <i class="fa-solid fa-boxes-stacked text-info fs-5" style="width:1.4rem;text-align:center;"></i>
-                                                            <div>
-                                                                <p class="mb-0 fw-semibold">Inventario</p>
-                                                                <small class="text-muted">Imprimir reporte al cerrar un inventario</small>
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
+                                                            <div class="d-flex align-items-center gap-3">
+                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
+                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
+                                                                    <i class="fa-solid fa-boxes-stacked text-info"></i>
+                                                                </div>
+                                                                <div>
+                                                                    <p class="mb-0 fw-semibold" style="font-size:.9rem;">Inventario</p>
+                                                                    <small class="text-muted">Al cerrar inventario</small>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="form-check form-switch mb-0 flex-shrink-0">
-                                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                                   wire:model="impresion_auto_inventario"
-                                                                   wire:change="guardarImpresion"
-                                                                   style="width:2.8rem;height:1.4rem;">
+                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="impresion_auto_inventario"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.8rem;height:1.4rem;">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     @endif
