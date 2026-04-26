@@ -354,30 +354,49 @@ class Config extends Component
             return;
         }
 
-        $printerService = new \App\Services\PrinterService();
+        /** @var \App\Services\EscposPrinterService $svc */
+        $svc  = app(\App\Services\EscposPrinterService::class);
+        $key  = $svc->getSecretKey();
+        $cols = ($this->papel_tamano === '58mm') ? 32 : 48;
 
-        if (!$printerService->connect($this->getTenantId())) {
-            $this->dispatch('imprimir-prueba', [
-                'impresora' => $this->impresora_nombre,
-                'tipo' => $this->impresora_tipo,
-                'papel' => $this->papel_tamano,
-                'corte' => $this->corte_automatico,
-                'abrir_cajon' => $this->abrir_cajon,
-                'sonido' => $this->sonido_apertura,
-                'ancho' => $this->ancho_caracteres,
-                'nombre_tienda' => $this->nombre_tienda ?? 'Mi Tienda',
-                'error' => $printerService->getError(),
-            ]);
-            return;
-        }
+        // Ticket de prueba sencillo
+        $header = $svc->buildEscHeader([
+            'store' => $this->nombre_tienda ?? 'Mi Tienda',
+            'title' => 'IMPRESIÓN DE PRUEBA',
+            'date'  => now()->format('d/m/Y H:i:s'),
+        ], $cols);
 
-        if ($printerService->imprimirPrueba()) {
+        $body = "\x1B\x61\x01"  // center
+              . "Impresora: {$this->impresora_nombre}\n"
+              . "Tipo: {$this->impresora_tipo}\n"
+              . "Papel: {$this->papel_tamano}\n"
+              . "Ancho: {$cols} caracteres\n"
+              . str_repeat('-', $cols) . "\n"
+              . "Corte: " . ($this->corte_automatico ? 'SÍ' : 'NO') . "\n"
+              . "Cajón: " . ($this->abrir_cajon ? 'SÍ' : 'NO') . "\n";
+
+        $footer = $svc->buildEscFooter(
+            '¡Configuración correcta!',
+            (bool) $this->corte_automatico,
+            (bool) $this->abrir_cajon,
+            3,
+            $cols
+        );
+
+        $job = [
+            'logo'   => false,
+            'header' => $svc->encryptSection($key, $header),
+            'body'   => $svc->encryptSection($key, $body),
+            'footer' => $svc->encryptSection($key, $footer),
+        ];
+
+        $result = $svc->print($this->impresora_nombre, $job);
+
+        if ($result['ok']) {
             $this->alertSuccess('Impresión de prueba enviada correctamente');
         } else {
-            $this->alertError('Error: ' . $printerService->getError());
+            $this->alertError('Error: ' . ($result['error'] ?? 'El agente no está disponible'));
         }
-
-        $printerService->close();
     }
 
     public function guardarWhatsApp()

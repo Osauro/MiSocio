@@ -6,7 +6,7 @@ use App\Models\Venta;
 use App\Models\Prestamo;
 use App\Models\Inventario;
 use App\Models\TenantConfig;
-use App\Services\PrinterService;
+use App\Services\EscposPrinterService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -57,27 +57,85 @@ class TicketController extends Controller
     }
 
     /**
-     * Ticket ESC/POS raw (datos binarios generados con mike42/escpos-php).
-     * Se devuelve como binario para enviar directamente a la impresora.
-     * El papel se ajusta automáticamente porque ESC/POS es rollo continuo.
+     * Envía el ticket de venta al Print Agent local (ESC/POS).
+     * El agente recibe las secciones encriptadas y se encarga de enviarlas
+     * a la impresora física. Devuelve JSON con el resultado.
      */
     public function ventaEscpos($ventaId)
     {
-        $venta = $this->cargarVenta($ventaId);
+        $venta  = $this->cargarVenta($ventaId);
         $config = TenantConfig::getOrCreateForTenant(currentTenantId());
 
-        try {
-            $rawData = PrinterService::generarRawTicketVenta($venta, $config);
+        /** @var EscposPrinterService $svc */
+        $svc  = app(EscposPrinterService::class);
+        $key  = $svc->getSecretKey();
+        $cols = ($config->papel_tamano === '58mm') ? 32 : 48;
 
-            return response($rawData)
-                ->header('Content-Type', 'application/octet-stream')
-                ->header('Content-Length', strlen($rawData))
-                ->header('Cache-Control', 'no-cache, no-store');
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al generar ticket ESC/POS: ' . $e->getMessage()
-            ], 500);
+        // ── Nombre de la impresora ──────────────────────────────────────
+        $printerName = $config->impresora_nombre ?? 'Fadi';
+
+        // ── Header ─────────────────────────────────────────────────────
+        $headerData = [
+            'store'   => $config->nombre_tienda ?? 'MI TIENDA',
+            'address' => $config->direccion      ?? '',
+            'phone'   => $config->telefono       ?? '',
+            'nit'     => $config->nit            ?? '',
+            'title'   => 'VENTA #' . $venta->numero_folio,
+            'date'    => $venta->created_at->format('d/m/Y H:i:s'),
+            'user'    => $venta->user->name  ?? '',
+            'client'  => $venta->cliente->nombre ?? '',
+        ];
+
+        // ── Items ──────────────────────────────────────────────────────
+        $items = $venta->ventaItems->map(function ($item) {
+            $producto = $item->producto;
+            $nombre   = $producto ? $producto->nombre : ($item->nombre ?? 'Producto');
+            $cant     = $item->cantidad . ($item->medida ? ' ' . $item->medida : '');
+
+            return [
+                'nombre'   => $nombre,
+                'cantidad' => $cant,
+                'precio'   => (float) $item->precio_unitario,
+                'subtotal' => (float) $item->subtotal,
+            ];
+        })->toArray();
+
+        // ── Totales ────────────────────────────────────────────────────
+        $totalesData = array_filter([
+            'TOTAL'    => (float) $venta->total,
+            'efectivo' => (float) ($venta->efectivo ?? 0),
+            'online'   => (float) ($venta->online   ?? 0),
+            'credito'  => (float) ($venta->credito  ?? 0),
+            'cambio'   => (float) ($venta->cambio   ?? 0),
+        ], fn($v) => $v > 0);
+
+        $totalesData['TOTAL'] = (float) $venta->total;
+
+        // ── Job encriptado ─────────────────────────────────────────────
+        $job = [
+            'logo'   => (bool) ($config->logo ?? false),
+            'header' => $svc->encryptSection($key, $svc->buildEscHeader($headerData, $cols)),
+            'body'   => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
+            'totals' => $svc->encryptSection($key, $svc->buildEscTotals($totalesData, $cols)),
+            'footer' => $svc->encryptSection($key, $svc->buildEscFooter(
+                '¡Gracias por su compra!',
+                (bool) ($config->corte_automatico ?? true),
+                (bool) ($config->abrir_cajon      ?? false),
+                3,
+                $cols
+            )),
+        ];
+
+        $result = $svc->print($printerName, $job);
+
+        if ($result['ok']) {
+            return response()->json(['success' => true]);
         }
+
+        return response()->json([
+            'success' => false,
+            'error'   => $result['error'] ?? 'Error desconocido',
+        ], $result['status'] ?: 503);
     }
 
     /**
