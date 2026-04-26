@@ -289,72 +289,28 @@
 
                                 <div class="row g-3">
 
-                                    <!-- ── Card: App de Impresión (status + prueba) ── -->
-                                    <div class="col-md-4 d-none d-md-block"
-                                         x-data="{
-                                            estado: 'verificando',
-                                            version: '',
-                                            agentUrl: '{{ $printAgentUrl }}',
-                                            async verificar() {
-                                                this.estado = 'verificando';
-                                                try {
-                                                    const ctrl = new AbortController();
-                                                    const tid  = setTimeout(() => ctrl.abort(), 3000);
-                                                    const res  = await fetch(this.agentUrl + '/health', {
-                                                        signal: ctrl.signal,
-                                                        mode: 'cors'
-                                                    });
-                                                    clearTimeout(tid);
-                                                    if (res.ok) {
-                                                        const d = await res.json();
-                                                        this.estado  = 'conectado';
-                                                        this.version = d.version || '';
-                                                    } else {
-                                                        this.estado = 'desconectado';
-                                                    }
-                                                } catch (e) {
-                                                    this.estado = 'desconectado';
-                                                }
-                                            }
-                                         }"
-                                         x-init="verificar()"
-                                         @printer-status.window="estado = $event.detail.connected ? 'conectado' : 'desconectado'; version = $event.detail.version || ''">
-
+                                    <!-- ── Card: App de Impresión ── -->
+                                    <div class="col-md-4 d-none d-md-block">
                                         <div class="card border shadow-sm h-100">
-                                            <div class="card-header d-flex justify-content-between align-items-center"
-                                                 :class="{
-                                                    'bg-success text-white': estado === 'conectado',
-                                                    'bg-danger text-white':  estado === 'desconectado',
-                                                    'bg-secondary text-white': estado === 'verificando'
-                                                 }">
+                                            <div class="card-header bg-primary text-white d-flex align-items-center">
                                                 <h5 class="mb-0">
                                                     <i class="fa-solid fa-server me-2"></i>
                                                     App de Impresión
-                                                    <span x-show="version" x-text="'v' + version" class="small ms-1 opacity-75"></span>
                                                 </h5>
-                                                <span class="badge bg-white bg-opacity-25 d-flex align-items-center gap-1">
-                                                    <i class="fa-solid fa-circle small"
-                                                       :class="{
-                                                           'text-success':  estado === 'conectado',
-                                                           'text-danger':   estado === 'desconectado',
-                                                           'text-warning':  estado === 'verificando'
-                                                       }"></i>
-                                                    <span x-text="estado === 'conectado' ? 'Conectado' : (estado === 'verificando' ? 'Verificando...' : 'Desconectado')"></span>
-                                                </span>
                                             </div>
 
                                             <div class="card-body">
                                                 <p class="text-muted small mb-3">
                                                     <i class="fa-solid fa-link me-1"></i>
-                                                    <span x-text="agentUrl"></span>
+                                                    {{ $printAgentUrl }}
                                                 </p>
 
                                                 <p class="fw-semibold mb-2">Prueba de impresión:</p>
                                                 <div class="d-flex flex-wrap gap-2">
                                                     <button type="button"
                                                             class="btn btn-outline-primary btn-sm"
-                                                            :disabled="estado !== 'conectado'"
-                                                            wire:click="impresionPruebaLegacy">
+                                                            wire:click="impresionPruebaLegacy"
+                                                            wire:loading.attr="disabled">
                                                         <i class="fa-solid fa-print me-1"></i>
                                                         Imprimir Prueba
                                                     </button>
@@ -366,31 +322,21 @@
                                                 <div class="d-flex flex-wrap gap-2">
                                                     <button type="button"
                                                             class="btn btn-outline-danger btn-sm"
-                                                            :disabled="estado !== 'conectado'"
-                                                            wire:click="imprimirUltimaVenta">
+                                                            wire:click="imprimirUltimaVenta"
+                                                            wire:loading.attr="disabled">
                                                         <i class="fa-solid fa-cart-shopping me-1"></i>
                                                         Última Venta
                                                     </button>
                                                     @if(prestamosHabilitados())
                                                     <button type="button"
                                                             class="btn btn-outline-warning btn-sm"
-                                                            :disabled="estado !== 'conectado'"
-                                                            wire:click="imprimirUltimoPrestamo">
+                                                            wire:click="imprimirUltimoPrestamo"
+                                                            wire:loading.attr="disabled">
                                                         <i class="fa-solid fa-hand-holding-dollar me-1"></i>
                                                         Último Préstamo
                                                     </button>
                                                     @endif
                                                 </div>
-                                            </div>
-
-                                            <div class="card-footer d-flex justify-content-end">
-                                                <button type="button"
-                                                        class="btn btn-sm btn-outline-secondary"
-                                                        wire:click="verificarServicioImpresion"
-                                                        @click="estado = 'verificando'">
-                                                    <i class="fa-solid fa-rotate-right me-1"></i>
-                                                    Verificar conexión
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
