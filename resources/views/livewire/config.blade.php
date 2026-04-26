@@ -745,6 +745,25 @@
                                                         Resetear Datos
                                                     </button>
                                                 </div>
+
+                                                <hr class="my-3">
+
+                                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                                                    <div>
+                                                        <p class="fw-semibold mb-1 text-danger">Resetear stock de productos</p>
+                                                        <small class="text-muted">
+                                                            Pone en <strong>0</strong> el stock de todos los productos de este tenant.
+                                                            Útil para empezar un conteo desde cero sin borrar el historial de movimientos.
+                                                            <br><strong class="text-danger">Esta acción no se puede deshacer.</strong>
+                                                        </small>
+                                                    </div>
+                                                    <button type="button"
+                                                        class="btn btn-danger"
+                                                        onclick="confirmarResetStock()">
+                                                        <i class="fa-solid fa-boxes-stacked me-1"></i>
+                                                        Resetear Stock
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -862,6 +881,41 @@
             Swal.fire({
                 title: '¡Listo!',
                 text: 'Todos los datos han sido eliminados correctamente.',
+                icon: 'success',
+                confirmButtonColor: '#28a745',
+                confirmButtonText: 'Aceptar',
+            });
+        });
+
+        window.confirmarResetStock = function () {
+            Swal.fire({
+                title: '¿Resetear el stock?',
+                html: 'Esta acción pondrá en <strong>0</strong> el stock de todos los productos.<br><br>El historial de ventas, compras y kardex <strong>no</strong> se eliminará.<br><br><span class="text-danger fw-bold">Esta acción no se puede deshacer.</span>',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, resetear stock',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Reseteando stock...',
+                        html: '<i class="fa-solid fa-spinner fa-spin fa-2x"></i>',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                    });
+                    $wire.resetearStock();
+                }
+            });
+        };
+
+        $wire.on('stock-reseteado', () => {
+            Swal.fire({
+                title: '¡Listo!',
+                text: 'El stock de todos los productos ha sido puesto en 0.',
                 icon: 'success',
                 confirmButtonColor: '#28a745',
                 confirmButtonText: 'Aceptar',

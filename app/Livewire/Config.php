@@ -483,6 +483,15 @@ class Config extends Component
         $this->dispatch('datos-reseteados');
     }
 
+    public function resetearStock()
+    {
+        $tenantId = $this->getTenantId();
+
+        \App\Models\Producto::where('tenant_id', $tenantId)->update(['stock' => 0]);
+
+        $this->dispatch('stock-reseteado');
+    }
+
     public function guardarImportacion()
     {
         $this->validate([
