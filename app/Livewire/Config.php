@@ -450,7 +450,7 @@ class Config extends Component
             \Illuminate\Support\Facades\DB::table('kardex')->where('tenant_id', $tenantId)->delete();
         });
 
-        $this->toast('success', 'Todos los datos han sido reseteados correctamente');
+        $this->dispatch('datos-reseteados');
     }
 
     public function guardarImportacion()
