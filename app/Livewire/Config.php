@@ -480,9 +480,12 @@ class Config extends Component
             'logo'    => (bool) ($config->mostrar_logo ?? true),
             'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
             'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
+            'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
+            'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
+                '¡Gracias por su compra!',
                 (bool) ($config->corte_automatico ?? true),
                 (bool) ($config->abrir_cajon ?? false),
-                3, $cols
+                5, $cols
             )),
         ];
 
@@ -550,7 +553,7 @@ class Config extends Component
             'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
                 '¡Gracias!',
                 (bool) ($config->corte_automatico ?? true),
-                false, 3, $cols
+                false, 5, $cols
             )),
         ];
 
