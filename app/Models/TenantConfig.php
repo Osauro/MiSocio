@@ -35,6 +35,7 @@ class TenantConfig extends Model
         'impresion_auto_venta',
         'impresion_auto_prestamo',
         'impresion_auto_inventario',
+        'print_agent_secret_key',
         // WhatsApp API
         'whatsapp_token',
         'whatsapp_phone_id',

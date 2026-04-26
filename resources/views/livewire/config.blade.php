@@ -519,6 +519,60 @@
                                     </div>
 
                                 </div>
+
+                                <!-- Clave secreta del Print Agent -->
+                                <div class="row mt-4">
+                                    <div class="col-md-8">
+                                        <div class="card border shadow-sm">
+                                            <div class="card-header bg-secondary text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="fa-solid fa-key me-2"></i>
+                                                    Clave Secreta del Print Agent
+                                                </h5>
+                                            </div>
+                                            <div class="card-body d-flex flex-column gap-3">
+                                                <p class="text-muted small mb-1">
+                                                    Esta clave debe coincidir con la configurada en el Print Agent instalado en el equipo del cliente.
+                                                    Pégala desde el agente o genera una nueva y cópiala allí.
+                                                </p>
+                                                <div x-data="{ mostrar: false }">
+                                                    <label class="form-label fw-semibold">Clave (hex 64 caracteres)</label>
+                                                    <div class="input-group">
+                                                        <input :type="mostrar ? 'text' : 'password'"
+                                                               class="form-control font-monospace"
+                                                               wire:model.blur="print_agent_secret_key"
+                                                               wire:change="guardarImpresion"
+                                                               placeholder="Pega aquí la clave del Print Agent"
+                                                               maxlength="64">
+                                                        <button class="btn btn-outline-secondary" type="button"
+                                                                @click="mostrar = !mostrar"
+                                                                title="Mostrar / ocultar">
+                                                            <i :class="mostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-secondary" type="button"
+                                                                @click="navigator.clipboard.writeText($wire.print_agent_secret_key)"
+                                                                title="Copiar al portapapeles">
+                                                            <i class="fa-solid fa-copy"></i>
+                                                        </button>
+                                                    </div>
+                                                    @error('print_agent_secret_key')
+                                                        <span class="text-danger small d-block mt-1">{{ $message }}</span>
+                                                    @enderror
+                                                </div>
+                                                <div>
+                                                    <button class="btn btn-warning btn-sm"
+                                                            wire:click="regenerarPrintKey"
+                                                            wire:confirm="¿Regenerar la clave? Deberás actualizarla también en el Print Agent."
+                                                            wire:loading.attr="disabled">
+                                                        <i class="fa-solid fa-rotate me-1"></i>
+                                                        Regenerar clave
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                             @endif
 

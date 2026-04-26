@@ -68,7 +68,11 @@ class TicketController extends Controller
 
         /** @var EscposPrinterService $svc */
         $svc  = app(EscposPrinterService::class);
-        $key  = $svc->getSecretKey();
+        $key  = $config->print_agent_secret_key ?? config('print_agent.secret_key');
+
+        if (empty($key)) {
+            return response()->json(['error' => 'Clave del Print Agent no configurada'], 422);
+        }
         $cols = ($config->papel_tamano === '58mm') ? 32 : 48;
 
         // ── Nombre de la impresora ──────────────────────────────────────

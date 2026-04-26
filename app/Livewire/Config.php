@@ -48,6 +48,7 @@ class Config extends Component
     public $impresion_auto_venta;
     public $impresion_auto_prestamo;
     public $impresion_auto_inventario;
+    public $print_agent_secret_key;
 
     // WhatsApp API
     public $whatsapp_token;
@@ -172,6 +173,7 @@ class Config extends Component
         $this->impresion_auto_venta = $config->impresion_auto_venta ?? false;
         $this->impresion_auto_prestamo = $config->impresion_auto_prestamo ?? false;
         $this->impresion_auto_inventario = $config->impresion_auto_inventario ?? false;
+        $this->print_agent_secret_key = $config->print_agent_secret_key ?? '';
 
         // WhatsApp
         $this->whatsapp_token = $config->whatsapp_token;
@@ -284,6 +286,7 @@ class Config extends Component
             'impresion_auto_venta' => 'boolean',
             'impresion_auto_prestamo' => 'boolean',
             'impresion_auto_inventario' => 'boolean',
+            'print_agent_secret_key' => 'nullable|string|size:64|regex:/^[a-fA-F0-9]+$/',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -299,9 +302,21 @@ class Config extends Component
             'impresion_auto_venta' => $this->impresion_auto_venta ?? false,
             'impresion_auto_prestamo' => $this->impresion_auto_prestamo ?? false,
             'impresion_auto_inventario' => $this->impresion_auto_inventario ?? false,
+            'print_agent_secret_key' => $this->print_agent_secret_key ?: null,
         ]);
 
         $this->toast('success', 'Impresión guardada');
+    }
+
+    public function regenerarPrintKey()
+    {
+        $newKey = bin2hex(random_bytes(32));
+        $this->print_agent_secret_key = $newKey;
+
+        $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
+        $config->update(['print_agent_secret_key' => $newKey]);
+
+        $this->toast('success', 'Clave regenerada — cópiala en el Print Agent');
     }
 
     public function eliminarLogo()
@@ -356,8 +371,13 @@ class Config extends Component
 
         /** @var \App\Services\EscposPrinterService $svc */
         $svc  = app(\App\Services\EscposPrinterService::class);
-        $key  = $svc->getSecretKey();
+        $key  = $this->print_agent_secret_key ?? config('print_agent.secret_key');
         $cols = ($this->papel_tamano === '58mm') ? 32 : 48;
+
+        if (empty($key)) {
+            $this->alertError('Configura la clave secreta del Print Agent primero');
+            return;
+        }
 
         $header = $svc->buildEscHeader([
             'store' => $this->nombre_tienda ?? 'Mi Tienda',
@@ -414,7 +434,12 @@ class Config extends Component
         $svc    = app(\App\Services\EscposPrinterService::class);
         $config = \App\Models\TenantConfig::getOrCreateForTenant($tenantId);
         $cols   = ($config->papel_tamano === '58mm') ? 32 : 48;
-        $key    = $svc->getSecretKey();
+        $key    = $config->print_agent_secret_key ?? config('print_agent.secret_key');
+
+        if (empty($key)) {
+            $this->alertError('Configura la clave secreta del Print Agent primero');
+            return;
+        }
 
         $header = [
             'store'   => $config->nombre_tienda ?? 'MI TIENDA',
@@ -485,7 +510,12 @@ class Config extends Component
         $svc    = app(\App\Services\EscposPrinterService::class);
         $config = \App\Models\TenantConfig::getOrCreateForTenant($tenantId);
         $cols   = ($config->papel_tamano === '58mm') ? 32 : 48;
-        $key    = $svc->getSecretKey();
+        $key    = $config->print_agent_secret_key ?? config('print_agent.secret_key');
+
+        if (empty($key)) {
+            $this->alertError('Configura la clave secreta del Print Agent primero');
+            return;
+        }
 
         $header = [
             'store'  => $config->nombre_tienda ?? 'MI TIENDA',
