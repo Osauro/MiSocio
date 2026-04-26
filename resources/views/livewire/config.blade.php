@@ -360,7 +360,7 @@
                                                     </button>
                                                 </div>
 
-                                                <x-divider class="my-3"/>
+                                                <hr class="my-3">
 
                                                 <p class="fw-semibold mb-1 small text-muted">Accesos directos</p>
                                                 <div class="d-flex flex-wrap gap-2">
