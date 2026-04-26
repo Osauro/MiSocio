@@ -49,6 +49,7 @@ class Config extends Component
     public $impresion_auto_prestamo;
     public $impresion_auto_inventario;
     public $print_agent_secret_key;
+    public $mostrar_logo;
 
     // WhatsApp API
     public $whatsapp_token;
@@ -174,6 +175,7 @@ class Config extends Component
         $this->impresion_auto_prestamo = $config->impresion_auto_prestamo ?? false;
         $this->impresion_auto_inventario = $config->impresion_auto_inventario ?? false;
         $this->print_agent_secret_key = $config->print_agent_secret_key ?? '';
+        $this->mostrar_logo = $config->mostrar_logo ?? true;
 
         // WhatsApp
         $this->whatsapp_token = $config->whatsapp_token;
@@ -287,6 +289,7 @@ class Config extends Component
             'impresion_auto_prestamo' => 'boolean',
             'impresion_auto_inventario' => 'boolean',
             'print_agent_secret_key' => 'nullable|string|size:64|regex:/^[a-fA-F0-9]+$/',
+            'mostrar_logo' => 'boolean',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -303,6 +306,7 @@ class Config extends Component
             'impresion_auto_prestamo' => $this->impresion_auto_prestamo ?? false,
             'impresion_auto_inventario' => $this->impresion_auto_inventario ?? false,
             'print_agent_secret_key' => $this->print_agent_secret_key ?: null,
+            'mostrar_logo' => $this->mostrar_logo ?? true,
         ]);
 
         $this->toast('success', 'Impresión guardada');
@@ -473,12 +477,9 @@ class Config extends Component
 
         $job = [
             'printer' => $config->impresora_nombre ?? '',
-            'logo'    => (bool) ($config->logo ?? false),
+            'logo'    => (bool) ($config->mostrar_logo ?? true),
             'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
             'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
-            'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
-            'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
-                '¡Gracias por su compra!',
                 (bool) ($config->corte_automatico ?? true),
                 (bool) ($config->abrir_cajon ?? false),
                 3, $cols
@@ -542,7 +543,7 @@ class Config extends Component
 
         $job = [
             'printer' => $config->impresora_nombre ?? '',
-            'logo'    => (bool) ($config->logo ?? false),
+            'logo'    => (bool) ($config->mostrar_logo ?? true),
             'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
             'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
             'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),

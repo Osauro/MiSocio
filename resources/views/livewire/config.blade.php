@@ -303,274 +303,223 @@
                                  }"
                                  @enviar-a-agente.window="enviarAgente($event.detail.agentUrl, $event.detail.job, $event.detail.successMsg)">
 
-                                <!-- Botón descargar instalador -->
-                                <div class="d-none d-md-flex justify-content-end mb-3">
-                                    <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat"
-                                       class="btn btn-success">
-                                        <i class="fa-solid fa-download me-1"></i>
-                                        Descargar Instalador
-                                    </a>
-                                </div>
-
                                 <div class="row g-3">
 
-                                    <!-- ── Card: App de Impresión ── -->
-                                    <div class="col-md-4 d-none d-md-block">
-                                        <div class="card border shadow-sm h-100">
-                                            <div class="card-header bg-primary text-white d-flex align-items-center">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-server me-2"></i>
-                                                    App de Impresión
-                                                </h5>
+                                    <!-- ── Izquierda: App + Clave ── -->
+                                    <div class="col-12 col-md-4 d-flex flex-column gap-3">
+
+                                        <!-- App de Impresión -->
+                                        <div class="card border shadow-sm">
+                                            <div class="card-header bg-primary text-white">
+                                                <h6 class="mb-0"><i class="fa-solid fa-server me-2"></i>App de Impresión</h6>
                                             </div>
-
-                                            <div class="card-body">
-                                                <p class="text-muted small mb-3">
-                                                    <i class="fa-solid fa-link me-1"></i>
-                                                    {{ $printAgentUrl }}
-                                                </p>
-
-                                                <p class="fw-semibold mb-2">Prueba de impresión:</p>
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    <button type="button"
-                                                            class="btn btn-outline-primary btn-sm"
-                                                            wire:click="impresionPruebaLegacy"
-                                                            wire:loading.attr="disabled"
-                                                            :disabled="printando">
-                                                        <span x-show="printando" class="spinner-border spinner-border-sm me-1"></span>
-                                                        <i class="fa-solid fa-print me-1" x-show="!printando"></i>
-                                                        Imprimir Prueba
-                                                    </button>
-                                                </div>
-
-                                                <hr class="my-3">
-
-                                                <p class="fw-semibold mb-1 small text-muted">Accesos directos</p>
-                                                <div class="d-flex flex-wrap gap-2">
-                                                    <button type="button"
-                                                            class="btn btn-outline-danger btn-sm"
+                                            <div class="card-body d-flex flex-column gap-2">
+                                                <small class="text-muted"><i class="fa-solid fa-link me-1"></i>{{ $printAgentUrl }}</small>
+                                                <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat"
+                                                   class="btn btn-success btn-sm w-100">
+                                                    <i class="fa-solid fa-download me-1"></i>Descargar Instalador
+                                                </a>
+                                                <hr class="my-1">
+                                                <button type="button" class="btn btn-outline-primary btn-sm w-100"
+                                                        wire:click="impresionPruebaLegacy"
+                                                        wire:loading.attr="disabled" :disabled="printando">
+                                                    <span x-show="printando" class="spinner-border spinner-border-sm me-1"></span>
+                                                    <i class="fa-solid fa-print me-1" x-show="!printando"></i>
+                                                    Imprimir Prueba
+                                                </button>
+                                                <div class="d-flex gap-2">
+                                                    <button type="button" class="btn btn-outline-danger btn-sm flex-fill"
                                                             wire:click="imprimirUltimaVenta"
-                                                            wire:loading.attr="disabled"
-                                                            :disabled="printando">
-                                                        <i class="fa-solid fa-cart-shopping me-1"></i>
-                                                        Última Venta
+                                                            wire:loading.attr="disabled" :disabled="printando">
+                                                        <i class="fa-solid fa-cart-shopping me-1"></i>Última Venta
                                                     </button>
                                                     @if(prestamosHabilitados())
-                                                    <button type="button"
-                                                            class="btn btn-outline-warning btn-sm"
+                                                    <button type="button" class="btn btn-outline-warning btn-sm flex-fill"
                                                             wire:click="imprimirUltimoPrestamo"
-                                                            wire:loading.attr="disabled"
-                                                            :disabled="printando">
-                                                        <i class="fa-solid fa-hand-holding-dollar me-1"></i>
-                                                        Último Préstamo
+                                                            wire:loading.attr="disabled" :disabled="printando">
+                                                        <i class="fa-solid fa-hand-holding-dollar me-1"></i>Préstamo
                                                     </button>
                                                     @endif
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- ── Card: Configuración de Impresora (por tenant) ── -->
-                                    <div class="col-md-4">
-                                        <div class="card border shadow-sm h-100">
-                                            <div class="card-header bg-info text-white">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-print me-2"></i>
-                                                    Configuración de Impresora
-                                                </h5>
-                                            </div>
-                                            <div class="card-body d-flex flex-column gap-3">
-
-                                                <!-- Nombre de la impresora en el agente -->
-                                                <div>
-                                                    <label class="form-label fw-semibold">Nombre en el agente</label>
-                                                    <input type="text" class="form-control"
-                                                           wire:model.blur="impresora_nombre"
-                                                           wire:change="guardarImpresion"
-                                                           placeholder="Ej: Fadi, MiSocioPOS, Recibos">
-                                                    <small class="text-muted">
-                                                        <i class="fa-solid fa-info-circle me-1"></i>
-                                                        Nombre exacto de la impresora registrada en el Print Agent.
-                                                    </small>
-                                                    @error('impresora_nombre') <span class="text-danger small d-block mt-1">{{ $message }}</span> @enderror
-                                                </div>
-
-                                                <!-- Tamaño de papel -->
-                                                <div>
-                                                    <label class="form-label fw-semibold">Tamaño de Papel</label>
-                                                    <select class="form-select"
-                                                            wire:model="papel_tamano"
-                                                            wire:change="guardarImpresion">
-                                                        <option value="58mm">58mm — Térmico pequeño (32 col)</option>
-                                                        <option value="80mm">80mm — Térmico estándar (48 col)</option>
-                                                    </select>
-                                                    @error('papel_tamano') <span class="text-danger small d-block mt-1">{{ $message }}</span> @enderror
-                                                </div>
-
-                                                <!-- Corte automático -->
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <p class="fw-semibold mb-0">Corte automático</p>
-                                                        <small class="text-muted">Cortar papel al finalizar</small>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" role="switch"
-                                                               wire:model="corte_automatico"
-                                                               wire:change="guardarImpresion"
-                                                               style="width: 3rem; height: 1.5rem;">
-                                                    </div>
-                                                </div>
-
-                                                <!-- Abrir cajón -->
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <p class="fw-semibold mb-0">Abrir cajón de dinero</p>
-                                                        <small class="text-muted">Pulso tras imprimir venta</small>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" role="switch"
-                                                               wire:model="abrir_cajon"
-                                                               wire:change="guardarImpresion"
-                                                               style="width: 3rem; height: 1.5rem;">
-                                                    </div>
-                                                </div>
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- ── Card: Impresión Automática ── -->
-                                    <div class="col-md-4">
-                                        <div class="card border shadow-sm h-100">
-                                            <div class="card-header bg-danger text-white">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-bolt me-2"></i>
-                                                    Impresión Automática
-                                                </h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <p class="text-muted small mb-3">
-                                                    Al finalizar el proceso se imprimirá automáticamente el ticket
-                                                    correspondiente (requiere la app de impresión activa).
-                                                </p>
-
-                                                <!-- Toggle Ventas -->
-                                                @if(ventasHabilitados())
-                                                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                                                    <div>
-                                                        <p class="fw-semibold mb-0">
-                                                            <i class="fa-solid fa-cart-shopping me-2 text-danger"></i>
-                                                            Ventas
-                                                        </p>
-                                                        <small class="text-muted">Imprimir ticket al finalizar una venta</small>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" role="switch"
-                                                               wire:model="impresion_auto_venta"
-                                                               wire:change="guardarImpresion"
-                                                               id="toggle_auto_venta"
-                                                               style="width: 3rem; height: 1.5rem;">
-                                                    </div>
-                                                </div>
-                                                @endif
-
-                                                <!-- Toggle Préstamos -->
-                                                @if(prestamosHabilitados())
-                                                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
-                                                    <div>
-                                                        <p class="fw-semibold mb-0">
-                                                            <i class="fa-solid fa-hand-holding-dollar me-2 text-warning"></i>
-                                                            Préstamos
-                                                        </p>
-                                                        <small class="text-muted">Imprimir recibo al finalizar un préstamo</small>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" role="switch"
-                                                               wire:model="impresion_auto_prestamo"
-                                                               wire:change="guardarImpresion"
-                                                               id="toggle_auto_prestamo"
-                                                               style="width: 3rem; height: 1.5rem;">
-                                                    </div>
-                                                </div>
-                                                @endif
-
-                                                <!-- Toggle Inventario -->
-                                                @if(comprasHabilitados())
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <p class="fw-semibold mb-0">
-                                                            <i class="fa-solid fa-boxes-stacked me-2 text-info"></i>
-                                                            Inventario
-                                                        </p>
-                                                        <small class="text-muted">Imprimir reporte al finalizar un inventario</small>
-                                                    </div>
-                                                    <div class="form-check form-switch mb-0">
-                                                        <input class="form-check-input" type="checkbox" role="switch"
-                                                               wire:model="impresion_auto_inventario"
-                                                               wire:change="guardarImpresion"
-                                                               id="toggle_auto_inventario"
-                                                               style="width: 3rem; height: 1.5rem;">
-                                                    </div>
-                                                </div>
-                                                @endif
-
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <!-- Clave secreta del Print Agent -->
-                                <div class="row mt-4">
-                                    <div class="col-md-8">
+                                        <!-- Clave Secreta -->
                                         <div class="card border shadow-sm">
                                             <div class="card-header bg-secondary text-white">
-                                                <h5 class="mb-0">
-                                                    <i class="fa-solid fa-key me-2"></i>
-                                                    Clave Secreta del Print Agent
-                                                </h5>
+                                                <h6 class="mb-0"><i class="fa-solid fa-key me-2"></i>Clave del Print Agent</h6>
                                             </div>
-                                            <div class="card-body d-flex flex-column gap-3">
-                                                <p class="text-muted small mb-1">
-                                                    Esta clave debe coincidir con la configurada en el Print Agent instalado en el equipo del cliente.
-                                                    Pégala desde el agente o genera una nueva y cópiala allí.
-                                                </p>
-                                                <div x-data="{ mostrar: false }">
-                                                    <label class="form-label fw-semibold">Clave (hex 64 caracteres)</label>
-                                                    <div class="input-group">
-                                                        <input :type="mostrar ? 'text' : 'password'"
-                                                               class="form-control font-monospace"
-                                                               wire:model.blur="print_agent_secret_key"
-                                                               wire:change="guardarImpresion"
-                                                               placeholder="Pega aquí la clave del Print Agent"
-                                                               maxlength="64">
-                                                        <button class="btn btn-outline-secondary" type="button"
-                                                                @click="mostrar = !mostrar"
-                                                                title="Mostrar / ocultar">
-                                                            <i :class="mostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
-                                                        </button>
-                                                        <button class="btn btn-outline-secondary" type="button"
-                                                                @click="navigator.clipboard.writeText($wire.print_agent_secret_key)"
-                                                                title="Copiar al portapapeles">
-                                                            <i class="fa-solid fa-copy"></i>
-                                                        </button>
-                                                    </div>
-                                                    @error('print_agent_secret_key')
-                                                        <span class="text-danger small d-block mt-1">{{ $message }}</span>
-                                                    @enderror
-                                                </div>
-                                                <div>
-                                                    <button class="btn btn-warning btn-sm"
-                                                            wire:click="regenerarPrintKey"
-                                                            wire:confirm="¿Regenerar la clave? Deberás actualizarla también en el Print Agent."
-                                                            wire:loading.attr="disabled">
-                                                        <i class="fa-solid fa-rotate me-1"></i>
-                                                        Regenerar clave
+                                            <div class="card-body d-flex flex-column gap-2" x-data="{ mostrar: false }">
+                                                <div class="input-group input-group-sm">
+                                                    <input :type="mostrar ? 'text' : 'password'"
+                                                           class="form-control font-monospace"
+                                                           wire:model.blur="print_agent_secret_key"
+                                                           wire:change="guardarImpresion"
+                                                           placeholder="Pega la clave aquí"
+                                                           maxlength="64">
+                                                    <button class="btn btn-outline-secondary" type="button"
+                                                            @click="mostrar = !mostrar">
+                                                        <i :class="mostrar ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-secondary" type="button"
+                                                            @click="navigator.clipboard.writeText($wire.print_agent_secret_key)">
+                                                        <i class="fa-solid fa-copy"></i>
                                                     </button>
                                                 </div>
+                                                @error('print_agent_secret_key')
+                                                    <span class="text-danger small">{{ $message }}</span>
+                                                @enderror
+                                                <button class="btn btn-warning btn-sm"
+                                                        wire:click="regenerarPrintKey"
+                                                        wire:confirm="¿Regenerar la clave? Deberás actualizarla también en el Print Agent."
+                                                        wire:loading.attr="disabled">
+                                                    <i class="fa-solid fa-rotate me-1"></i>Regenerar clave
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- ── Derecha: Configuración completa ── -->
+                                    <div class="col-12 col-md-8">
+                                        <div class="card border shadow-sm h-100">
+                                            <div class="card-header bg-info text-white">
+                                                <h6 class="mb-0"><i class="fa-solid fa-print me-2"></i>Configuración del Ticket</h6>
+                                            </div>
+                                            <div class="card-body d-flex flex-column gap-3">
+
+                                                <!-- Nombre + Papel en fila -->
+                                                <div class="row g-2">
+                                                    <div class="col-7">
+                                                        <label class="form-label fw-semibold small mb-1">Nombre en el agente</label>
+                                                        <input type="text" class="form-control form-control-sm"
+                                                               wire:model.blur="impresora_nombre"
+                                                               wire:change="guardarImpresion"
+                                                               placeholder="Ej: Fadi, MiSocioPOS">
+                                                        @error('impresora_nombre') <span class="text-danger small">{{ $message }}</span> @enderror
+                                                    </div>
+                                                    <div class="col-5">
+                                                        <label class="form-label fw-semibold small mb-1">Papel</label>
+                                                        <select class="form-select form-select-sm"
+                                                                wire:model="papel_tamano"
+                                                                wire:change="guardarImpresion">
+                                                            <option value="58mm">58mm (32 col)</option>
+                                                            <option value="80mm">80mm (48 col)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <hr class="my-0">
+                                                <p class="fw-semibold small text-muted mb-0">Opciones del ticket</p>
+
+                                                <!-- Toggles opciones -->
+                                                <div class="row g-2">
+                                                    <!-- Logo -->
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="d-flex justify-content-between align-items-center border rounded px-3 py-2">
+                                                            <div>
+                                                                <p class="fw-semibold mb-0 small"><i class="fa-solid fa-image me-1 text-primary"></i>Logo</p>
+                                                                <small class="text-muted">Incluir logo</small>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="mostrar_logo"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.5rem;height:1.3rem;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Corte -->
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="d-flex justify-content-between align-items-center border rounded px-3 py-2">
+                                                            <div>
+                                                                <p class="fw-semibold mb-0 small"><i class="fa-solid fa-scissors me-1 text-danger"></i>Corte</p>
+                                                                <small class="text-muted">Cortar al finalizar</small>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="corte_automatico"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.5rem;height:1.3rem;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <!-- Cajón -->
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="d-flex justify-content-between align-items-center border rounded px-3 py-2">
+                                                            <div>
+                                                                <p class="fw-semibold mb-0 small"><i class="fa-solid fa-cash-register me-1 text-success"></i>Cajón</p>
+                                                                <small class="text-muted">Abrir al imprimir</small>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="abrir_cajon"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.5rem;height:1.3rem;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <hr class="my-0">
+                                                <p class="fw-semibold small text-muted mb-0">Impresión automática</p>
+
+                                                <!-- Toggles automática -->
+                                                <div class="row g-2">
+                                                    @if(ventasHabilitados())
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="d-flex justify-content-between align-items-center border rounded px-3 py-2">
+                                                            <div>
+                                                                <p class="fw-semibold mb-0 small"><i class="fa-solid fa-cart-shopping me-1 text-danger"></i>Ventas</p>
+                                                                <small class="text-muted">Al cerrar venta</small>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="impresion_auto_venta"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.5rem;height:1.3rem;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    @endif
+                                                    @if(prestamosHabilitados())
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="d-flex justify-content-between align-items-center border rounded px-3 py-2">
+                                                            <div>
+                                                                <p class="fw-semibold mb-0 small"><i class="fa-solid fa-hand-holding-dollar me-1 text-warning"></i>Préstamos</p>
+                                                                <small class="text-muted">Al cerrar préstamo</small>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="impresion_auto_prestamo"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.5rem;height:1.3rem;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    @endif
+                                                    @if(comprasHabilitados())
+                                                    <div class="col-12 col-sm-4">
+                                                        <div class="d-flex justify-content-between align-items-center border rounded px-3 py-2">
+                                                            <div>
+                                                                <p class="fw-semibold mb-0 small"><i class="fa-solid fa-boxes-stacked me-1 text-info"></i>Inventario</p>
+                                                                <small class="text-muted">Al cerrar inventario</small>
+                                                            </div>
+                                                            <div class="form-check form-switch mb-0">
+                                                                <input class="form-check-input" type="checkbox" role="switch"
+                                                                       wire:model="impresion_auto_inventario"
+                                                                       wire:change="guardarImpresion"
+                                                                       style="width:2.5rem;height:1.3rem;">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    @endif
+                                                </div>
+
                                             </div>
                                         </div>
                                     </div>
+
                                 </div>
 
                             </div>
