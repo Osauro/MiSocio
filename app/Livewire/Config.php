@@ -29,12 +29,6 @@ class Config extends Component
 
     // General - Otros
     public $sueldo_base;
-    public $ip_local;
-
-    // Logo
-    public $logo;
-    public $logo_actual;
-    public $nuevo_logo;
 
     // Impresión
     public $impresora_nombre;
@@ -96,9 +90,6 @@ class Config extends Component
             'propietario_celular' => 'nullable|string|max:50',
             // General - Otros
             'sueldo_base' => 'nullable|numeric|min:0',
-            'ip_local' => 'nullable|string|max:45',
-            // Logo
-            'nuevo_logo' => 'nullable|image|max:1024',
             // Impresión
             'impresora_nombre' => 'nullable|string|max:255',
             'impresora_tipo' => 'required|in:termica,laser,inyeccion',
@@ -160,10 +151,6 @@ class Config extends Component
 
         // General - Otros
         $this->sueldo_base = $config->sueldo_base;
-        $this->ip_local = $config->ip_local;
-
-        // Logo
-        $this->logo_actual = $config->logo;
 
         // Impresión
         $this->impresora_nombre = $config->impresora_nombre;
@@ -228,24 +215,9 @@ class Config extends Component
             'propietario_nombre' => 'nullable|string|max:255',
             'propietario_celular' => 'nullable|string|max:50',
             'sueldo_base' => 'nullable|numeric|min:0',
-            'ip_local' => 'nullable|string|max:45',
-            'nuevo_logo' => 'nullable|image|max:1024',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
-
-        // Procesar logo si se subió uno nuevo
-        $logoPath = $config->logo;
-        if ($this->nuevo_logo) {
-            // Eliminar logo anterior si existe
-            if ($config->logo && Storage::disk('public')->exists($config->logo)) {
-                Storage::disk('public')->delete($config->logo);
-            }
-            // Guardar nuevo logo
-            $logoPath = $this->nuevo_logo->store('logos/' . $this->getTenantId(), 'public');
-            $this->logo_actual = $logoPath;
-            $this->nuevo_logo = null;
-        }
 
         $config->update([
             'nombre_tienda' => $this->nombre_tienda,
@@ -256,8 +228,6 @@ class Config extends Component
             'propietario_nombre' => $this->propietario_nombre,
             'propietario_celular' => $this->propietario_celular,
             'sueldo_base' => $this->sueldo_base ?? 0,
-            'ip_local' => $this->ip_local,
-            'logo' => $logoPath,
         ]);
 
         // Actualizar nombre del tenant si cambió
@@ -273,9 +243,7 @@ class Config extends Component
 
     public function updatedNuevoLogo()
     {
-        if ($this->nuevo_logo) {
-            $this->guardarGeneral();
-        }
+        // Eliminado — subida de logo removida
     }
 
     public function guardarImpresion()
@@ -327,20 +295,6 @@ class Config extends Component
         $config->update(['print_agent_secret_key' => $newKey]);
 
         $this->toast('success', 'Clave regenerada — cópiala en el Print Agent');
-    }
-
-    public function eliminarLogo()
-    {
-        $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
-
-        if ($config->logo && Storage::disk('public')->exists($config->logo)) {
-            Storage::disk('public')->delete($config->logo);
-        }
-
-        $config->update(['logo' => null]);
-        $this->logo_actual = null;
-
-        $this->alertSuccess('Logo eliminado correctamente');
     }
 
     public function detectarImpresoras()
