@@ -359,16 +359,14 @@ class Config extends Component
         $key  = $svc->getSecretKey();
         $cols = ($this->papel_tamano === '58mm') ? 32 : 48;
 
-        // Ticket de prueba sencillo
         $header = $svc->buildEscHeader([
             'store' => $this->nombre_tienda ?? 'Mi Tienda',
             'title' => 'IMPRESIÓN DE PRUEBA',
             'date'  => now()->format('d/m/Y H:i:s'),
         ], $cols);
 
-        $body = "\x1B\x61\x01"  // center
+        $body = "\x1B\x61\x01"
               . "Impresora: {$this->impresora_nombre}\n"
-              . "Tipo: {$this->impresora_tipo}\n"
               . "Papel: {$this->papel_tamano}\n"
               . "Ancho: {$cols} caracteres\n"
               . str_repeat('-', $cols) . "\n"
@@ -379,24 +377,23 @@ class Config extends Component
             '¡Configuración correcta!',
             (bool) $this->corte_automatico,
             (bool) $this->abrir_cajon,
-            3,
-            $cols
+            3, $cols
         );
 
         $job = [
-            'logo'   => false,
-            'header' => $svc->encryptSection($key, $header),
-            'body'   => $svc->encryptSection($key, $body),
-            'footer' => $svc->encryptSection($key, $footer),
+            'printer' => $this->impresora_nombre,
+            'logo'    => false,
+            'header'  => $svc->encryptSection($key, $header),
+            'body'    => $svc->encryptSection($key, $body),
+            'footer'  => $svc->encryptSection($key, $footer),
         ];
 
-        $result = $svc->print($this->impresora_nombre, $job);
-
-        if ($result['ok']) {
-            $this->alertSuccess('Impresión de prueba enviada correctamente');
-        } else {
-            $this->alertError('Error: ' . ($result['error'] ?? 'El agente no está disponible'));
-        }
+        // La llamada la hace el navegador (el agente corre en el PC del cliente)
+        $this->dispatch('enviar-a-agente',
+            agentUrl: config('print_agent.base_url'),
+            job: $job,
+            successMsg: 'Impresión de prueba enviada'
+        );
     }
 
     public function imprimirUltimaVenta()
@@ -450,11 +447,12 @@ class Config extends Component
         $totales['TOTAL'] = (float) $venta->total;
 
         $job = [
-            'logo'   => (bool) ($config->logo ?? false),
-            'header' => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
-            'body'   => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
-            'totals' => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
-            'footer' => $svc->encryptSection($key, $svc->buildEscFooter(
+            'printer' => $config->impresora_nombre ?? '',
+            'logo'    => (bool) ($config->logo ?? false),
+            'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
+            'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
+            'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
+            'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
                 '¡Gracias por su compra!',
                 (bool) ($config->corte_automatico ?? true),
                 (bool) ($config->abrir_cajon ?? false),
@@ -462,27 +460,74 @@ class Config extends Component
             )),
         ];
 
-        $result = $svc->print($config->impresora_nombre ?? '', $job);
-
-        if ($result['ok']) {
-            $this->alertSuccess('Venta #' . $venta->numero_folio . ' enviada a imprimir');
-        } else {
-            $this->alertError('Error: ' . ($result['error'] ?? 'Agente no disponible'));
-        }
+        // La llamada la hace el navegador (el agente corre en el PC del cliente)
+        $this->dispatch('enviar-a-agente',
+            agentUrl: config('print_agent.base_url'),
+            job: $job,
+            successMsg: 'Venta #' . $venta->numero_folio . ' enviada a imprimir'
+        );
     }
 
     public function imprimirUltimoPrestamo()
     {
         $tenantId = $this->getTenantId();
-        $prestamo = \App\Models\Prestamo::where('tenant_id', $tenantId)->latest()->first();
+        $prestamo = \App\Models\Prestamo::with(['cliente', 'user', 'prestamoItems.producto' => fn($q) => $q->withTrashed()])
+            ->where('tenant_id', $tenantId)
+            ->latest()
+            ->first();
 
         if (!$prestamo) {
             $this->alertError('No hay préstamos registrados');
             return;
         }
 
-        // Por ahora solo confirmamos — el ticket de préstamo se puede extender igual que venta
-        $this->alertSuccess('Préstamo #' . ($prestamo->numero_folio ?? $prestamo->id) . ' (próximamente)');
+        /** @var \App\Services\EscposPrinterService $svc */
+        $svc    = app(\App\Services\EscposPrinterService::class);
+        $config = \App\Models\TenantConfig::getOrCreateForTenant($tenantId);
+        $cols   = ($config->papel_tamano === '58mm') ? 32 : 48;
+        $key    = $svc->getSecretKey();
+
+        $header = [
+            'store'  => $config->nombre_tienda ?? 'MI TIENDA',
+            'address'=> $config->direccion ?? '',
+            'phone'  => $config->telefono ?? '',
+            'nit'    => $config->nit ?? '',
+            'title'  => 'PRÉSTAMO #' . ($prestamo->numero_folio ?? $prestamo->id),
+            'date'   => $prestamo->created_at->format('d/m/Y H:i:s'),
+            'user'   => $prestamo->user->name ?? '',
+            'client' => $prestamo->cliente->nombre ?? '',
+        ];
+
+        $items = $prestamo->prestamoItems->map(function ($item) {
+            $nombre = $item->producto ? $item->producto->nombre : ($item->nombre ?? 'Producto');
+            return [
+                'nombre'   => $nombre,
+                'cantidad' => $item->cantidad . ($item->medida ? ' ' . $item->medida : ''),
+                'precio'   => (float) $item->precio_unitario,
+                'subtotal' => (float) $item->subtotal,
+            ];
+        })->toArray();
+
+        $totales = ['TOTAL' => (float) $prestamo->total];
+
+        $job = [
+            'printer' => $config->impresora_nombre ?? '',
+            'logo'    => (bool) ($config->logo ?? false),
+            'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
+            'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
+            'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
+            'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
+                '¡Gracias!',
+                (bool) ($config->corte_automatico ?? true),
+                false, 3, $cols
+            )),
+        ];
+
+        $this->dispatch('enviar-a-agente',
+            agentUrl: config('print_agent.base_url'),
+            job: $job,
+            successMsg: 'Préstamo #' . ($prestamo->numero_folio ?? $prestamo->id) . ' enviado a imprimir'
+        );
     }
 
     public function guardarWhatsApp()

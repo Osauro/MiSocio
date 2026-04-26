@@ -276,7 +276,32 @@
 
                             <!-- Tab Impresión -->
                             @if($activeTab === 'impresion')
-                            <div class="tab-pane fade show active">
+                            <div class="tab-pane fade show active"
+                                 x-data="{
+                                    printando: false,
+                                    async enviarAgente(agentUrl, job, successMsg) {
+                                        this.printando = true;
+                                        try {
+                                            const res = await fetch(agentUrl.replace(/\/$/, '') + '/api/print/universal', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(job),
+                                                signal: AbortSignal.timeout(8000)
+                                            });
+                                            if (res.ok) {
+                                                Swal.fire({ icon: 'success', title: successMsg || 'Impresión enviada', timer: 2000, showConfirmButton: false });
+                                            } else {
+                                                const txt = await res.text();
+                                                Swal.fire({ icon: 'error', title: 'Error del agente', text: txt || 'Respuesta no válida' });
+                                            }
+                                        } catch (err) {
+                                            Swal.fire({ icon: 'error', title: 'Agente no disponible', text: 'Verifica que el Print Agent esté corriendo en ' + agentUrl });
+                                        } finally {
+                                            this.printando = false;
+                                        }
+                                    }
+                                 }"
+                                 @enviar-a-agente.window="enviarAgente($event.detail.agentUrl, $event.detail.job, $event.detail.successMsg)">
 
                                 <!-- Botón descargar instalador -->
                                 <div class="d-none d-md-flex justify-content-end mb-3">
@@ -310,8 +335,10 @@
                                                     <button type="button"
                                                             class="btn btn-outline-primary btn-sm"
                                                             wire:click="impresionPruebaLegacy"
-                                                            wire:loading.attr="disabled">
-                                                        <i class="fa-solid fa-print me-1"></i>
+                                                            wire:loading.attr="disabled"
+                                                            :disabled="printando">
+                                                        <span x-show="printando" class="spinner-border spinner-border-sm me-1"></span>
+                                                        <i class="fa-solid fa-print me-1" x-show="!printando"></i>
                                                         Imprimir Prueba
                                                     </button>
                                                 </div>
@@ -323,7 +350,8 @@
                                                     <button type="button"
                                                             class="btn btn-outline-danger btn-sm"
                                                             wire:click="imprimirUltimaVenta"
-                                                            wire:loading.attr="disabled">
+                                                            wire:loading.attr="disabled"
+                                                            :disabled="printando">
                                                         <i class="fa-solid fa-cart-shopping me-1"></i>
                                                         Última Venta
                                                     </button>
@@ -331,7 +359,8 @@
                                                     <button type="button"
                                                             class="btn btn-outline-warning btn-sm"
                                                             wire:click="imprimirUltimoPrestamo"
-                                                            wire:loading.attr="disabled">
+                                                            wire:loading.attr="disabled"
+                                                            :disabled="printando">
                                                         <i class="fa-solid fa-hand-holding-dollar me-1"></i>
                                                         Último Préstamo
                                                     </button>
