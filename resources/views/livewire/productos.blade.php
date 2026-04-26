@@ -114,6 +114,7 @@
                                         </div>
                                         <div class="card-footer bg-light py-1 px-2">
                                             <div class="d-flex justify-content-between align-items-center">
+                                                @if(comprasHabilitados())
                                                 <div class="badge bg-dark text-center py-2 px-2" style="min-width: 80px;">
                                                     <div style="font-weight: 600; line-height: 1.2;">
                                                         @php
@@ -124,6 +125,7 @@
                                                     </div>
                                                     <small class="d-block" style="font-size: 0.65rem;">Compra</small>
                                                 </div>
+                                                @endif
                                                 <div class="badge bg-success text-center py-2 px-2" style="min-width: 80px;">
                                                     <div style="font-weight: 600; line-height: 1.2;">
                                                         @php
@@ -329,6 +331,7 @@
                                     </div>
 
                                     <!-- Precio de Compra -->
+                                    @if(comprasHabilitados())
                                     <div class="col-md-4 mb-3">
                                         <label for="precio_de_compra" class="form-label">Precio Compra (Bs.) <span
                                                 class="text-danger">*</span></label>
@@ -339,6 +342,7 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    @endif
 
                                     <!-- Precio por Mayor -->
                                     <div class="col-md-4 mb-3">
