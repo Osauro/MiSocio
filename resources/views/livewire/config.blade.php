@@ -637,6 +637,40 @@
                                     </div>
 
                                 </div>
+
+                                <!-- Zona de peligro: Resetear tenant -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card border border-danger shadow-sm">
+                                            <div class="card-header bg-danger text-white">
+                                                <h5 class="mb-0">
+                                                    <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                                    Zona de Peligro
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                                                    <div>
+                                                        <p class="fw-semibold mb-1 text-danger">Resetear todos los datos de movimiento</p>
+                                                        <small class="text-muted">
+                                                            Elimina permanentemente todas las ventas, compras, préstamos, hospedajes,
+                                                            movimientos y kardex de este tenant. Los productos, categorías, clientes
+                                                            y configuración <strong>no</strong> se eliminan.
+                                                            <br><strong class="text-danger">Esta acción no se puede deshacer.</strong>
+                                                        </small>
+                                                    </div>
+                                                    <button type="button"
+                                                        class="btn btn-danger"
+                                                        onclick="if(confirm('¿Estás seguro? Esta acción eliminará TODOS los registros de ventas, compras, préstamos, hospedajes, movimientos y kardex. Esta acción NO se puede deshacer.')) { $wire.resetearTenant() }">
+                                                        <i class="fa-solid fa-trash-can me-1"></i>
+                                                        Resetear Datos
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                             </div>
                             @endif
 

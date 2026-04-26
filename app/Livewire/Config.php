@@ -416,6 +416,43 @@ class Config extends Component
         $this->dispatch('recargar-pagina');
     }
 
+    public function resetearTenant()
+    {
+        $tenantId = $this->getTenantId();
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($tenantId) {
+            // Obtener IDs de registros padre para borrar hijos sin tenant_id
+            $ventaIds     = \Illuminate\Support\Facades\DB::table('ventas')->where('tenant_id', $tenantId)->pluck('id');
+            $compraIds    = \Illuminate\Support\Facades\DB::table('compras')->where('tenant_id', $tenantId)->pluck('id');
+            $prestamoIds  = \Illuminate\Support\Facades\DB::table('prestamos')->where('tenant_id', $tenantId)->pluck('id');
+            $hospedajeIds = \Illuminate\Support\Facades\DB::table('hospedajes')->where('tenant_id', $tenantId)->pluck('id');
+
+            // Borrar hijos primero
+            if ($ventaIds->isNotEmpty()) {
+                \Illuminate\Support\Facades\DB::table('venta_items')->whereIn('venta_id', $ventaIds)->delete();
+            }
+            if ($compraIds->isNotEmpty()) {
+                \Illuminate\Support\Facades\DB::table('compra_items')->whereIn('compra_id', $compraIds)->delete();
+            }
+            if ($prestamoIds->isNotEmpty()) {
+                \Illuminate\Support\Facades\DB::table('prestamo_items')->whereIn('prestamo_id', $prestamoIds)->delete();
+            }
+            if ($hospedajeIds->isNotEmpty()) {
+                \Illuminate\Support\Facades\DB::table('hospedaje_habitaciones')->whereIn('hospedaje_id', $hospedajeIds)->delete();
+            }
+
+            // Borrar padres
+            \Illuminate\Support\Facades\DB::table('ventas')->where('tenant_id', $tenantId)->delete();
+            \Illuminate\Support\Facades\DB::table('compras')->where('tenant_id', $tenantId)->delete();
+            \Illuminate\Support\Facades\DB::table('prestamos')->where('tenant_id', $tenantId)->delete();
+            \Illuminate\Support\Facades\DB::table('hospedajes')->where('tenant_id', $tenantId)->delete();
+            \Illuminate\Support\Facades\DB::table('movimientos')->where('tenant_id', $tenantId)->delete();
+            \Illuminate\Support\Facades\DB::table('kardex')->where('tenant_id', $tenantId)->delete();
+        });
+
+        $this->toast('success', 'Todos los datos han sido reseteados correctamente');
+    }
+
     public function guardarImportacion()
     {
         $this->validate([
