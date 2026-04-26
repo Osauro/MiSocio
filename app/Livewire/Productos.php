@@ -294,9 +294,9 @@ class Productos extends Component
                     'codigo'            => $this->codigo,
                     'medida'            => $this->medida,
                     'cantidad'          => $this->cantidad,
-                    'precio_de_compra'  => $this->precio_de_compra,
-                    'precio_por_mayor'  => $this->precio_por_mayor,
-                    'precio_por_menor'  => $this->precio_por_menor,
+                    'precio_de_compra'  => $this->precio_de_compra ?? 0,
+                    'precio_por_mayor'  => $this->precio_por_mayor ?? 0,
+                    'precio_por_menor'  => $this->precio_por_menor ?? 0,
                     'control'           => $this->control,
                 ];
 
@@ -322,9 +322,9 @@ class Productos extends Component
                     'imagen'            => $this->imagen,
                     'medida'            => $this->medida,
                     'cantidad'          => $this->cantidad,
-                    'precio_de_compra'  => $this->precio_de_compra,
-                    'precio_por_mayor'  => $this->precio_por_mayor,
-                    'precio_por_menor'  => $this->precio_por_menor,
+                    'precio_de_compra'  => $this->precio_de_compra ?? 0,
+                    'precio_por_mayor'  => $this->precio_por_mayor ?? 0,
+                    'precio_por_menor'  => $this->precio_por_menor ?? 0,
                     'stock'             => 0,
                     'control'           => $this->control,
                 ]);
