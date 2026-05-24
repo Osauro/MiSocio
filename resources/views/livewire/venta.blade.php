@@ -197,7 +197,7 @@
                                                     @php
                                                         $yaAgregado = collect($items)->firstWhere('producto_id', $producto['id']);
                                                         $sinStock = comprasHabilitados() && $producto['stock'] <= 0;
-                                                        $deshabilitado = $yaAgregado || $sinStock;
+                                                        $deshabilitado = $sinStock;
                                                     @endphp
                                                     <div class="card mb-2 border-0 shadow-sm producto-result {{ $deshabilitado ? 'disabled' : '' }}"
                                                         wire:key="producto-{{ $producto['id'] }}"
@@ -230,7 +230,9 @@
                                                                     </div>
                                                                 </div>
                                                                 @if($yaAgregado)
-                                                                    <i class="fa-solid fa-check text-success"></i>
+                                                                    <span class="badge bg-success" title="En carrito">
+                                                                        {{ $yaAgregado['enteros'] * $yaAgregado['cantidad_por_medida'] + $yaAgregado['unidades'] }}u
+                                                                    </span>
                                                                 @elseif($sinStock)
                                                                     <i class="fa-solid fa-ban text-danger"></i>
                                                                 @else

@@ -262,11 +262,14 @@ class Venta extends Component
     {
         $producto = Producto::findOrFail($productoId);
 
-        // Verificar si ya existe en los items
-        $existe = collect($this->items)->firstWhere('producto_id', $productoId);
+        // Verificar si ya existe en los items — si existe, agregar 1 unidad más
+        $indexExistente = collect($this->items)->search(fn($item) => $item['producto_id'] === $productoId);
 
-        if ($existe) {
-            $this->toast('warning', 'El producto ya está en el carrito');
+        if ($indexExistente !== false) {
+            $this->items[$indexExistente]['unidades'] += 1;
+            $this->actualizarItem($indexExistente);
+            $this->dispatch('focusBuscador');
+            $this->dispatch('actualizar-badge-venta');
             return;
         }
 
