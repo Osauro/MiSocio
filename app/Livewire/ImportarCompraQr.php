@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Categoria;
 use App\Models\Compra as CompraModel;
+use App\Models\GaleriaImagen;
 use App\Models\CompraItem;
 use App\Models\Kardex;
 use App\Models\Movimiento;
@@ -170,6 +171,12 @@ class ImportarCompraQr extends Component
                 $precioPorMayor = ceil($precio * 1.10);
                 $precioPorMenor = ceil(($precioPorMayor / max($cantidad, 1)) * 1.05 * 2) / 2;
 
+                // Buscar imagen en galería por nombre o tags del producto
+                $imagenGaleria = GaleriaImagen::whereRaw('LOWER(nombre) = ?', [mb_strtolower($nombre)])
+                    ->orWhere('tags', 'like', '%' . $nombre . '%')
+                    ->orderByDesc('veces_usado')
+                    ->first();
+
                 $producto = Producto::create([
                     'tenant_id'        => currentTenantId(),
                     'categoria_id'     => $cat->id,
@@ -182,7 +189,12 @@ class ImportarCompraQr extends Component
                     'precio_por_menor' => $precioPorMenor,
                     'stock'            => 0,
                     'control'          => true,
+                    'imagen'           => $imagenGaleria?->url,
                 ]);
+
+                if ($imagenGaleria) {
+                    $imagenGaleria->increment('veces_usado');
+                }
             }
 
             CompraItem::create([
