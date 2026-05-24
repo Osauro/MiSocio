@@ -622,9 +622,10 @@ body,
     border-radius: 50%;
     background-color: var(--theme-default, #7366ff);
     border: 2px solid #fff;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    vertical-align: top;
     margin-left: -10px;
 }
 
