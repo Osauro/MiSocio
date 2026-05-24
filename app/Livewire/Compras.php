@@ -8,6 +8,7 @@ use App\Models\Movimiento;
 use App\Models\Kardex;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
+use Livewire\Attributes\On;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
@@ -504,6 +505,12 @@ class Compras extends Component
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
         }, 'compra-' . $compra->id . '.pdf');
+    }
+
+    #[On('actualizar-lista-compras')]
+    public function refrescarLista(): void
+    {
+        $this->resetPage();
     }
 
     public function render()

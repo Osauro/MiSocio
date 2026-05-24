@@ -19,6 +19,10 @@
                                     @endif
                                     <input type="text" class="form-control text-start" placeholder="Buscar compra..."
                                         wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
+                                    <button type="button" class="btn btn-outline-secondary" title="Importar compra por QR"
+                                        x-on:click="$dispatch('abrir-importar-qr')">
+                                        <i class="fa-solid fa-qrcode"></i>
+                                    </button>
                                     <button class="btn btn-primary" wire:click="crearCompra"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
@@ -39,6 +43,10 @@
                             @endif
                             <input type="text" class="form-control text-start" placeholder="Buscar compra..."
                                 wire:model.live="search" id="searchInput" autofocus>
+                            <button type="button" class="btn btn-outline-secondary" title="Importar compra por QR"
+                                x-on:click="$dispatch('abrir-importar-qr')">
+                                <i class="fa-solid fa-qrcode"></i>
+                            </button>
                             <button class="btn btn-primary" wire:click="crearCompra"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
@@ -816,4 +824,7 @@
 
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
+
+    <!-- Importar compra por QR -->
+    <livewire:importar-compra-qr />
 </div>
