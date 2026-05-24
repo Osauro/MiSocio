@@ -12,16 +12,33 @@ if (!isset($_GET['token']) || $_GET['token'] !== 'misocio_diag_2026') {
 
 header('Content-Type: text/plain; charset=utf-8');
 
-require __DIR__ . '/../vendor/autoload.php';
-$app = require_once __DIR__ . '/../bootstrap/app.php';
-$app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+// Leer .env sin Laravel
+function readEnv(string $path): array {
+    $vars = [];
+    if (!file_exists($path)) return $vars;
+    foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (str_starts_with(trim($line), '#')) continue;
+        if (!str_contains($line, '=')) continue;
+        [$key, $val] = explode('=', $line, 2);
+        $vars[trim($key)] = trim($val, " \t\n\r\0\x0B\"'");
+    }
+    return $vars;
+}
 
-use Illuminate\Support\Facades\DB;
+$env  = readEnv(__DIR__ . '/../.env');
+$host = $env['DB_HOST']     ?? '127.0.0.1';
+$port = $env['DB_PORT']     ?? '3306';
+$db   = $env['DB_DATABASE'] ?? '';
+$user = $env['DB_USERNAME'] ?? 'root';
+$pass = $env['DB_PASSWORD'] ?? '';
+
+$pdo = new PDO("mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4", $user, $pass);
+$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
 
 echo "=== DIAGNÓSTICO DE CAPITAL - " . date('Y-m-d H:i:s') . " ===\n\n";
 
-// Obtener tenants
-$tenants = DB::table('tenants')->get();
+$tenants = $pdo->query('SELECT id, name FROM tenants')->fetchAll();
 foreach ($tenants as $tenant) {
     $tid = $tenant->id;
     echo "========================================\n";
@@ -29,12 +46,9 @@ foreach ($tenants as $tenant) {
     echo "========================================\n\n";
 
     // --- COMPRAS ---
-    $compras = DB::table('compras')
-        ->where('tenant_id', $tid)
-        ->where('estado', 'Completo')
-        ->orderBy('created_at')
-        ->get();
-
+    $stmt = $pdo->prepare("SELECT numero_folio, efectivo, credito, created_at FROM compras WHERE tenant_id=? AND estado='Completo' ORDER BY created_at");
+    $stmt->execute([$tid]);
+    $compras = $stmt->fetchAll();
     $totalCompras = 0;
     echo "COMPRAS COMPLETADAS:\n";
     foreach ($compras as $c) {
@@ -44,79 +58,68 @@ foreach ($tenants as $tenant) {
     }
     echo "TOTAL COMPRAS: Bs." . number_format($totalCompras, 2) . "\n\n";
 
-    // --- SUBTOTALES DE COMPRA ITEMS (valor real pagado) ---
-    $subtotalItems = DB::table('compra_items')
-        ->join('compras', 'compra_items.compra_id', '=', 'compras.id')
-        ->where('compras.tenant_id', $tid)
-        ->where('compras.estado', 'Completo')
-        ->sum('compra_items.subtotal');
+    // --- SUBTOTALES DE COMPRA ITEMS ---
+    $stmt = $pdo->prepare("SELECT SUM(ci.subtotal) as total FROM compra_items ci JOIN compras c ON ci.compra_id=c.id WHERE c.tenant_id=? AND c.estado='Completo'");
+    $stmt->execute([$tid]);
+    $subtotalItems = $stmt->fetchColumn();
     echo "SUMA SUBTOTALES compra_items: Bs." . number_format($subtotalItems, 2) . "\n\n";
 
-    // --- CAPITAL ACTUAL (formula corregida) ---
-    $capitalFix = DB::table('productos')
-        ->where('tenant_id', $tid)
-        ->whereNull('deleted_at')
-        ->selectRaw('SUM(stock * precio_de_compra / NULLIF(cantidad, 0)) as cap')
-        ->value('cap');
+    // --- CAPITAL FORMULA CORREGIDA ---
+    $stmt = $pdo->prepare("SELECT SUM(stock * precio_de_compra / NULLIF(cantidad,0)) FROM productos WHERE tenant_id=? AND deleted_at IS NULL");
+    $stmt->execute([$tid]);
+    $capitalFix = $stmt->fetchColumn();
     echo "CAPITAL (stock * pdc / cantidad): Bs." . number_format($capitalFix, 2) . "\n";
 
-    // --- CAPITAL SIN FIX (formula original) ---
-    $capitalOriginal = DB::table('productos')
-        ->where('tenant_id', $tid)
-        ->whereNull('deleted_at')
-        ->selectRaw('SUM(stock * precio_de_compra) as cap')
-        ->value('cap');
+    // --- CAPITAL FORMULA ORIGINAL ---
+    $stmt = $pdo->prepare("SELECT SUM(stock * precio_de_compra) FROM productos WHERE tenant_id=? AND deleted_at IS NULL");
+    $stmt->execute([$tid]);
+    $capitalOriginal = $stmt->fetchColumn();
     echo "CAPITAL (stock * pdc - original): Bs." . number_format($capitalOriginal, 2) . "\n\n";
 
     // --- PRODUCTOS CON STOCK > 0 ---
-    $productos = DB::table('productos')
-        ->where('tenant_id', $tid)
-        ->whereNull('deleted_at')
-        ->where('stock', '>', 0)
-        ->orderByRaw('(stock * precio_de_compra / NULLIF(cantidad, 0)) DESC')
-        ->get(['nombre', 'stock', 'precio_de_compra', 'cantidad', 'control',
-               DB::raw('(stock * precio_de_compra / NULLIF(cantidad, 0)) as cap_fix'),
-               DB::raw('(stock * precio_de_compra) as cap_orig')]);
+    $stmt = $pdo->prepare("
+        SELECT nombre, stock, precio_de_compra, cantidad, control,
+               (stock * precio_de_compra / NULLIF(cantidad,0)) as cap_fix,
+               (stock * precio_de_compra) as cap_orig
+        FROM productos
+        WHERE tenant_id=? AND deleted_at IS NULL AND stock > 0
+        ORDER BY cap_fix DESC
+    ");
+    $stmt->execute([$tid]);
+    $productos = $stmt->fetchAll();
 
-    echo "PRODUCTOS CON STOCK > 0 (ordenados por mayor aporte al capital):\n";
-    echo str_pad("Nombre", 32) . " | stock | pdc    | cant | control | cap_fix   | cap_orig\n";
-    echo str_repeat("-", 95) . "\n";
-
+    echo "PRODUCTOS CON STOCK > 0 (ordenados por mayor aporte):\n";
+    echo str_pad("Nombre", 32) . " | stock | pdc      | cant | cap_fix     | cap_orig\n";
+    echo str_repeat("-", 90) . "\n";
     foreach ($productos as $p) {
         echo str_pad(substr($p->nombre, 0, 31), 32)
             . " | " . str_pad($p->stock, 5)
-            . " | " . str_pad(number_format($p->precio_de_compra, 2), 6)
+            . " | " . str_pad(number_format($p->precio_de_compra, 2), 8)
             . " | " . str_pad($p->cantidad, 4)
-            . " | " . str_pad($p->control ? 'SI' : 'NO', 7)
             . " | Bs." . str_pad(number_format($p->cap_fix, 2), 9)
             . " | Bs." . number_format($p->cap_orig, 2)
             . "\n";
     }
 
-    // --- COMPRA ITEMS DETALLE (para comparar con productos) ---
+    // --- COMPRA ITEMS DETALLE ---
     echo "\nDETALLE COMPRA ITEMS (precio y subtotal por producto):\n";
-    echo str_pad("Producto", 32) . " | cant_total | precio  | cant_med | subtotal\n";
-    echo str_repeat("-", 80) . "\n";
-
-    $items = DB::table('compra_items')
-        ->join('compras', 'compra_items.compra_id', '=', 'compras.id')
-        ->join('productos', 'compra_items.producto_id', '=', 'productos.id')
-        ->where('compras.tenant_id', $tid)
-        ->where('compras.estado', 'Completo')
-        ->select(
-            'productos.nombre',
-            'productos.cantidad as cantidad_medida',
-            'compra_items.cantidad as cant_total',
-            'compra_items.precio',
-            'compra_items.subtotal'
-        )
-        ->orderBy('compra_items.subtotal', 'DESC')
-        ->get();
-
+    echo str_pad("Producto", 32) . " | cant_total | precio   | cant_med | subtotal\n";
+    echo str_repeat("-", 82) . "\n";
+    $stmt = $pdo->prepare("
+        SELECT p.nombre, p.cantidad as cantidad_medida,
+               ci.cantidad as cant_total, ci.precio, ci.subtotal
+        FROM compra_items ci
+        JOIN compras c  ON ci.compra_id  = c.id
+        JOIN productos p ON ci.producto_id = p.id
+        WHERE c.tenant_id=? AND c.estado='Completo'
+        ORDER BY ci.subtotal DESC
+    ");
+    $stmt->execute([$tid]);
+    $items = $stmt->fetchAll();
     foreach ($items as $item) {
         echo str_pad(substr($item->nombre, 0, 31), 32)
             . " | " . str_pad($item->cant_total, 10)
-            . " | " . str_pad(number_format($item->precio, 2), 7)
+            . " | " . str_pad(number_format($item->precio, 2), 8)
             . " | " . str_pad($item->cantidad_medida, 8)
             . " | Bs." . number_format($item->subtotal, 2)
             . "\n";
