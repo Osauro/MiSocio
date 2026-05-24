@@ -46,9 +46,21 @@
         <div class="row starter-main">
             <div class="col-sm-12">
                 <div class="card">
-                    <div class="card-header card-no-border pb-0 d-none d-md-block" style="position: sticky; top: 0; z-index: 1050; background-color: white;">
-                        <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <h3 class="d-none d-md-block mb-0">Venta #{{ $venta->numero_folio }}</h3>
+                    <div class="card-header card-no-border pb-2 d-none d-md-block" style="position: sticky; top: 0; z-index: 1050; background-color: white;">
+                        <div class="header-top d-flex justify-content-between align-items-center gap-3">
+                            <h3 class="d-none d-md-block mb-0 text-nowrap">Venta #{{ $venta->numero_folio }}</h3>
+                            <div class="input-group" style="max-width: 340px;">
+                                <span class="input-group-text text-white" style="background-color: {{ getThemeColor() }};">
+                                    <i class="fa-solid fa-search"></i>
+                                </span>
+                                <input type="text"
+                                    id="buscadorVenta"
+                                    class="form-control"
+                                    wire:model.live.debounce.300ms="buscar"
+                                    placeholder="Nombre o código..."
+                                    autofocus
+                                    @click="$el.select()">
+                            </div>
                         </div>
                     </div>
 
@@ -175,26 +187,11 @@
                                 <div class="d-md-none" style="min-height: 70px;"></div>
                             </div>
 
-                            <!-- Columna de Buscador (Derecha) - Oculta cuando se muestra carrito en móvil -->
+                            <!-- Columna de Resultados (Derecha) - Oculta cuando se muestra carrito en móvil -->
                             <div class="col-md-4 col-lg-3 d-md-block" :class="{ 'd-none': mostrarCarritoMovil }">
-                                <div class="card shadow-sm" style="position: sticky; top: 10px; z-index: 1;">
-                                    <div class="card-body p-2">
-                                        <!-- Input de Búsqueda con icono -->
-                                        <div class="input-group mb-2">
-                                            <span class="input-group-text text-white" style="background-color: {{ getThemeColor() }};">
-                                                <i class="fa-solid fa-search"></i>
-                                            </span>
-                                            <input type="text"
-                                                id="buscadorVenta"
-                                                class="form-control"
-                                                wire:model.live.debounce.300ms="buscar"
-                                                placeholder="Nombre o código..."
-                                                autofocus
-                                                @click="$el.select()">
-                                        </div>
-
+                                <div style="position: sticky; top: 72px; z-index: 1;">
                                         <!-- Resultados -->
-                                        <div class="search-results" style="max-height: calc(100vh - 300px); overflow-y: auto;">
+                                        <div class="search-results" style="max-height: calc(100vh - 180px); overflow-y: auto;">
                                             @if(strlen($buscar) >= 2)
                                                 @forelse($productosEncontrados as $producto)
                                                     @php
@@ -255,7 +252,6 @@
                                                 </div>
                                             @endif
                                         </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
