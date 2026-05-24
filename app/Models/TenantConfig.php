@@ -56,6 +56,7 @@ class TenantConfig extends Model
         // Módulo Ventas
         'ventas_enabled',
         'ventas_solo_unidad',
+        'ventas_iniciar_unidad',
         // Importación
         'ultima_importacion',
         'formato_importacion',
@@ -80,6 +81,7 @@ class TenantConfig extends Model
         'compras_enabled' => 'boolean',
         'ventas_enabled' => 'boolean',
         'ventas_solo_unidad' => 'boolean',
+        'ventas_iniciar_unidad' => 'boolean',
         'ultima_importacion' => 'datetime',
     ];
 
