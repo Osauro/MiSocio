@@ -104,8 +104,13 @@
                                                     </div>
 
                                                     <!-- Avatar Group de productos -->
+                                                    @php
+                                                        $todosItemsVenta = $venta->ventaItems;
+                                                        $maxAvataresV = 15;
+                                                        $restantesVenta = max(0, $todosItemsVenta->count() - $maxAvataresV);
+                                                    @endphp
                                                     <div class="avatar-group mb-1">
-                                                        @foreach ($venta->ventaItems as $item)
+                                                        @foreach ($todosItemsVenta->take($maxAvataresV) as $item)
                                                             <div class="avatar" style="cursor: pointer;"
                                                                 x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                                                 title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
@@ -116,6 +121,13 @@
                                                                     class="quantity-badge">{{ $item->cantidad_formateada }}</span>
                                                             </div>
                                                         @endforeach
+                                                        @if ($restantesVenta > 0)
+                                                            <div class="avatar avatar-more"
+                                                                wire:click="verDetalles({{ $venta->id }})"
+                                                                title="{{ $restantesVenta }} productos más — Ver detalles">
+                                                                <span>+{{ $restantesVenta }}</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
 
                                                     <!-- Badges de totales -->

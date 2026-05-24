@@ -94,8 +94,13 @@
 
                                                     <!-- Items: Avatar Group de productos -->
                                                     @if ($prestamo->prestamoItems->count() > 0)
+                                                        @php
+                                                            $todosItemsPrestamo = $prestamo->prestamoItems;
+                                                            $maxAvataresP = 15;
+                                                            $restantesPrestamo = max(0, $todosItemsPrestamo->count() - $maxAvataresP);
+                                                        @endphp
                                                         <div class="avatar-group mb-1">
-                                                            @foreach ($prestamo->prestamoItems as $item)
+                                                            @foreach ($todosItemsPrestamo->take($maxAvataresP) as $item)
                                                                 <div class="avatar" style="cursor: pointer;"
                                                                     x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                                                     title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
@@ -106,6 +111,12 @@
                                                                         class="quantity-badge">{{ $item->cantidad }}</span>
                                                                 </div>
                                                             @endforeach
+                                                            @if ($restantesPrestamo > 0)
+                                                                <div class="avatar avatar-more"
+                                                                    title="{{ $restantesPrestamo }} productos más">
+                                                                    <span>+{{ $restantesPrestamo }}</span>
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                     @endif
 
