@@ -549,6 +549,16 @@ class Venta extends Component
             // Recalcular precio basado en el subtotal
             // Precio = (subtotal / cantidadTotal) * cantidad_por_medida
             $this->items[$index]['precio'] = round(($this->items[$index]['subtotal'] / $cantidadTotal) * $cantidadPorMedida, 2);
+
+            // Validar precio mínimo: no puede ser menor al precio de compra
+            $precioCompra = $producto->precio_de_compra;
+            if ($this->items[$index]['precio'] < $precioCompra) {
+                $this->items[$index]['precio'] = $precioCompra;
+                // Recalcular subtotal con el precio mínimo
+                $subtotalMinimo = ($precioCompra / $cantidadPorMedida) * $cantidadTotal;
+                $this->items[$index]['subtotal'] = $this->redondearSubtotal($subtotalMinimo);
+                $this->toast('warning', 'El precio no puede ser menor al precio de compra (Bs. ' . number_format($precioCompra, 2) . '). Se ajustó automáticamente.');
+            }
         } else {
             $this->items[$index]['subtotal'] = 0;
             $this->items[$index]['precio'] = 0;
@@ -583,6 +593,13 @@ class Venta extends Component
         $unidades = $item['unidades'];
         $cantidadTotal = ($enteros * $item['cantidad_por_medida']) + $unidades;
         $cantidadPorMedida = $item['cantidad_por_medida'] > 0 ? $item['cantidad_por_medida'] : 1;
+
+        // Validar precio mínimo: no puede ser menor al precio de compra
+        $precioCompra = $producto->precio_de_compra;
+        if ($this->items[$index]['precio'] < $precioCompra) {
+            $this->items[$index]['precio'] = $precioCompra;
+            $this->toast('warning', 'El precio no puede ser menor al precio de compra (Bs. ' . number_format($precioCompra, 2) . '). Se ajustó automáticamente.');
+        }
 
         if ($cantidadTotal > 0) {
             // Recalcular subtotal basado en el precio
