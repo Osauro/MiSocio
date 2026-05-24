@@ -303,8 +303,6 @@ class Venta extends Component
                 'subtotal'          => $subtotalInicial,
             ];
 
-            $this->buscar = '';
-            $this->productosEncontrados = [];
             $this->dispatch('focusBuscador');
             $this->dispatch('actualizar-badge-venta');
             return;
@@ -343,8 +341,6 @@ class Venta extends Component
                 'subtotal' => $subtotalInicial,
             ];
 
-            $this->buscar = '';
-            $this->productosEncontrados = [];
             $this->dispatch('focusBuscador');
             $this->dispatch('actualizar-badge-venta');
             return;
@@ -420,9 +416,6 @@ class Venta extends Component
             'precio' => $precioVenta,
             'subtotal' => $subtotalInicial,
         ];
-
-        $this->buscar = '';
-        $this->productosEncontrados = [];
 
         // Devolver el foco al buscador
         $this->dispatch('focusBuscador');

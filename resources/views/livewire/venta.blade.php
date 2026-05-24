@@ -201,7 +201,8 @@
                                                 class="form-control"
                                                 wire:model.live.debounce.300ms="buscar"
                                                 placeholder="Nombre o código..."
-                                                autofocus>
+                                                autofocus
+                                                @click="$el.select()">
                                         </div>
 
                                         <!-- Resultados -->
@@ -688,6 +689,7 @@
                     const buscador = document.getElementById('buscadorVenta');
                     if (buscador) {
                         buscador.focus();
+                        buscador.select();
                     }
                 }, 100);
             });
