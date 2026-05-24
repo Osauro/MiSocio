@@ -122,10 +122,14 @@
                                                             </div>
                                                         @endforeach
                                                         @if ($restantesVenta > 0)
+                                                            @php
+                                                                $svgVenta = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="#7366ff"/><text x="20" y="25" font-family="Arial,sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">+' . $restantesVenta . '</text></svg>';
+                                                            @endphp
                                                             <div class="avatar avatar-more"
                                                                 wire:click="verDetalles({{ $venta->id }})"
                                                                 title="{{ $restantesVenta }} productos más — Ver detalles">
-                                                                <span>+{{ $restantesVenta }}</span>
+                                                                <img src="data:image/svg+xml;base64,{{ base64_encode($svgVenta) }}"
+                                                                    alt="+{{ $restantesVenta }} más">
                                                             </div>
                                                         @endif
                                                     </div>
