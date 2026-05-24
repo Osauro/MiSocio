@@ -14,7 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ImportarCompraQr extends Component
@@ -60,7 +59,7 @@ class ImportarCompraQr extends Component
 
     public function cerrar(): void
     {
-        if ($this->compraId && in_array($this->fase, ['procesando', 'fondos', 'confirmar'])) {
+        if ($this->compraId && $this->fase === 'procesando') {
             CompraModel::withoutGlobalScopes()->where('id', $this->compraId)->delete();
         }
         $this->abierto = false;
@@ -84,7 +83,7 @@ class ImportarCompraQr extends Component
         $this->compraId          = null;
 
         if (empty($this->urlEscaneada)) {
-            $this->errorUrl = 'La URL no puede estar vacía';
+            $this->errorUrl = 'La URL no puede estar vacï¿½a';
             return;
         }
 
@@ -127,7 +126,6 @@ class ImportarCompraQr extends Component
     // Paso 2: Procesar UN producto por llamada
     // ----------------------------------------------
 
-    #[On('procesar-siguiente')]
     public function procesarSiguiente(): void
     {
         if ($this->fase !== 'procesando') return;
@@ -235,62 +233,28 @@ class ImportarCompraQr extends Component
 
         $this->productoActual = '';
 
+        // AÃ±adir fondos automÃ¡ticamente si hacen falta
         $ultimo = Movimiento::orderBy('id', 'desc')->first();
-        $this->saldoCaja = $ultimo ? (float)$ultimo->saldo : 0;
+        $saldo  = $ultimo ? (float)$ultimo->saldo : 0;
 
-        if ($this->saldoCaja < $this->totalCompra) {
-            $this->montoAnadir = round($this->totalCompra - $this->saldoCaja, 2);
-            $this->fase = 'fondos';
-        } else {
-            $this->fase = 'confirmar';
-        }
-    }
-
-    // ----------------------------------------------
-    // Fondos
-    // ----------------------------------------------
-
-    public function anadirFondosYContinuar(): void
-    {
-        if ($this->montoAnadir <= 0) {
-            $this->errorFondos = 'El monto debe ser mayor a 0';
-            return;
-        }
-
-        try {
-            $compra = CompraModel::withoutGlobalScopes()->find($this->compraId);
-
+        if ($saldo < $this->totalCompra) {
+            $faltante = round($this->totalCompra - $saldo, 2);
+            $compra   = CompraModel::withoutGlobalScopes()->find($this->compraId);
             Movimiento::create([
                 'tenant_id' => currentTenantId(),
                 'user_id'   => Auth::id(),
-                'detalle'   => 'Aporte de fondos para Compra #' . ($compra->numero_folio ?? $this->compraId),
-                'ingreso'   => $this->montoAnadir,
+                'detalle'   => 'Fondos automaticos Compra QR #' . ($compra->numero_folio ?? $this->compraId),
+                'ingreso'   => $faltante,
                 'egreso'    => 0,
             ]);
-
-            $ultimo = Movimiento::orderBy('id', 'desc')->first();
-            $this->saldoCaja = $ultimo ? (float)$ultimo->saldo : 0;
-            $this->errorFondos = '';
-
-            if ($this->saldoCaja >= $this->totalCompra) {
-                $this->fase = 'confirmar';
-            } else {
-                $faltante = $this->totalCompra - $this->saldoCaja;
-                $this->errorFondos = 'Aún faltan Bs. ' . number_format($faltante, 2);
-                $this->montoAnadir = round($faltante, 2);
-            }
-        } catch (\Exception $e) {
-            $this->errorFondos = 'Error al añadir fondos: ' . $e->getMessage();
         }
+
+        $this->finalizarCompra();
     }
 
-    public function omitirFondos(): void
-    {
-        $this->fase = 'confirmar';
-    }
 
     // ----------------------------------------------
-    // Finalizar compra
+    // Finalizar compra (llamada automaticamente desde terminarProcesado)
     // ----------------------------------------------
 
     public function finalizarCompra(): void
@@ -409,22 +373,15 @@ class ImportarCompraQr extends Component
 
             DB::commit();
 
-            $this->fase = 'resumen';
-            $this->dispatch('compra-qr-completada');
+            $this->abierto = false;
+            $this->dispatch('qr-modal-cerrado');
+            $this->dispatch('actualizar-lista-compras');
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('ImportarCompraQr finalizarCompra: ' . $e->getMessage());
             $this->toast('error', 'Error al finalizar: ' . $e->getMessage());
         }
-    }
-
-    // ----------------------------------------------
-
-    public function irACompra(): void
-    {
-        $this->cerrar();
-        $this->dispatch('actualizar-lista-compras');
     }
 
     public function render()
