@@ -76,7 +76,7 @@ class HomeTenant extends Component
     private function obtenerEstadisticasResumen()
     {
         // Capital: Valor total del inventario actual
-        $capital = Producto::sum(DB::raw('stock * precio_de_compra'));
+        $capital = Producto::sum(DB::raw('stock * precio_de_compra / NULLIF(cantidad, 0)'));
 
         // Beneficio del mes seleccionado
         $beneficioMes = VentaItem::whereHas('venta', function ($query) {
