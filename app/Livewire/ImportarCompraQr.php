@@ -26,6 +26,7 @@ class ImportarCompraQr extends Component
 
     public string $urlEscaneada = '';
     public string $errorUrl     = '';
+    public string $numeroVenta  = '';
 
     public array $productosQueue = [];
     public int   $productoIndex  = 0;
@@ -48,7 +49,7 @@ class ImportarCompraQr extends Component
     public function abrir(): void
     {
         $this->reset([
-            'urlEscaneada', 'errorUrl', 'productosQueue', 'productoIndex',
+            'urlEscaneada', 'errorUrl', 'numeroVenta', 'productosQueue', 'productoIndex',
             'productoActual', 'logItems', 'compraId', 'totalCompra',
             'saldoCaja', 'montoAnadir', 'errorFondos',
             'productosCreados', 'productosBuscados',
@@ -70,6 +71,16 @@ class ImportarCompraQr extends Component
     // ----------------------------------------------
     // Paso 1: Fetch JSON y crear Compra
     // ----------------------------------------------
+
+    public function procesarNumeroVenta(): void
+    {
+        $numero = trim($this->numeroVenta);
+        if (empty($numero) || !ctype_digit($numero)) {
+            $this->errorUrl = 'Ingresa un número de venta válido';
+            return;
+        }
+        $this->procesarUrl('https://fadi.com.bo/' . intval($numero));
+    }
 
     public function procesarUrl(string $url): void
     {
@@ -245,21 +256,15 @@ class ImportarCompraQr extends Component
 
         $this->productoActual = '';
 
-        // Añadir fondos automáticamente si hacen falta
-        $ultimo = Movimiento::orderBy('id', 'desc')->first();
-        $saldo  = $ultimo ? (float)$ultimo->saldo : 0;
-
-        if ($saldo < $this->totalCompra) {
-            $faltante = round($this->totalCompra - $saldo, 2);
-            $compra   = CompraModel::withoutGlobalScopes()->find($this->compraId);
-            Movimiento::create([
-                'tenant_id' => currentTenantId(),
-                'user_id'   => Auth::id(),
-                'detalle'   => 'Fondos automaticos Compra QR #' . ($compra->numero_folio ?? $this->compraId),
-                'ingreso'   => $faltante,
-                'egreso'    => 0,
-            ]);
-        }
+        // Añadir el total completo de la compra como fondos para evitar desfases
+        $compra = CompraModel::withoutGlobalScopes()->find($this->compraId);
+        Movimiento::create([
+            'tenant_id' => currentTenantId(),
+            'user_id'   => Auth::id(),
+            'detalle'   => 'Fondos Compra QR #' . ($compra->numero_folio ?? $this->compraId),
+            'ingreso'   => $this->totalCompra,
+            'egreso'    => 0,
+        ]);
 
         $this->finalizarCompra();
     }

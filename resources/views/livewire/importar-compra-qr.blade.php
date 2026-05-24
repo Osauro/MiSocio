@@ -35,7 +35,7 @@
 @if($abierto)
 <div class="modal-backdrop fade show" style="z-index:1055;"></div>
 <div class="modal fade show d-block" tabindex="-1" style="z-index:1060; overflow-y:auto;">
-<div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
 <div class="modal-content shadow-lg border-0">
 
     <div class="modal-header text-white" style="background-color:var(--theme-default,#7366ff);">
@@ -56,13 +56,20 @@
                 </div>
             @endif
             <div id="qr-reader" class="mx-auto rounded overflow-hidden" style="max-width:320px;"></div>
-            <p class="text-muted mt-3 small">O pega la URL directamente:</p>
-            <div class="input-group mt-1" style="max-width:420px;margin:0 auto;">
-                <input type="url" class="form-control" placeholder="https://..." wire:model="urlEscaneada">
-                <button class="btn btn-primary" wire:click="procesarUrl(urlEscaneada)"
-                    wire:loading.attr="disabled" wire:target="procesarUrl">
-                    <span wire:loading wire:target="procesarUrl" class="spinner-border spinner-border-sm"></span>
-                    <i wire:loading.remove wire:target="procesarUrl" class="fa-solid fa-arrow-right"></i>
+            <div class="d-flex align-items-center gap-2 my-3" style="max-width:420px;margin:0 auto;">
+                <hr class="flex-grow-1 m-0">
+                <span class="text-muted small px-2"><i class="fa-solid fa-chevron-down"></i></span>
+                <hr class="flex-grow-1 m-0">
+            </div>
+            <p class="text-muted small mb-2">Ingresa el número de venta de tu ticket:</p>
+            <div class="input-group" style="max-width:420px;margin:0 auto;">
+                <input type="number" class="form-control" placeholder="Ej: 12345"
+                    wire:model="numeroVenta" inputmode="numeric" min="1"
+                    wire:keydown.enter="procesarNumeroVenta">
+                <button class="btn btn-primary" wire:click="procesarNumeroVenta"
+                    wire:loading.attr="disabled" wire:target="procesarNumeroVenta,procesarUrl">
+                    <span wire:loading wire:target="procesarNumeroVenta,procesarUrl" class="spinner-border spinner-border-sm"></span>
+                    <i wire:loading.remove wire:target="procesarNumeroVenta,procesarUrl" class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
