@@ -460,7 +460,6 @@ class Venta extends Component
                 'subtotal'      => $this->items[$index]['subtotal'],
             ]);
             $this->actualizarTotales();
-            $this->dispatch('focusBuscador');
             return;
         } elseif (!comprasHabilitados()) {
             $cantidadTotal = ($this->items[$index]['enteros'] * $item['cantidad_por_medida']) + $this->items[$index]['unidades'];
@@ -527,9 +526,6 @@ class Venta extends Component
         ]);
 
         $this->actualizarTotales();
-
-        // Devolver el foco al buscador
-        $this->dispatch('focusBuscador');
     }
 
     public function actualizarSubtotal($index)
@@ -579,9 +575,6 @@ class Venta extends Component
         ]);
 
         $this->actualizarTotales();
-
-        // Devolver el foco al buscador
-        $this->dispatch('focusBuscador');
     }
 
     public function actualizarPrecio($index)
@@ -634,9 +627,6 @@ class Venta extends Component
         ]);
 
         $this->actualizarTotales();
-
-        // Devolver el foco al buscador
-        $this->dispatch('focusBuscador');
     }
 
     public function actualizarTotales()

@@ -49,18 +49,6 @@
                     <div class="card-header card-no-border pb-0 d-none d-md-block" style="position: sticky; top: 0; z-index: 1050; background-color: white;">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h3 class="d-none d-md-block mb-0">Venta #{{ $venta->numero_folio }}</h3>
-                            <div class="d-flex gap-2">
-                                <button wire:click="cancelarVenta" class="btn btn-secondary">
-                                    <i class="fa-solid fa-times me-1"></i>
-                                    <span class="d-none d-md-inline">Cancelar</span>
-                                </button>
-                                @if(count($items) > 0)
-                                    <button type="button" wire:click="iniciarCompletarVenta" class="btn btn-success">
-                                        <i class="fa-solid fa-check me-1"></i>
-                                        <span class="d-none d-md-inline">Completar</span>
-                                    </button>
-                                @endif
-                            </div>
                         </div>
                     </div>
 
@@ -625,9 +613,21 @@
                         <strong>{{ count($items) }}</strong>
                     </div>
                 </div>
-                <div class="text-end">
-                    <small class="text-muted d-block">Total</small>
-                    <h4 class="mb-0 text-primary">Bs. {{ number_format($this->total(), 2) }}</h4>
+                <div class="d-flex align-items-center gap-2">
+                    <button wire:click="cancelarVenta" class="btn btn-outline-danger">
+                        <i class="fa-solid fa-times me-1"></i>Cancelar
+                    </button>
+                    @if(count($items) > 0)
+                        <button type="button" wire:click="iniciarCompletarVenta" class="btn btn-success">
+                            <i class="fa-solid fa-check me-1"></i>
+                            Bs. {{ number_format($this->total(), 2) }}
+                        </button>
+                    @else
+                        <button type="button" disabled class="btn btn-success opacity-50">
+                            <i class="fa-solid fa-check me-1"></i>
+                            Bs. 0.00
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>
