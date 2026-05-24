@@ -106,30 +106,58 @@
                                                     <!-- Avatar Group de productos -->
                                                     @php
                                                         $todosItemsVenta = $venta->ventaItems;
-                                                        $maxAvataresV = 15;
-                                                        $restantesVenta = max(0, $todosItemsVenta->count() - $maxAvataresV);
+                                                        $maxMovilV = 8;
+                                                        $maxEscritorioV = 15;
+                                                        $totalV = $todosItemsVenta->count();
+                                                        $restantesMovilV = max(0, $totalV - $maxMovilV);
+                                                        $restantesEscritorioV = max(0, $totalV - $maxEscritorioV);
+                                                        $themeColorV = getThemeColor();
                                                     @endphp
                                                     <div class="avatar-group mb-1">
-                                                        @foreach ($todosItemsVenta->take($maxAvataresV) as $item)
+                                                        {{-- Items 1-8: siempre visibles --}}
+                                                        @foreach ($todosItemsVenta->take($maxMovilV) as $item)
                                                             <div class="avatar" style="cursor: pointer;"
                                                                 x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                                                 title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
                                                                 <img src="{{ $item->producto->photo_url }}"
                                                                     alt="{{ $item->producto->nombre }}"
                                                                     data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
-                                                                <span
-                                                                    class="quantity-badge">{{ $item->cantidad_formateada }}</span>
+                                                                <span class="quantity-badge">{{ $item->cantidad_formateada }}</span>
                                                             </div>
                                                         @endforeach
-                                                        @if ($restantesVenta > 0)
+                                                        {{-- Badge móvil: solo en móvil cuando total > 8 --}}
+                                                        @if ($restantesMovilV > 0)
                                                             @php
-                                                                $svgVenta = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="' . getThemeColor() . '"/><text x="20" y="25" font-family="Arial,sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">+' . $restantesVenta . '</text></svg>';
+                                                                $svgMovilV = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="' . $themeColorV . '"/><text x="20" y="25" font-family="Arial,sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">+' . $restantesMovilV . '</text></svg>';
                                                             @endphp
-                                                            <div class="avatar avatar-more"
+                                                            <div class="avatar avatar-more d-md-none"
                                                                 wire:click="verDetalles({{ $venta->id }})"
-                                                                title="{{ $restantesVenta }} productos más — Ver detalles">
-                                                                <img src="data:image/svg+xml;base64,{{ base64_encode($svgVenta) }}"
-                                                                    alt="+{{ $restantesVenta }} más">
+                                                                title="{{ $restantesMovilV }} productos más — Ver detalles">
+                                                                <img src="data:image/svg+xml;base64,{{ base64_encode($svgMovilV) }}"
+                                                                    alt="+{{ $restantesMovilV }} más">
+                                                            </div>
+                                                        @endif
+                                                        {{-- Items 9-15: solo en escritorio --}}
+                                                        @foreach ($todosItemsVenta->slice($maxMovilV, $maxEscritorioV - $maxMovilV) as $item)
+                                                            <div class="avatar d-none d-md-inline-block" style="cursor: pointer;"
+                                                                x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
+                                                                title="{{ $item->producto->nombre ?? 'Producto' }} - Clic para ver Kardex">
+                                                                <img src="{{ $item->producto->photo_url }}"
+                                                                    alt="{{ $item->producto->nombre }}"
+                                                                    data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
+                                                                <span class="quantity-badge">{{ $item->cantidad_formateada }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                        {{-- Badge escritorio: solo en escritorio cuando total > 15 --}}
+                                                        @if ($restantesEscritorioV > 0)
+                                                            @php
+                                                                $svgEscritorioV = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="20" fill="' . $themeColorV . '"/><text x="20" y="25" font-family="Arial,sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">+' . $restantesEscritorioV . '</text></svg>';
+                                                            @endphp
+                                                            <div class="avatar avatar-more d-none d-md-inline-block"
+                                                                wire:click="verDetalles({{ $venta->id }})"
+                                                                title="{{ $restantesEscritorioV }} productos más — Ver detalles">
+                                                                <img src="data:image/svg+xml;base64,{{ base64_encode($svgEscritorioV) }}"
+                                                                    alt="+{{ $restantesEscritorioV }} más">
                                                             </div>
                                                         @endif
                                                     </div>
