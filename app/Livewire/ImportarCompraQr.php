@@ -6,7 +6,6 @@ use App\Models\Categoria;
 use App\Models\Compra as CompraModel;
 use App\Models\CompraItem;
 use App\Models\Kardex;
-use App\Models\Medida;
 use App\Models\Movimiento;
 use App\Models\Producto;
 use App\Traits\RequiresTenant;
@@ -15,255 +14,245 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class ImportarCompraQr extends Component
 {
     use RequiresTenant, SweetAlertTrait;
 
-    // Modal / estado
-    public bool $abierto = false;
-    public string $fase = 'scanner'; // scanner | procesando | fondos | resumen
+    public bool   $abierto = false;
+    public string $fase    = 'scanner';
 
-    // URL escaneada
     public string $urlEscaneada = '';
-    public string $errorUrl = '';
+    public string $errorUrl     = '';
 
-    // Log de progreso
-    public array $logProceso = [];
+    public array $productosQueue = [];
+    public int   $productoIndex  = 0;
+    public string $productoActual = '';
 
-    // Datos del JSON
-    public array $jsonData = [];
+    public array $logItems = [];
 
-    // Compra creada
-    public ?int $compraId = null;
+    public ?int  $compraId    = null;
     public float $totalCompra = 0;
 
-    // Fondos
-    public float $saldoCaja = 0;
-    public float $montoAñadir = 0;
+    public float  $saldoCaja   = 0;
+    public float  $montoAnadir = 0;
     public string $errorFondos = '';
 
-    // Resumen final
-    public int $productosCreados = 0;
+    public int $productosCreados  = 0;
     public int $productosBuscados = 0;
 
-    // ──────────────────────────────────────────────
-    // Abrir / cerrar
-    // ──────────────────────────────────────────────
+    // ----------------------------------------------
 
     public function abrir(): void
     {
         $this->reset([
-            'urlEscaneada', 'errorUrl', 'logProceso', 'jsonData',
-            'compraId', 'totalCompra', 'saldoCaja', 'montoAñadir',
-            'errorFondos', 'productosCreados', 'productosBuscados',
+            'urlEscaneada', 'errorUrl', 'productosQueue', 'productoIndex',
+            'productoActual', 'logItems', 'compraId', 'totalCompra',
+            'saldoCaja', 'montoAnadir', 'errorFondos',
+            'productosCreados', 'productosBuscados',
         ]);
-        $this->fase = 'scanner';
+        $this->fase   = 'scanner';
         $this->abierto = true;
         $this->dispatch('qr-modal-abierto');
     }
 
     public function cerrar(): void
     {
+        if ($this->compraId && in_array($this->fase, ['procesando', 'fondos', 'confirmar'])) {
+            CompraModel::withoutGlobalScopes()->where('id', $this->compraId)->delete();
+        }
         $this->abierto = false;
         $this->dispatch('qr-modal-cerrado');
     }
 
-    // ──────────────────────────────────────────────
-    // Recibir URL desde el escáner JS
-    // ──────────────────────────────────────────────
+    // ----------------------------------------------
+    // Paso 1: Fetch JSON y crear Compra
+    // ----------------------------------------------
 
     public function procesarUrl(string $url): void
     {
-        $this->urlEscaneada = $url;
-        $this->errorUrl = '';
-        $this->fase = 'procesando';
-        $this->logProceso = [];
-        $this->productosCreados = 0;
+        $this->urlEscaneada      = trim($url);
+        $this->errorUrl          = '';
+        $this->productosQueue    = [];
+        $this->productoIndex     = 0;
+        $this->logItems          = [];
+        $this->productosCreados  = 0;
         $this->productosBuscados = 0;
+        $this->totalCompra       = 0;
+        $this->compraId          = null;
 
-        // Fetch del JSON
-        try {
-            $this->agregarLog('info', "Conectando con: {$url}");
-            $response = Http::timeout(15)->get($url);
-
-            if (!$response->successful()) {
-                $this->errorUrl = "Error HTTP {$response->status()} al obtener el JSON";
-                $this->fase = 'scanner';
-                return;
-            }
-
-            $data = $response->json();
-
-            if (empty($data['productos'])) {
-                $this->errorUrl = 'El JSON no contiene productos';
-                $this->fase = 'scanner';
-                return;
-            }
-
-            $this->jsonData = $data;
-            $this->agregarLog('success', 'JSON recibido: ' . count($data['productos']) . ' productos');
-
-        } catch (\Exception $e) {
-            $this->errorUrl = 'Error al conectar: ' . $e->getMessage();
-            $this->fase = 'scanner';
+        if (empty($this->urlEscaneada)) {
+            $this->errorUrl = 'La URL no puede estar vac�a';
             return;
         }
 
-        // Procesar productos y crear compra
-        $this->procesarImportacion();
+        try {
+            $response = Http::timeout(15)->get($this->urlEscaneada);
+            if (!$response->successful()) {
+                $this->errorUrl = "Error HTTP {$response->status()} al obtener el JSON";
+                return;
+            }
+            $data = $response->json();
+            if (empty($data['productos'])) {
+                $this->errorUrl = 'El JSON no contiene productos';
+                return;
+            }
+            $this->productosQueue = $data['productos'];
+        } catch (\Exception $e) {
+            $this->errorUrl = 'Error al conectar: ' . $e->getMessage();
+            return;
+        }
+
+        try {
+            $compra = CompraModel::create([
+                'tenant_id' => currentTenantId(),
+                'user_id'   => Auth::id(),
+                'estado'    => 'Pendiente',
+                'efectivo'  => 0,
+                'credito'   => 0,
+            ]);
+            $this->compraId = $compra->id;
+        } catch (\Exception $e) {
+            $this->errorUrl = 'Error al crear la compra: ' . $e->getMessage();
+            return;
+        }
+
+        $this->fase = 'procesando';
+        $this->dispatch('procesar-siguiente');
     }
 
-    // ──────────────────────────────────────────────
-    // Lógica principal de importación
-    // ──────────────────────────────────────────────
+    // ----------------------------------------------
+    // Paso 2: Procesar UN producto por llamada
+    // ----------------------------------------------
 
-    private function procesarImportacion(): void
+    #[On('procesar-siguiente')]
+    public function procesarSiguiente(): void
     {
-        try {
-            DB::beginTransaction();
+        if ($this->fase !== 'procesando') return;
 
-            // 1. Crear compra en estado Pendiente
-            $compra = CompraModel::create([
-                'tenant_id'  => currentTenantId(),
-                'user_id'    => Auth::id(),
-                'estado'     => 'Pendiente',
-                'efectivo'   => 0,
-                'credito'    => 0,
+        $total = count($this->productosQueue);
+
+        if ($this->productoIndex >= $total) {
+            $this->terminarProcesado();
+            return;
+        }
+
+        $p = $this->productosQueue[$this->productoIndex];
+
+        $nombre       = $p['nombre']    ?? '';
+        $catNombre    = $p['categoria'] ?? 'General';
+        $medidaNombre = $p['medida']    ?? 'Unidad';
+        $cantidad     = (int)   ($p['cantidad']  ?? 1);
+        $unidades     = (int)   ($p['unidades']  ?? $cantidad);
+        $precio       = (float) ($p['precio']    ?? 0);
+        $subtotal     = (float) ($p['subtotal']  ?? ($precio * ($unidades / max($cantidad, 1))));
+
+        $this->productoActual = $nombre ?: '(sin nombre)';
+        $this->productosBuscados++;
+
+        if (empty($nombre)) {
+            $this->productoIndex++;
+            $this->dispatch('procesar-siguiente');
+            return;
+        }
+
+        try {
+            $esNuevo  = false;
+            $producto = Producto::whereRaw('LOWER(nombre) = ?', [mb_strtolower($nombre)])->first();
+
+            if (!$producto) {
+                $esNuevo = true;
+                $this->productosCreados++;
+
+                $cat = Categoria::whereRaw('LOWER(nombre) = ?', [mb_strtolower($catNombre)])->first()
+                    ?? Categoria::create(['tenant_id' => currentTenantId(), 'nombre' => $catNombre]);
+
+                $precioPorMayor = ceil($precio * 1.10);
+                $precioPorMenor = ceil(($precioPorMayor / max($cantidad, 1)) * 1.05 * 2) / 2;
+
+                $producto = Producto::create([
+                    'tenant_id'        => currentTenantId(),
+                    'categoria_id'     => $cat->id,
+                    'nombre'           => $nombre,
+                    'codigo'           => '',
+                    'medida'           => $medidaNombre,
+                    'cantidad'         => $cantidad,
+                    'precio_de_compra' => $precio,
+                    'precio_por_mayor' => $precioPorMayor,
+                    'precio_por_menor' => $precioPorMenor,
+                    'stock'            => 0,
+                    'control'          => true,
+                ]);
+            }
+
+            CompraItem::create([
+                'compra_id'   => $this->compraId,
+                'producto_id' => $producto->id,
+                'cantidad'    => $unidades,
+                'precio'      => $precio,
+                'subtotal'    => $subtotal,
             ]);
 
-            $this->compraId    = $compra->id;
-            $this->agregarLog('info', "Compra #{$compra->numero_folio} creada");
+            $this->totalCompra += $subtotal;
 
-            $totalCompra = 0;
-
-            foreach ($this->jsonData['productos'] as $productoJson) {
-                $this->productosBuscados++;
-                $nombre     = $productoJson['nombre']    ?? '';
-                $categoria  = $productoJson['categoria'] ?? 'General';
-                $medidaNombre = $productoJson['medida']  ?? 'Unidad';
-                $cantidad   = (int)   ($productoJson['cantidad']  ?? 1);
-                $unidades   = (int)   ($productoJson['unidades']  ?? $cantidad);
-                $precio     = (float) ($productoJson['precio']    ?? 0);
-                $subtotal   = (float) ($productoJson['subtotal']  ?? ($precio * ($unidades / max($cantidad, 1))));
-
-                if (empty($nombre)) {
-                    $this->agregarLog('warning', 'Producto sin nombre, omitido');
-                    continue;
-                }
-
-                // 2. Buscar o crear el producto
-                $producto = $this->buscarOCrearProducto(
-                    $nombre, $categoria, $medidaNombre, $cantidad, $precio
-                );
-
-                // 3. Crear item
-                CompraItem::create([
-                    'compra_id'   => $compra->id,
-                    'producto_id' => $producto->id,
-                    'cantidad'    => $unidades,
-                    'precio'      => $precio,
-                    'subtotal'    => $subtotal,
-                ]);
-
-                $totalCompra += $subtotal;
-                $this->agregarLog('success', "Item agregado: {$nombre} x{$unidades} = Bs. " . number_format($subtotal, 2));
-            }
-
-            // 4. Actualizar total de la compra
-            $compra->update(['efectivo' => $totalCompra]);
-            $this->totalCompra = $totalCompra;
-
-            DB::commit();
-
-            $this->agregarLog('success', 'Total: Bs. ' . number_format($totalCompra, 2));
-            $this->agregarLog('info', 'Verificando fondos en caja...');
-
-            // 5. Verificar saldo de caja
-            $ultimoMovimiento = Movimiento::orderBy('id', 'desc')->first();
-            $this->saldoCaja  = $ultimoMovimiento ? (float)$ultimoMovimiento->saldo : 0;
-
-            if ($this->saldoCaja < $totalCompra) {
-                $faltante = $totalCompra - $this->saldoCaja;
-                $this->agregarLog('warning', 'Saldo insuficiente. Faltan Bs. ' . number_format($faltante, 2));
-                $this->montoAñadir = round($faltante, 2);
-                $this->fase = 'fondos';
-            } else {
-                $this->fase = 'confirmar';
-            }
+            $this->logItems[] = [
+                'nombre'   => $nombre,
+                'nuevo'    => $esNuevo,
+                'unidades' => $unidades,
+                'subtotal' => $subtotal,
+                'error'    => false,
+            ];
 
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('ImportarCompraQR error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            $this->agregarLog('error', 'Error: ' . $e->getMessage());
-            // Si se creó la compra pendiente, eliminarla
-            if ($this->compraId) {
-                CompraModel::withoutGlobalScopes()->where('id', $this->compraId)->delete();
-                $this->compraId = null;
-            }
+            Log::error('ImportarCompraQr procesarSiguiente: ' . $e->getMessage());
+            $this->logItems[] = [
+                'nombre'   => $nombre,
+                'nuevo'    => false,
+                'unidades' => 0,
+                'subtotal' => 0,
+                'error'    => true,
+            ];
+        }
+
+        $this->productoIndex++;
+
+        if ($this->productoIndex < $total) {
+            $this->dispatch('procesar-siguiente');
+        } else {
+            $this->terminarProcesado();
         }
     }
 
-    private function buscarOCrearProducto(
-        string $nombre,
-        string $categoriaNombre,
-        string $medidaNombre,
-        int $cantidad,
-        float $precio
-    ): Producto {
-        // Buscar producto existente por nombre (case-insensitive)
-        $producto = Producto::whereRaw('LOWER(nombre) = ?', [mb_strtolower($nombre)])->first();
-
-        if ($producto) {
-            $this->agregarLog('info', "Encontrado: {$nombre}");
-            return $producto;
-        }
-
-        // No existe → crear
-        $this->agregarLog('warning', "Creando producto: {$nombre}");
-        $this->productosCreados++;
-
-        // Buscar o crear categoría
-        $categoria = Categoria::whereRaw('LOWER(nombre) = ?', [mb_strtolower($categoriaNombre)])->first();
-        if (!$categoria) {
-            $categoria = Categoria::create([
-                'tenant_id' => currentTenantId(),
-                'nombre'    => $categoriaNombre,
-            ]);
-            $this->agregarLog('info', "Categoría creada: {$categoriaNombre}");
-        }
-
-        // Calcular precios de venta
-        $precioPorMayor = ceil($precio * 1.10); // +10%, redondeado hacia arriba
-        $precioPorMenor = ceil(($precioPorMayor / max($cantidad, 1)) * 1.05 * 2) / 2; // +5%, redondeo a 0.5
-
-        $producto = Producto::create([
-            'tenant_id'        => currentTenantId(),
-            'categoria_id'     => $categoria->id,
-            'nombre'           => $nombre,
-            'codigo'           => '',
-            'medida'           => $medidaNombre,
-            'cantidad'         => $cantidad,
-            'precio_de_compra' => $precio,
-            'precio_por_mayor' => $precioPorMayor,
-            'precio_por_menor' => $precioPorMenor,
-            'stock'            => 0,
-            'control'          => true,
-        ]);
-
-        $this->agregarLog('success', "Producto creado: {$nombre} | Mayor: Bs.{$precioPorMayor} | Menor: Bs.{$precioPorMenor}");
-
-        return $producto;
-    }
-
-    // ──────────────────────────────────────────────
-    // Paso: Añadir fondos
-    // ──────────────────────────────────────────────
-
-    public function añadirFondosYContinuar(): void
+    private function terminarProcesado(): void
     {
-        if ($this->montoAñadir <= 0) {
+        if ($this->compraId) {
+            CompraModel::withoutGlobalScopes()
+                ->where('id', $this->compraId)
+                ->update(['efectivo' => $this->totalCompra]);
+        }
+
+        $this->productoActual = '';
+
+        $ultimo = Movimiento::orderBy('id', 'desc')->first();
+        $this->saldoCaja = $ultimo ? (float)$ultimo->saldo : 0;
+
+        if ($this->saldoCaja < $this->totalCompra) {
+            $this->montoAnadir = round($this->totalCompra - $this->saldoCaja, 2);
+            $this->fase = 'fondos';
+        } else {
+            $this->fase = 'confirmar';
+        }
+    }
+
+    // ----------------------------------------------
+    // Fondos
+    // ----------------------------------------------
+
+    public function anadirFondosYContinuar(): void
+    {
+        if ($this->montoAnadir <= 0) {
             $this->errorFondos = 'El monto debe ser mayor a 0';
             return;
         }
@@ -275,39 +264,34 @@ class ImportarCompraQr extends Component
                 'tenant_id' => currentTenantId(),
                 'user_id'   => Auth::id(),
                 'detalle'   => 'Aporte de fondos para Compra #' . ($compra->numero_folio ?? $this->compraId),
-                'ingreso'   => $this->montoAñadir,
+                'ingreso'   => $this->montoAnadir,
                 'egreso'    => 0,
             ]);
 
-            // Recalcular saldo
             $ultimo = Movimiento::orderBy('id', 'desc')->first();
             $this->saldoCaja = $ultimo ? (float)$ultimo->saldo : 0;
-
-            $this->agregarLog('success', 'Fondos añadidos: Bs. ' . number_format($this->montoAñadir, 2));
             $this->errorFondos = '';
 
             if ($this->saldoCaja >= $this->totalCompra) {
                 $this->fase = 'confirmar';
             } else {
                 $faltante = $this->totalCompra - $this->saldoCaja;
-                $this->errorFondos = 'Aún faltan Bs. ' . number_format($faltante, 2);
-                $this->montoAñadir = round($faltante, 2);
+                $this->errorFondos = 'A�n faltan Bs. ' . number_format($faltante, 2);
+                $this->montoAnadir = round($faltante, 2);
             }
-
         } catch (\Exception $e) {
-            $this->errorFondos = 'Error al añadir fondos: ' . $e->getMessage();
+            $this->errorFondos = 'Error al a�adir fondos: ' . $e->getMessage();
         }
     }
 
     public function omitirFondos(): void
     {
-        // Avanzar igualmente (pago parcial → crédito = diferencia)
         $this->fase = 'confirmar';
     }
 
-    // ──────────────────────────────────────────────
+    // ----------------------------------------------
     // Finalizar compra
-    // ──────────────────────────────────────────────
+    // ----------------------------------------------
 
     public function finalizarCompra(): void
     {
@@ -327,14 +311,11 @@ class ImportarCompraQr extends Component
                 return;
             }
 
-            // Refrescar saldo
-            $ultimo = Movimiento::orderBy('id', 'desc')->first();
+            $ultimo      = Movimiento::orderBy('id', 'desc')->first();
             $saldoActual = $ultimo ? (float)$ultimo->saldo : 0;
+            $efectivo    = min($this->totalCompra, $saldoActual);
+            $credito     = max(0, $this->totalCompra - $efectivo);
 
-            $efectivo = min($this->totalCompra, $saldoActual);
-            $credito  = max(0, $this->totalCompra - $efectivo);
-
-            // Actualizar la compra
             $compra->update([
                 'estado'     => 'Completo',
                 'efectivo'   => $efectivo,
@@ -352,36 +333,33 @@ class ImportarCompraQr extends Component
                 $cantidadTotal = $item->cantidad;
 
                 if ((bool)($producto->control ?? false)) {
-                    $stockAnterior = $producto->stock;
+                    $stockAnterior   = $producto->stock;
                     $producto->increment('stock', $cantidadTotal);
                     $producto->refresh();
 
-                    // Precio promedio ponderado
-                    $precioCompraActual = (float)$producto->precio_de_compra;
-                    $precioNuevo = (float)$item->precio;
-                    $valorAnterior = $stockAnterior * $precioCompraActual;
-                    $valorNuevo = $cantidadTotal * $precioNuevo;
-                    $stockTotal = $stockAnterior + $cantidadTotal;
-                    $precioPonderado = $stockTotal > 0 ? ($valorAnterior + $valorNuevo) / $stockTotal : $precioNuevo;
+                    $precioActual    = (float)$producto->precio_de_compra;
+                    $precioNuevo     = (float)$item->precio;
+                    $stockTotal      = $stockAnterior + $cantidadTotal;
+                    $precioPonderado = $stockTotal > 0
+                        ? (($stockAnterior * $precioActual) + ($cantidadTotal * $precioNuevo)) / $stockTotal
+                        : $precioNuevo;
 
-                    if ($precioNuevo > $precioCompraActual) {
-                        $diffMayor = ceil($producto->precio_por_mayor - $precioCompraActual);
-                        $precioMayorCalc = $precioPonderado + $diffMayor;
-                        $parteEntera = floor($precioMayorCalc);
-                        $parteDecimal = $precioMayorCalc - $parteEntera;
-                        $nuevoPrecioMayor = $parteDecimal <= 0.5 ? $parteEntera + 0.5 : ceil($precioMayorCalc);
+                    if ($precioNuevo > $precioActual) {
+                        $diffMayor       = ceil($producto->precio_por_mayor - $precioActual);
+                        $mayCalc         = $precioPonderado + $diffMayor;
+                        $mayFloor        = floor($mayCalc);
+                        $nuevoMayor      = ($mayCalc - $mayFloor) <= 0.5 ? $mayFloor + 0.5 : ceil($mayCalc);
 
-                        $cant = $producto->cantidad ?? 1;
-                        $diffMenor = round((($producto->precio_por_menor * $cant) - $producto->precio_por_mayor) / $cant * 2) / 2;
-                        $precioMenorCalc = ($nuevoPrecioMayor / $cant) + $diffMenor;
-                        $parteEnteraMenor = floor($precioMenorCalc);
-                        $parteDecimalMenor = $precioMenorCalc - $parteEnteraMenor;
-                        $nuevoPrecioMenor = $parteDecimalMenor <= 0.5 ? $parteEnteraMenor + 0.5 : ceil($precioMenorCalc);
+                        $cant            = $producto->cantidad ?? 1;
+                        $diffMenor       = round((($producto->precio_por_menor * $cant) - $producto->precio_por_mayor) / $cant * 2) / 2;
+                        $menCalc         = ($nuevoMayor / $cant) + $diffMenor;
+                        $menFloor        = floor($menCalc);
+                        $nuevoMenor      = ($menCalc - $menFloor) <= 0.5 ? $menFloor + 0.5 : ceil($menCalc);
 
                         $producto->update([
                             'precio_de_compra' => $precioPonderado,
-                            'precio_por_mayor'  => $nuevoPrecioMayor,
-                            'precio_por_menor'  => $nuevoPrecioMenor,
+                            'precio_por_mayor'  => $nuevoMayor,
+                            'precio_por_menor'  => $nuevoMenor,
                         ]);
                     } else {
                         $producto->update(['precio_de_compra' => $precioPonderado]);
@@ -415,11 +393,10 @@ class ImportarCompraQr extends Component
                 }
             }
 
-            // Registrar egreso en caja
             if ($efectivo > 0) {
                 $detalle = 'Compra #' . $compra->numero_folio . ' (QR Import)';
                 if ($credito > 0) {
-                    $detalle .= ' (Bs. ' . number_format($efectivo, 2) . ' efectivo + Bs. ' . number_format($credito, 2) . ' crédito)';
+                    $detalle .= ' (Bs. ' . number_format($efectivo, 2) . ' ef. + Bs. ' . number_format($credito, 2) . ' cr.)';
                 }
                 Movimiento::create([
                     'tenant_id' => currentTenantId(),
@@ -433,37 +410,21 @@ class ImportarCompraQr extends Component
             DB::commit();
 
             $this->fase = 'resumen';
-            $this->agregarLog('success', '¡Compra #' . $compra->numero_folio . ' finalizada!');
             $this->dispatch('compra-qr-completada');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('ImportarCompraQR finalizarCompra: ' . $e->getMessage());
+            Log::error('ImportarCompraQr finalizarCompra: ' . $e->getMessage());
             $this->toast('error', 'Error al finalizar: ' . $e->getMessage());
         }
     }
 
-    // ──────────────────────────────────────────────
-    // Ir al detalle de la compra creada
-    // ──────────────────────────────────────────────
+    // ----------------------------------------------
 
     public function irACompra(): void
     {
-        if ($this->compraId) {
-            $this->cerrar();
-            $this->dispatch('actualizar-lista-compras');
-        }
-    }
-
-    // ──────────────────────────────────────────────
-    // Helpers
-    // ──────────────────────────────────────────────
-
-    private function agregarLog(string $tipo, string $mensaje): void
-    {
-        $this->logProceso[] = ['tipo' => $tipo, 'mensaje' => $mensaje];
-        // Emitir scroll al final del log vía JS
-        $this->dispatch('log-actualizado');
+        $this->cerrar();
+        $this->dispatch('actualizar-lista-compras');
     }
 
     public function render()
