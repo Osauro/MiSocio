@@ -715,21 +715,28 @@ class Compra extends Component
                         // Refrescar el producto para obtener el nuevo stock
                         $producto->refresh();
 
-                        // Calcular precio promedio ponderado
-                        $precioCompraActual = $producto->precio_de_compra ?? 0;
-                        $precioNuevaCompra = $item['precio'];
+                        // Calcular precio promedio ponderado trabajando en PRECIO POR UNIDAD
+                        // para que sea independiente del tamaño de paquete (cantidad).
+                        $cantActual          = $producto->cantidad ?: 1;
+                        $precioUnitarioActual = ($producto->precio_de_compra ?? 0) / $cantActual;
+                        $precioUnitarioNuevo  = $item['precio'] / ($item['cantidad_por_medida'] ?: 1);
 
                         // Valor del inventario anterior + Valor de la nueva compra / Total unidades
-                        $valorInventarioAnterior = $stockAnterior * $precioCompraActual;
-                        $valorNuevaCompra = $cantidadTotal * $precioNuevaCompra;
+                        $valorInventarioAnterior = $stockAnterior * $precioUnitarioActual;
+                        $valorNuevaCompra        = $cantidadTotal * $precioUnitarioNuevo;
                         $stockTotal = $stockAnterior + $cantidadTotal;
 
-                        $precioPonderado = $stockTotal > 0 ? ($valorInventarioAnterior + $valorNuevaCompra) / $stockTotal : $precioNuevaCompra;
+                        // Precio ponderado por unidad → convertir a precio por paquete (cantidad actual)
+                        $precioUnitarioPonderado = $stockTotal > 0
+                            ? ($valorInventarioAnterior + $valorNuevaCompra) / $stockTotal
+                            : $precioUnitarioNuevo;
+                        $precioPonderado = $precioUnitarioPonderado * $cantActual;
 
-                        // Solo actualizar precios por mayor y menor si el precio nuevo es mayor al actual
-                        if ($precioNuevaCompra > $precioCompraActual) {
+                        // Solo actualizar precios si el precio por unidad subió
+                        if ($precioUnitarioNuevo > $precioUnitarioActual) {
                             // Calcular diferencias (márgenes) actuales
-                            $diffPrecioMayor = $producto->precio_por_mayor - $precioCompraActual;
+                            // precio_por_mayor y precioPonderado están en la misma escala (por paquete)
+                            $diffPrecioMayor = $producto->precio_por_mayor - ($producto->precio_de_compra ?? 0);
                             $diffPrecioMayor = ceil($diffPrecioMayor); // Redondear hacia arriba
 
                             $cantidad = $producto->cantidad ?? 1;

@@ -288,13 +288,27 @@ class Productos extends Component
                 // Actualizar producto existente
                 $producto = Producto::findOrFail($this->productoId);
 
+                // Si la cantidad por paquete cambió y el precio_de_compra no fue editado
+                // manualmente, escalar pdc para que el precio por unidad se conserve.
+                $precioDeCompra = $this->precio_de_compra ?? 0;
+                $cantidadAnterior = $producto->cantidad ?: 1;
+                $cantidadNueva    = $this->cantidad ?: 1;
+                if ($cantidadAnterior !== $cantidadNueva
+                    && $cantidadAnterior > 0
+                    && $producto->precio_de_compra > 0
+                    && $precioDeCompra == $producto->precio_de_compra
+                ) {
+                    // El usuario no tocó precio_de_compra: escalar automáticamente
+                    $precioDeCompra = ($producto->precio_de_compra / $cantidadAnterior) * $cantidadNueva;
+                }
+
                 $dataToUpdate = [
                     'categoria_id'      => $this->categoria_id,
                     'nombre'            => $this->nombre,
                     'codigo'            => $this->codigo,
                     'medida'            => $this->medida,
                     'cantidad'          => $this->cantidad,
-                    'precio_de_compra'  => $this->precio_de_compra ?? 0,
+                    'precio_de_compra'  => $precioDeCompra,
                     'precio_por_mayor'  => $this->precio_por_mayor ?? 0,
                     'precio_por_menor'  => $this->precio_por_menor ?? 0,
                     'control'           => $this->control,
