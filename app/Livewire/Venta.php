@@ -367,12 +367,22 @@ class Venta extends Component
         $subtotalInicial = 0;
 
         if ($stockDisponible >= $cantidadPorMedida) {
-            // Hay suficiente stock para 1 paquete completo - Venta por mayor
-            $entrerosInicial = 1;
-            $unidadesInicial = 0;
-            $cantidadInicial = $cantidadPorMedida;
-            $precioVenta = $producto->precio_por_mayor;
-            $subtotalInicial = $this->redondearSubtotal($precioVenta);
+            // Hay suficiente stock para 1 paquete completo
+            if (ventasIniciarUnidad()) {
+                // Config: iniciar con 1 unidad
+                $entrerosInicial = 0;
+                $unidadesInicial = 1;
+                $cantidadInicial = 1;
+                $precioVenta = $producto->precio_por_menor;
+                $subtotalInicial = $this->redondearSubtotal($precioVenta);
+            } else {
+                // Por defecto: iniciar con 1 entero (paquete)
+                $entrerosInicial = 1;
+                $unidadesInicial = 0;
+                $cantidadInicial = $cantidadPorMedida;
+                $precioVenta = $producto->precio_por_mayor;
+                $subtotalInicial = $this->redondearSubtotal($precioVenta);
+            }
         } else {
             // Solo hay unidades sueltas - Venta por menor
             $entrerosInicial = 0;

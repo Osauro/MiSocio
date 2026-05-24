@@ -240,3 +240,17 @@ if (!function_exists('ventasSoloUnidad')) {
         return $config ? ($config->ventas_solo_unidad ?? false) : false;
     }
 }
+
+if (!function_exists('ventasIniciarUnidad')) {
+    /**
+     * Verificar si al agregar un item en venta se debe iniciar con 1 unidad (en vez de 1 entero).
+     */
+    function ventasIniciarUnidad(): bool
+    {
+        $tenantId = currentTenantId();
+        if (!$tenantId) return false;
+
+        $config = \App\Models\TenantConfig::where('tenant_id', $tenantId)->first();
+        return $config ? ($config->ventas_iniciar_unidad ?? false) : false;
+    }
+}

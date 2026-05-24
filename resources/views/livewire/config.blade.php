@@ -587,7 +587,7 @@
 
                                                 <!-- Solo por unidad (solo si ventas habilitado) -->
                                                 @if($ventas_enabled)
-                                                <div class="d-flex justify-content-between align-items-center">
+                                                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
                                                     <div>
                                                         <p class="fw-semibold mb-0">Vender solo por unidad</p>
                                                         <small class="text-muted">
@@ -600,6 +600,22 @@
                                                                wire:model="ventas_solo_unidad"
                                                                wire:change="guardarModulos"
                                                                id="ventasSoloUnidad"
+                                                               style="width: 3rem; height: 1.5rem;">
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <p class="fw-semibold mb-0">Empezar por unidad al agregar</p>
+                                                        <small class="text-muted">
+                                                            Al agregar un producto al carrito inicia con 1 unidad
+                                                            en vez de 1 entero (paquete).
+                                                        </small>
+                                                    </div>
+                                                    <div class="form-check form-switch mb-0 ms-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                               wire:model="ventas_iniciar_unidad"
+                                                               wire:change="guardarModulos"
+                                                               id="ventasIniciarUnidad"
                                                                style="width: 3rem; height: 1.5rem;">
                                                     </div>
                                                 </div>

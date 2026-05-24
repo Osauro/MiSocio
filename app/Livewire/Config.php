@@ -66,6 +66,7 @@ class Config extends Component
     // Ventas
     public $ventas_enabled;
     public $ventas_solo_unidad;
+    public $ventas_iniciar_unidad;
 
     // Facebook API
     public $facebook_page_id;
@@ -117,6 +118,7 @@ class Config extends Component
             // Ventas
             'ventas_enabled' => 'boolean',
             'ventas_solo_unidad' => 'boolean',
+            'ventas_iniciar_unidad' => 'boolean',
             // Importación
             'formato_importacion' => 'required|in:excel,csv,json',
         ];
@@ -186,6 +188,7 @@ class Config extends Component
         // Ventas
         $this->ventas_enabled = $config->ventas_enabled ?? true;
         $this->ventas_solo_unidad = $config->ventas_solo_unidad ?? false;
+        $this->ventas_iniciar_unidad = $config->ventas_iniciar_unidad ?? false;
 
         // Facebook
         $this->facebook_page_id = $config->facebook_page_id;
@@ -585,6 +588,7 @@ class Config extends Component
             'compras_enabled' => 'boolean',
             'ventas_enabled' => 'boolean',
             'ventas_solo_unidad' => 'boolean',
+            'ventas_iniciar_unidad' => 'boolean',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -595,6 +599,7 @@ class Config extends Component
             'compras_enabled'        => $this->compras_enabled ?? true,
             'ventas_enabled'         => $this->ventas_enabled ?? true,
             'ventas_solo_unidad'     => $this->ventas_solo_unidad ?? false,
+            'ventas_iniciar_unidad'  => $this->ventas_iniciar_unidad ?? false,
         ]);
 
         $this->toast('success', 'Módulos guardados');
