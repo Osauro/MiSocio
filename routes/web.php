@@ -103,6 +103,10 @@ Route::middleware(['auth', 'tenant', 'tenant.active'])->group(function () {
     // Kardex - Todos los usuarios pueden ver
     Route::livewire('kardex', Kardex::class)->name('kardex');
 
+    // Inventarios - Todos los usuarios pueden hacer inventarios
+    Route::livewire('inventarios', Inventarios::class)->name('inventarios');
+    Route::livewire('inventario/{inventarioId}', Inventario::class)->name('inventario');
+
     // Tickets
     Route::get('ticket/venta/{ventaId}', [TicketController::class, 'ventaHtml'])->name('ticket.venta');
     Route::get('ticket/venta/{ventaId}/pdf', [TicketController::class, 'venta'])->name('ticket.venta.pdf');
@@ -133,10 +137,6 @@ Route::middleware(['auth', 'tenant', 'tenant.active', 'tenant.manage'])->group(f
 
     // Crear/Editar Compra - Solo administradores
     Route::livewire('compra/{compraId}', Compra::class)->name('compra');
-
-    // Inventarios - Solo administradores
-    Route::livewire('inventarios', Inventarios::class)->name('inventarios');
-    Route::livewire('inventario/{inventarioId}', Inventario::class)->name('inventario');
 
     // Préstamos - Solo administradores
     Route::livewire('prestamos', Prestamos::class)->name('prestamos');
