@@ -131,6 +131,9 @@
 
         <!-- Selector de tenant (overlay) -->
         @livewire('tenant-selector')
+
+        <!-- Cambio rápido de usuario (F2) -->
+        @livewire('cambiar-usuario')
     </div>
     <!-- jquery-->
     <script src="{{ asset('assets/js/vendors/jquery/jquery.min.js') }}"></script>
