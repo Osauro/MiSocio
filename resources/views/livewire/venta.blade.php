@@ -40,6 +40,13 @@
                 display: block !important;
             }
         }
+
+        /* Ajuste del sticky de resultados en móvil (header ~70px + buscador ~50px) */
+        @media (max-width: 767.98px) {
+            .venta-results-sticky {
+                top: 122px !important;
+            }
+        }
     </style>
 
     <div class="container-fluid">
@@ -61,6 +68,19 @@
                                     autofocus
                                     @click="$el.select()">
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Buscador fijo para móvil -->
+                    <div class="card-header card-no-border d-md-none" style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
+                        <div class="input-group">
+                            <span class="input-group-text text-white" style="background-color: {{ getThemeColor() }};">
+                                <i class="fa-solid fa-search"></i>
+                            </span>
+                            <input type="text"
+                                class="form-control"
+                                wire:model.live.debounce.300ms="buscar"
+                                placeholder="Nombre o código...">
                         </div>
                     </div>
 
@@ -189,7 +209,7 @@
 
                             <!-- Columna de Resultados (Derecha) - Oculta cuando se muestra carrito en móvil -->
                             <div class="col-md-4 col-lg-3 d-md-block" :class="{ 'd-none': mostrarCarritoMovil }">
-                                <div style="position: sticky; top: 72px; z-index: 1;">
+                                <div style="position: sticky; top: 72px; z-index: 1;" class="venta-results-sticky">
                                         <!-- Resultados -->
                                         <div class="search-results" style="max-height: calc(100vh - 180px); overflow-y: auto;">
                                             @if(strlen($buscar) >= 2)
