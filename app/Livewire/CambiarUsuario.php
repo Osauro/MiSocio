@@ -24,7 +24,7 @@ class CambiarUsuario extends Component
         $tenantId = currentTenantId();
 
         $this->usuarios = User::whereHas('tenants', function ($q) use ($tenantId) {
-                $q->where('tenants.id', $tenantId)->wherePivot('is_active', true);
+                $q->where('tenants.id', $tenantId)->where('tenant_user.is_active', true);
             })
             ->with(['tenants' => function ($q) use ($tenantId) {
                 $q->where('tenants.id', $tenantId);
