@@ -63,6 +63,20 @@ return [
             ]) : [],
         ],
 
+        // Conexión a la base de datos de producción (misocio.bo)
+        'db1' => [
+            'driver' => 'mysql',
+            'host' => env('DB1_HOST', '127.0.0.1'),
+            'port' => env('DB1_PORT', '3306'),
+            'database' => env('DB1_DATABASE', ''),
+            'username' => env('DB1_USERNAME', ''),
+            'password' => env('DB1_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => false,
+        ],
+
         // Conexión a la base de datos paybol_fadi para importación
         'paybol' => [
             'driver' => 'mysql',

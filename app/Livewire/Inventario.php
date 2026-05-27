@@ -53,7 +53,7 @@ class Inventario extends Component
             return redirect()->route('inventarios');
         }
 
-        if ($inventario->user_id !== Auth::id() && !canManageTenant()) {
+        if ((int)$inventario->user_id !== (int)Auth::id() && !canManageTenant()) {
             session()->flash('error', 'No tienes permiso para editar este inventario');
             return redirect()->route('inventarios');
         }

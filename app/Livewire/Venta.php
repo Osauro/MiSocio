@@ -126,7 +126,7 @@ class Venta extends Component
 
             return [
                 'id' => $item->id,
-                'producto_id' => $item->producto_id,
+                'producto_id' => (int) $item->producto_id,
                 'nombre' => $item->producto->nombre ?? 'Producto',
                 'imagen' => $item->producto->photo_url ?? null,
                 'medida' => $item->producto->medida ?? 'u',
@@ -263,7 +263,7 @@ class Venta extends Component
         $producto = Producto::findOrFail($productoId);
 
         // Verificar si ya existe en los items — si existe, agregar 1 unidad más
-        $indexExistente = collect($this->items)->search(fn($item) => $item['producto_id'] === $productoId);
+        $indexExistente = collect($this->items)->search(fn($item) => (int)$item['producto_id'] === (int)$productoId);
 
         if ($indexExistente !== false) {
             $this->items[$indexExistente]['unidades'] += 1;
@@ -295,7 +295,7 @@ class Venta extends Component
 
             $this->items[] = [
                 'id'                => $ventaItem->id,
-                'producto_id'       => $productoId,
+                'producto_id'       => (int) $productoId,
                 'nombre'            => $producto->nombre,
                 'imagen'            => $producto->photo_url,
                 'medida'            => 'u',
@@ -333,7 +333,7 @@ class Venta extends Component
 
             $this->items[] = [
                 'id' => $ventaItem->id,
-                'producto_id' => $productoId,
+                'producto_id' => (int) $productoId,
                 'nombre' => $producto->nombre,
                 'imagen' => $producto->photo_url,
                 'medida' => $producto->medida ?? 'u',
@@ -409,7 +409,7 @@ class Venta extends Component
         // Agregar al array de items
         $this->items[] = [
             'id' => $ventaItem->id,
-            'producto_id' => $productoId,
+            'producto_id' => (int) $productoId,
             'nombre' => $producto->nombre,
             'imagen' => $producto->photo_url,
             'medida' => $producto->medida ?? 'u',

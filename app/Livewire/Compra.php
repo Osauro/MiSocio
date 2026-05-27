@@ -95,7 +95,7 @@ class Compra extends Component
         }
 
         // Verificar que sea del usuario actual O que el usuario pueda gestionar el tenant
-        if ($this->compra->user_id !== Auth::id() && !canManageTenant()) {
+        if ((int)$this->compra->user_id !== (int)Auth::id() && !canManageTenant()) {
             Log::error('Sin permiso para editar compra', [
                 'compra_user_id' => $this->compra->user_id,
                 'auth_user_id' => Auth::id(),
@@ -369,7 +369,7 @@ class Compra extends Component
             $compra = CompraModel::findOrFail($compraId);
 
             // Verificar que sea del usuario actual y esté pendiente
-            if ($compra->user_id !== Auth::id() || $compra->estado !== 'Pendiente') {
+            if ((int)$compra->user_id !== (int)Auth::id() || $compra->estado !== 'Pendiente') {
                 $this->toast('error', 'No se puede cancelar esta compra');
                 return;
             }
