@@ -107,6 +107,10 @@ Route::middleware(['auth', 'tenant', 'tenant.active'])->group(function () {
     Route::livewire('inventarios', Inventarios::class)->name('inventarios');
     Route::livewire('inventario/{inventarioId}', Inventario::class)->name('inventario');
 
+    // Compras - Todos pueden ver; operadores solo pueden importar por QR
+    Route::livewire('compras', Compras::class)->name('compras');
+    Route::livewire('compra/{compraId}', Compra::class)->name('compra');
+
     // Tickets
     Route::get('ticket/venta/{ventaId}', [TicketController::class, 'ventaHtml'])->name('ticket.venta');
     Route::get('ticket/venta/{ventaId}/pdf', [TicketController::class, 'venta'])->name('ticket.venta.pdf');
@@ -131,12 +135,6 @@ Route::middleware(['auth', 'tenant', 'tenant.active', 'tenant.manage'])->group(f
     Route::livewire('clientes', Clientes::class)->name('clientes');
     Route::livewire('usuarios', Usuarios::class)->name('usuarios');
     Route::livewire('movimientos', Movimientos::class)->name('movimientos');
-
-    // Compras - Solo administradores
-    Route::livewire('compras', Compras::class)->name('compras');
-
-    // Crear/Editar Compra - Solo administradores
-    Route::livewire('compra/{compraId}', Compra::class)->name('compra');
 
     // Préstamos - Solo administradores
     Route::livewire('prestamos', Prestamos::class)->name('prestamos');

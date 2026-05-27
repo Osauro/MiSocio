@@ -255,6 +255,10 @@ class Compras extends Component
 
     public function crearCompra()
     {
+        if (!canManageTenant()) {
+            abort(403);
+        }
+
         Log::info('=== CREAR COMPRA INICIADO ===', [
             'user_id' => auth()->id(),
             'tenant_id' => currentTenantId()

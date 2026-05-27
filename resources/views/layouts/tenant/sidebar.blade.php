@@ -40,7 +40,7 @@
                 </a>
             </li>
             @endif
-            @if(canManageTenant() && comprasHabilitados())
+            @if(comprasHabilitados())
                 <li class="sidebar-list {{ request()->routeIs('compras') ? 'active' : '' }}">
                     <i class="fa-solid fa-thumbtack"></i>
                     <a class="sidebar-link {{ request()->routeIs('compras') ? 'active' : '' }}" href="{{ route('compras') }}">

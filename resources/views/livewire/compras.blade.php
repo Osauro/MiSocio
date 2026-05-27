@@ -23,7 +23,9 @@
                                         x-on:click="$dispatch('abrir-importar-qr')">
                                         <i class="fa-solid fa-qrcode"></i>
                                     </button>
+                                    @if(canManageTenant())
                                     <button class="btn btn-primary" wire:click="crearCompra"><i class="fa-solid fa-plus"></i></button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -47,7 +49,9 @@
                                 x-on:click="$dispatch('abrir-importar-qr')">
                                 <i class="fa-solid fa-qrcode"></i>
                             </button>
+                            @if(canManageTenant())
                             <button class="btn btn-primary" wire:click="crearCompra"><i class="fa-solid fa-plus"></i></button>
+                            @endif
                         </div>
                     </div>
 
