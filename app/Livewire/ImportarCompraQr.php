@@ -79,7 +79,7 @@ class ImportarCompraQr extends Component
             $this->errorUrl = 'Ingresa un número de venta válido';
             return;
         }
-        $this->procesarUrl('https://fadi.com.bo/' . intval($numero));
+        $this->procesarUrl('https://fadi.com.bo/api/venta/' . intval($numero) . '/productos');
     }
 
     public function procesarUrl(string $url): void
