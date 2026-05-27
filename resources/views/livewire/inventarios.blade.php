@@ -6,7 +6,7 @@
                     <div class="card-header card-no-border pb-0">
                         <div class="header-top d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <h3 class="mb-0 d-none d-md-block">Inventarios</h3>
-                            <div class="d-flex gap-2 align-items-center">
+                            <div class="d-flex gap-2 align-items-center ms-auto">
                                 <button class="btn btn-primary" wire:click="crearInventario" title="Nuevo inventario">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
