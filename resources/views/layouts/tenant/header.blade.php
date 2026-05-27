@@ -237,6 +237,36 @@
         }
     }
 
+    /* Evitar que los iconos del header se bajen a una segunda línea */
+    .page-header {
+        flex-wrap: nowrap !important;
+    }
+
+    .page-main-header .header-right {
+        flex-wrap: nowrap !important;
+    }
+
+    @media (max-width: 480px) {
+        .cart-nav {
+            margin-right: 1px;
+            margin-left: 1px;
+        }
+
+        .cart-icon-link {
+            width: 30px;
+            height: 30px;
+            box-shadow: 0 0 0 5px var(--theme-default, #7366ff), 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .cart-icon-link:hover {
+            box-shadow: 0 0 0 7px var(--theme-default, #7366ff), 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .cart-icon-link i {
+            font-size: 0.8rem !important;
+        }
+    }
+
     /* Asegurar que el sidebar esté por encima del buscador */
     .page-sidebar {
         z-index: 1050 !important;
