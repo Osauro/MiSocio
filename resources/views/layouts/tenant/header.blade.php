@@ -37,7 +37,7 @@
                     @livewire('venta-cart')
                     @endif
                 </li>
-                @if (Auth::user()->canManageCurrentTenant() && comprasHabilitados())
+                @if(comprasHabilitados())
                 <li class="cart-nav">
                     @livewire('compra-cart')
                 </li>
@@ -54,7 +54,7 @@
                     </a>
                 </li>
                 @endif
-                @if(Auth::user()->canManageCurrentTenant() && comprasHabilitados())
+                @if(comprasHabilitados())
                 <li class="cart-nav">
                     <a href="{{ route('movimientos') }}" class="cart-icon-link position-relative" title="Movimientos">
                         <i class="fa-solid fa-arrows-up-down fa-lg"></i>
