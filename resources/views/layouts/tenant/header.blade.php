@@ -47,6 +47,20 @@
                     @livewire('prestamo-cart')
                 </li>
                 @endif
+                @if(comprasHabilitados())
+                <li class="cart-nav">
+                    <a href="{{ route('inventarios') }}" class="cart-icon-link position-relative" title="Inventarios">
+                        <i class="fa-solid fa-boxes-stacked fa-lg"></i>
+                    </a>
+                </li>
+                @endif
+                @if(Auth::user()->canManageCurrentTenant() && comprasHabilitados())
+                <li class="cart-nav">
+                    <a href="{{ route('movimientos') }}" class="cart-icon-link position-relative" title="Movimientos">
+                        <i class="fa-solid fa-arrows-up-down fa-lg"></i>
+                    </a>
+                </li>
+                @endif
                 @if(hospedajesHabilitados())
                 <li class="cart-nav">
                     <a href="{{ route('habitaciones') }}" class="cart-icon-link position-relative" title="Habitaciones">
