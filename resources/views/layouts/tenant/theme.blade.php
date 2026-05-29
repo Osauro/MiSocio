@@ -65,26 +65,27 @@
     <style>
 
         /* Fix para backdrop y modales de Bootstrap */
+        /* El header usa z-index: 1060, los modales deben estar por encima */
         .modal-backdrop {
-            z-index: 1055 !important;
+            z-index: 1065 !important;
         }
         .modal {
-            z-index: 1056 !important;
+            z-index: 1070 !important;
         }
 
         /* Asegurar que los modales personalizados de Livewire también funcionen */
         .modal.fade.show.d-block {
-            z-index: 1056 !important;
+            z-index: 1070 !important;
         }
 
         /* Asegurar que los modales abiertos con Bootstrap JS también funcionen */
         .modal.show {
-            z-index: 1056 !important;
+            z-index: 1070 !important;
         }
 
         /* Asegurar que el backdrop esté siempre debajo del modal */
         body > .modal-backdrop {
-            z-index: 1055 !important;
+            z-index: 1065 !important;
         }
     </style>
     <!-- Custom CSS -->
