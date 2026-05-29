@@ -262,12 +262,21 @@ class Venta extends Component
     {
         $producto = Producto::findOrFail($productoId);
 
-        // Verificar si ya existe en los items — si existe, agregar 1 unidad más
-        $indexExistente = collect($this->items)->search(fn($item) => (int)$item['producto_id'] === (int)$productoId);
+        // Verificar contra la BD (no sólo el array en memoria) para evitar race conditions
+        // de Livewire donde dos requests concurrentes parten del mismo snapshot y ambos
+        // pasan la verificación en memoria, creando filas duplicadas en venta_items.
+        $itemEnBD = VentaItem::where('venta_id', $this->ventaId)
+            ->where('producto_id', $productoId)
+            ->first();
 
-        if ($indexExistente !== false) {
-            $this->items[$indexExistente]['unidades'] += 1;
-            $this->actualizarItem($indexExistente);
+        if ($itemEnBD !== null) {
+            // Ya existe en BD: recargar estado desde BD y sumar 1 unidad
+            $this->cargarItems();
+            $indexExistente = collect($this->items)->search(fn($item) => (int)$item['producto_id'] === (int)$productoId);
+            if ($indexExistente !== false) {
+                $this->items[$indexExistente]['unidades'] += 1;
+                $this->actualizarItem($indexExistente);
+            }
             $this->dispatch('focusBuscador');
             $this->dispatch('actualizar-badge-venta');
             return;
