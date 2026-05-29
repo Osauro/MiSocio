@@ -131,11 +131,11 @@
         @endphp
 
         <!-- Backdrop -->
-        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+        <div class="modal-backdrop fade show" style="z-index: 1065;"></div>
 
         <!-- Modal -->
         <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
-            style="z-index: 1050; overflow-y: auto;" wire:click.self="cerrarModal">
+            style="z-index: 1070; overflow-y: auto;" wire:click.self="cerrarModal">
             <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                 <div class="modal-content shadow-lg border-0">
 

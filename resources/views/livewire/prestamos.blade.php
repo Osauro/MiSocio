@@ -249,11 +249,11 @@
     <!-- Modal de Detalles de Préstamo -->
     @if ($mostrarModal && $prestamoSeleccionado)
         <!-- Backdrop del Modal -->
-        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+        <div class="modal-backdrop fade show" style="z-index: 1065;"></div>
 
         <!-- Modal -->
         <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
-            style="z-index: 1050; overflow-y: auto;">
+            style="z-index: 1070; overflow-y: auto;">
             <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                 <div class="modal-content shadow-lg border-0">
                     <div class="modal-header text-white" style="background-color: var(--theme-default, #7366ff);">

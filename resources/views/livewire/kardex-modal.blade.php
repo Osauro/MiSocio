@@ -9,11 +9,11 @@
     <!-- Modal de Kardex -->
     @if ($mostrar && $producto)
         <!-- Backdrop del Modal -->
-        <div class="modal-backdrop fade show" style="z-index: 1040;"></div>
+        <div class="modal-backdrop fade show" style="z-index: 1065;"></div>
 
         <!-- Modal -->
         <div class="modal fade show d-block" tabindex="-1" role="dialog" aria-modal="true"
-            style="z-index: 1050; overflow-y: auto;" wire:click.self="cerrarKardex">
+            style="z-index: 1070; overflow-y: auto;" wire:click.self="cerrarKardex">
             <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable" role="document">
                 <div class="modal-content shadow-lg border-0">
                     <div class="modal-header text-white" style="background-color: var(--theme-default, #7366ff);">
