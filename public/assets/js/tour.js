@@ -236,8 +236,19 @@
 
     // ── Inicializar Driver.js ─────────────────────────────────────────────────
 
+    function abrirSidebar() {
+        // En móvil/tablet el sidebar puede estar colapsado; lo abrimos si es necesario
+        var toggle = document.querySelector('[data-bs-toggle="sidebar"], .sidebar-toggle, #header-toggle');
+        var sidebar = document.querySelector('.main-sidebar, #sidebar');
+        if (sidebar && toggle && (sidebar.offsetWidth === 0 || sidebar.offsetParent === null)) {
+            toggle.click();
+        }
+    }
+
     function crearDriver() {
-        return window.driver.js.driver({
+        // Capturar instancia en variable local para closure — 'this' en callbacks de Driver.js no es la instancia
+        var driverInstance;
+        driverInstance = window.driver.js.driver({
             showProgress: true,
             progressText: '{{current}} de {{total}}',
             nextBtnText: 'Siguiente →',
@@ -249,10 +260,11 @@
             allowClose: true,
             onDestroyStarted: function () {
                 marcarCompletado();
-                this.destroy();
+                if (driverInstance) driverInstance.destroy();
             },
             steps: buildSteps(),
         });
+        return driverInstance;
     }
 
     function marcarCompletado() {
@@ -274,7 +286,11 @@
                 console.warn('Driver.js no está cargado todavía.');
                 return;
             }
-            crearDriver().drive();
+            abrirSidebar();
+            // Pequeña pausa para que el sidebar termine la animación de apertura
+            setTimeout(function () {
+                crearDriver().drive();
+            }, 300);
         },
     };
 
