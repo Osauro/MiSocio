@@ -9,6 +9,7 @@ use App\Models\Cliente;
 use App\Models\Kardex;
 use App\Models\Movimiento;
 use App\Models\TenantConfig;
+use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ use Livewire\Component;
 
 class Venta extends Component
 {
-    use RequiresTenant, SweetAlertTrait;
+    use RequiresTenant, SweetAlertTrait, PrintsViaAgent;
 
     public $ventaId;
     public $venta;
@@ -1069,19 +1070,15 @@ class Venta extends Component
             $this->toast('success', 'Venta completada exitosamente');
 
             // Imprimir ticket automáticamente si está configurado
-            $config = TenantConfig::first();
-            if ($config && $config->impresion_auto_venta) {
-                $this->dispatch('abrir-ticket-y-redirigir', [
-                    'ventaId' => $this->venta->id,
-                    'autoPrint' => true,
-                ]);
-            } else {
-                // Redirigir sin imprimir
-                $this->dispatch('abrir-ticket-y-redirigir', [
-                    'ventaId' => $this->venta->id,
-                    'autoPrint' => false,
-                ]);
+            $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+            if ($config->impresion_auto_venta) {
+                $ventaCompleta = VentaModel::with([
+                    'cliente', 'user',
+                    'ventaItems.producto' => fn($q) => $q->withTrashed(),
+                ])->find($this->venta->id);
+                $this->dispatchVentaPrint($ventaCompleta, $config);
             }
+            $this->dispatch('abrir-ticket-y-redirigir');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al finalizar venta: ' . $e->getMessage());

@@ -6,6 +6,8 @@ use App\Models\Venta;
 use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
+use App\Models\TenantConfig;
+use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Livewire\Component;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class Ventas extends Component
 {
-    use WithPagination, RequiresTenant, SweetAlertTrait;
+    use WithPagination, RequiresTenant, SweetAlertTrait, PrintsViaAgent;
 
     public $search = '';
     public $perPage = 12;
@@ -460,10 +462,13 @@ class Ventas extends Component
 
     public function imprimirTicket($ventaId)
     {
-        // Enviar ventaId al JS para imprimir via LicoPOS Printer local
-        $this->dispatch('abrir-ticket', [
-            'ventaId' => $ventaId,
-        ]);
+        $venta = Venta::with([
+            'cliente', 'user',
+            'ventaItems.producto' => fn($q) => $q->withTrashed(),
+        ])->where('tenant_id', currentTenantId())->findOrFail($ventaId);
+
+        $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+        $this->dispatchVentaPrint($venta, $config);
     }
 
     public function render()

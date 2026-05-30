@@ -6,6 +6,8 @@ use App\Models\Prestamo;
 use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
+use App\Models\TenantConfig;
+use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Livewire\Component;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class Prestamos extends Component
 {
-    use WithPagination, RequiresTenant, SweetAlertTrait;
+    use WithPagination, RequiresTenant, SweetAlertTrait, PrintsViaAgent;
 
     public $search = '';
     public $perPage = 12;
@@ -219,9 +221,13 @@ class Prestamos extends Component
 
     public function imprimirTicket($prestamoId)
     {
-        $this->dispatch('abrir-ticket-prestamo', [
-            'prestamoId' => $prestamoId,
-        ]);
+        $prestamo = Prestamo::with([
+            'cliente', 'user',
+            'prestamoItems.producto' => fn($q) => $q->withTrashed(),
+        ])->where('tenant_id', currentTenantId())->findOrFail($prestamoId);
+
+        $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+        $this->dispatchPrestamoPrint($prestamo, $config);
     }
 
     public function render()

@@ -413,6 +413,39 @@
             banner.style.display = 'none';
         });
     </script>
+
+    {{-- Print Agent: listener global para el evento 'enviar-a-agente' --}}
+    <script>
+        window.addEventListener('enviar-a-agente', async function (e) {
+            const { agentUrl, job, successMsg } = e.detail;
+            const url = (agentUrl || '').replace(/\/$/, '') + '/api/print/universal';
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(job),
+                    signal: AbortSignal.timeout(8000),
+                });
+                if (res.ok) {
+                    if (window.Swal) {
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success',
+                            title: successMsg || 'Impresión enviada', timer: 2500,
+                            showConfirmButton: false });
+                    }
+                } else {
+                    const txt = await res.text().catch(() => res.status);
+                    if (window.Swal) {
+                        Swal.fire({ icon: 'error', title: 'Error del agente de impresión', text: txt });
+                    }
+                }
+            } catch (err) {
+                if (window.Swal) {
+                    Swal.fire({ icon: 'warning', title: 'Agente de impresión no disponible',
+                        text: 'Verifica que el Print Agent esté corriendo en ' + (agentUrl || 'la URL configurada') });
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

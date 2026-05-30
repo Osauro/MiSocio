@@ -734,39 +734,8 @@
                 }, 50);
             });
 
-            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:1013) ===
-            const LICOPOS_URL = 'http://localhost:1013';
-
-            async function imprimirTicketPrestamo(prestamoId) {
-                try {
-                    const response = await fetch(`${LICOPOS_URL}/boleta/${prestamoId}`, {
-                        method: 'GET',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    // Consumir respuesta
-                    await response.text();
-                    console.log('Ticket préstamo impreso correctamente por localhost:1013');
-                    return true; // Éxito - no abrir PDF
-                } catch (e) {
-                    console.warn('MiSocio Printer no disponible, abriendo ticket HTML:', e.message);
-                    // Fallback: abrir vista HTML con autoprint integrado
-                    window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
-                }
-            }
-
-            // Al finalizar préstamo: imprimir automáticamente si está configurado y redirigir
-            $wire.on('abrir-ticket-prestamo-y-redirigir', async (data) => {
-                const prestamoId = data[0]?.prestamoId || data.prestamoId;
-                const autoPrint = data[0]?.autoPrint || data.autoPrint || false;
-
-                if (autoPrint) {
-                    await imprimirTicketPrestamo(prestamoId);
-                }
-
+            // Al finalizar préstamo: redirigir (la impresión ya fue despachada desde PHP)
+            $wire.on('abrir-ticket-prestamo-y-redirigir', () => {
                 setTimeout(() => {
                     window.location.href = '{{ route("prestamos") }}';
                 }, 500);

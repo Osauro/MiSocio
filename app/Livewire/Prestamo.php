@@ -9,6 +9,7 @@ use App\Models\Cliente;
 use App\Models\Kardex;
 use App\Models\Movimiento;
 use App\Models\TenantConfig;
+use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +21,7 @@ use Livewire\Component;
 
 class Prestamo extends Component
 {
-    use RequiresTenant, SweetAlertTrait;
+    use RequiresTenant, SweetAlertTrait, PrintsViaAgent;
 
     public $prestamoId;
     public $prestamo;
@@ -790,19 +791,15 @@ class Prestamo extends Component
             $this->toast('success', 'Préstamo completado exitosamente');
 
             // Imprimir ticket automáticamente si está configurado
-            $config = TenantConfig::first();
-            if ($config && $config->impresion_auto_prestamo) {
-                $this->dispatch('abrir-ticket-prestamo-y-redirigir', [
-                    'prestamoId' => $this->prestamo->id,
-                    'autoPrint' => true,
-                ]);
-            } else {
-                // Redirigir sin imprimir (via JS igual que ventas)
-                $this->dispatch('abrir-ticket-prestamo-y-redirigir', [
-                    'prestamoId' => $this->prestamo->id,
-                    'autoPrint' => false,
-                ]);
+            $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+            if ($config->impresion_auto_prestamo) {
+                $prestamoCompleto = \App\Models\Prestamo::with([
+                    'cliente', 'user',
+                    'prestamoItems.producto' => fn($q) => $q->withTrashed(),
+                ])->find($this->prestamo->id);
+                $this->dispatchPrestamoPrint($prestamoCompleto, $config);
             }
+            $this->dispatch('abrir-ticket-prestamo-y-redirigir');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al finalizar préstamo: ' . $e->getMessage());

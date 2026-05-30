@@ -417,47 +417,9 @@
                 });
             });
 
-            // === IMPRESIÓN DIRECTA VÍA LICOPOS PRINTER (localhost:1013) ===
-            const LICOPOS_URL = 'http://localhost:1013';
-
-            async function imprimirTicketPrestamo(prestamoId) {
-                try {
-                    const response = await fetch(`${LICOPOS_URL}/boleta/${prestamoId}`, {
-                        method: 'GET',
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    // Consumir respuesta
-                    await response.text();
-                    console.log('Ticket préstamo impreso correctamente por localhost:1013');
-
-                    // Mostrar notificación de éxito
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: 'Ticket impreso',
-                            showConfirmButton: false,
-                            timer: 2000
-                        });
-                    }
-                    return true; // Éxito - no abrir HTML
-                } catch (e) {
-                    console.warn('MiSocio Printer no disponible, abriendo ticket HTML:', e.message);
-                    // Fallback: abrir vista HTML con autoprint integrado
-                    window.open(`/ticket/prestamo/${prestamoId}`, '_blank');
-                }
-            }
-
-            // Escuchar evento de Livewire para imprimir
-            $wire.on('abrir-ticket-prestamo', (data) => {
-                const info = data[0] || data;
-                imprimirTicketPrestamo(info.prestamoId);
-            });
+            // El botón imprimir llama wire:click="imprimirTicket(id)"
+            // que construye el job ESC/POS en PHP y despacha 'enviar-a-agente'
+            // El listener global en theme.blade.php se encarga del POST al agente.
         </script>
     @endscript
 
