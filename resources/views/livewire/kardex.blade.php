@@ -59,7 +59,7 @@
                                 </thead>
                                 <tbody>
                                     @forelse($kardex as $item)
-                                        <tr wire:click="filtrarPorProducto('{{ $item->producto->nombre }}')"
+                                        <tr wire:click="filtrarPorProducto({{ $item->producto_id }})"
                                             style="cursor: pointer;">
                                             <td>
                                                 <img src="{{ $item->producto->photo_url }}"

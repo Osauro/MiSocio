@@ -88,13 +88,14 @@ class Kardex extends Component
         ]);
     }
 
-    public function filtrarPorProducto($nombreProducto)
+    public function filtrarPorProducto($productoId)
     {
+        $nombre = \App\Models\Producto::find($productoId)?->nombre ?? '';
         // Toggle: si ya está filtrado por este producto, limpiar el search
-        if ($this->search === $nombreProducto) {
+        if ($this->search === $nombre) {
             $this->search = '';
         } else {
-            $this->search = $nombreProducto;
+            $this->search = $nombre;
         }
         $this->resetPage();
     }
