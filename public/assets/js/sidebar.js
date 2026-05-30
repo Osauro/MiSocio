@@ -105,7 +105,9 @@ function togglePinnedName() {
   }
 }
 pinIcon.forEach((item, index) => {
-  var linkName = item.parentNode.querySelector("h6").innerHTML;
+  var h6El = item.parentNode.querySelector("h6");
+  if (!h6El) return;
+  var linkName = h6El.innerHTML;
   var InitialLocalStorage = JSON.parse(localStorage.getItem("pins") || false);
   if (InitialLocalStorage && InitialLocalStorage.includes(linkName)) {
     item.parentNode.classList.add("pined");

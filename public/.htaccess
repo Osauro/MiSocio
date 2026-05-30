@@ -1,5 +1,5 @@
-# Permitir seguir symlinks (necesario para storage/ → storage/app/public)
-Options +SymLinksIfOwnerMatch
+# Permitir seguir symlinks (necesario para storage/ en Windows/Laragon)
+Options +FollowSymLinks
 
 # Forzar charset UTF-8 en todas las respuestas
 AddDefaultCharset UTF-8
@@ -16,7 +16,7 @@ AddDefaultCharset UTF-8
 
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes +SymLinksIfOwnerMatch
+        Options -MultiViews -Indexes +FollowSymLinks
     </IfModule>
 
     RewriteEngine On
