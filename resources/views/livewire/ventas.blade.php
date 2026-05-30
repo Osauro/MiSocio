@@ -254,11 +254,17 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($ventaSeleccionada->ventaItems as $item)
+                                        @php
+                                            $nombreCompleto = $item->producto->nombre ?? 'Producto';
+                                            $nombreMostrar  = mb_strlen($nombreCompleto) > 22
+                                                ? mb_substr($nombreCompleto, 0, 11) . '…' . mb_substr($nombreCompleto, -9)
+                                                : $nombreCompleto;
+                                        @endphp
                                         <tr style="cursor: pointer;"
                                             x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
-                                            title="{{ $item->producto->nombre ?? 'Producto' }}">
+                                            title="{{ $nombreCompleto }}">
                                             <td class="align-middle" style="max-width: 220px;">
-                                                <strong class="d-block text-truncate text-center">{{ $item->producto->nombre ?? 'Producto' }}</strong>
+                                                <strong class="d-block">{{ $nombreMostrar }}</strong>
                                             </td>
                                             <td class="text-end align-middle" style="width: 35px;">{{ $item->cantidad_formateada }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
