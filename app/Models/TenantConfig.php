@@ -48,6 +48,8 @@ class TenantConfig extends Model
         'whatsapp_token',
         'whatsapp_phone_id',
         'whatsapp_enabled',
+        // Green API (WhatsApp)
+        'greenapi_notif_ventas',
         // Facebook API
         'facebook_page_id',
         'facebook_access_token',
@@ -81,6 +83,7 @@ class TenantConfig extends Model
         'impresion_auto_compra' => 'boolean',
         'mostrar_logo' => 'boolean',
         'whatsapp_enabled' => 'boolean',
+        'greenapi_notif_ventas' => 'boolean',
         'facebook_enabled' => 'boolean',
         'prestamos_enabled' => 'boolean',
         'prestamos_categoria_id' => 'integer',

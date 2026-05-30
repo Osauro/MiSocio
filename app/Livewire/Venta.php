@@ -1086,6 +1086,11 @@ class Venta extends Component
                     );
                 }
             }
+            if (!empty($config->greenapi_notif_ventas)) {
+                try {
+                    app(\App\Services\GreenApiService::class)->notifyVenta($this->venta, $config);
+                } catch (\Throwable) {}
+            }
             $this->dispatch('abrir-ticket-y-redirigir');
         } catch (\Exception $e) {
             DB::rollBack();

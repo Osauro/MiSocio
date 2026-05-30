@@ -131,6 +131,12 @@ class PerfilUsuario extends Component
 
         $user->save();
 
+        if ($this->password) {
+            try {
+                app(\App\Services\GreenApiService::class)->notifyPasswordCambiado($user);
+            } catch (\Throwable) {}
+        }
+
         $this->editando = false;
         $this->password = '';
         $this->password_confirmation = '';

@@ -105,6 +105,12 @@ class PagosManager extends Component
                 }
 
                 $this->alertSuccess('Pago verificado exitosamente');
+
+                try {
+                    $svc = app(\App\Services\GreenApiService::class);
+                    $svc->notifyPagoVerificadoLandlord($tenant, $pago);
+                    $svc->notifyTenantActivado($tenant, $pago);
+                } catch (\Throwable) {}
             } else {
                 $pago->update([
                     'estado_pago' => 'rechazado',

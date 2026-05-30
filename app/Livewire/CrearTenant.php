@@ -145,6 +145,10 @@ class CrearTenant extends Component
                 // Establecer este tenant como el actual en la sesión
                 session(['current_tenant_id' => $tenant->id]);
 
+                try {
+                    app(\App\Services\GreenApiService::class)->notifyNuevoTenant($tenant, Auth::user());
+                } catch (\Throwable) {}
+
                 $this->alertSuccess("¡Tienda creada exitosamente! Tienes {$duracionDias} días de prueba.");
 
                 // Redirigir al home del tenant
@@ -198,6 +202,10 @@ class CrearTenant extends Component
             ]);
 
             DB::commit();
+
+            try {
+                app(\App\Services\GreenApiService::class)->notifyNuevoTenant($tenant, Auth::user());
+            } catch (\Throwable) {}
 
             $this->alertSuccess('¡Pago enviado exitosamente! Tu tienda será activada una vez verificado el pago.');
 
