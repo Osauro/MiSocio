@@ -215,21 +215,18 @@
                                     printando: false,
                                     async enviarAgente(agentUrl, job, successMsg) {
                                         this.printando = true;
+                                        const baseUrl = (agentUrl || '').replace(/\/$/, '');
                                         try {
-                                            const res = await fetch(agentUrl.replace(/\/$/, '') + '/api/print/universal', {
+                                            const res = await fetch(baseUrl + '/api/encrypt', {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify(job),
-                                                signal: AbortSignal.timeout(8000)
                                             });
-                                            if (res.ok) {
-                                                Swal.fire({ icon: 'success', title: successMsg || 'Impresión enviada', timer: 2000, showConfirmButton: false });
-                                            } else {
-                                                const txt = await res.text();
-                                                Swal.fire({ icon: 'error', title: 'Error del agente', text: txt || 'Respuesta no válida' });
-                                            }
+                                            if (!res.ok) throw new Error(await res.text().catch(() => 'HTTP ' + res.status));
+                                            const { protocol_url } = await res.json();
+                                            window.location.href = protocol_url;
                                         } catch (err) {
-                                            Swal.fire({ icon: 'error', title: 'Agente no disponible', text: 'Verifica que el Print Agent esté corriendo en ' + agentUrl });
+                                            Swal.fire({ icon: 'error', title: 'Agente no disponible', text: 'Verifica que el Print Agent esté corriendo en ' + baseUrl });
                                         } finally {
                                             this.printando = false;
                                         }

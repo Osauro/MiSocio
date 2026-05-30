@@ -414,34 +414,31 @@
         });
     </script>
 
-    {{-- Print Agent: listener global para el evento 'enviar-a-agente' --}}
+    {{-- Print Agent: listener global — usa print:// para Android + Windows --}}
     <script>
         window.addEventListener('enviar-a-agente', async function (e) {
             const { agentUrl, job, successMsg } = e.detail;
-            const url = (agentUrl || '').replace(/\/$/, '') + '/api/print/universal';
+            const baseUrl = (agentUrl || '').replace(/\/$/, '');
             try {
-                const res = await fetch(url, {
+                // Pedir al agente que encripte el job completo y devuelva la protocol_url
+                const res = await fetch(baseUrl + '/api/encrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(job),
-                    signal: AbortSignal.timeout(8000),
                 });
-                if (res.ok) {
-                    if (window.Swal) {
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success',
-                            title: successMsg || 'Impresión enviada', timer: 2500,
-                            showConfirmButton: false });
-                    }
-                } else {
-                    const txt = await res.text().catch(() => res.status);
-                    if (window.Swal) {
-                        Swal.fire({ icon: 'error', title: 'Error del agente de impresión', text: txt });
-                    }
+                if (!res.ok) {
+                    throw new Error(await res.text().catch(() => 'HTTP ' + res.status));
                 }
+                const { protocol_url } = await res.json();
+                // Navegar al protocolo — el agente lo intercepta e imprime (Android + Windows)
+                window.location.href = protocol_url;
             } catch (err) {
                 if (window.Swal) {
-                    Swal.fire({ icon: 'warning', title: 'Agente de impresión no disponible',
-                        text: 'Verifica que el Print Agent esté corriendo en ' + (agentUrl || 'la URL configurada') });
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Agente de impresión no disponible',
+                        text: 'Verifica que el Print Agent esté corriendo en ' + baseUrl,
+                    });
                 }
             }
         });
