@@ -42,8 +42,19 @@ class Config extends Component
     public $impresion_auto_venta;
     public $impresion_auto_prestamo;
     public $impresion_auto_inventario;
+    public $impresion_auto_compra;
     public $print_agent_secret_key;
     public $mostrar_logo;
+
+    // Impresora/papel por módulo
+    public $impresora_ventas;
+    public $papel_tamano_ventas = '80mm';
+    public $impresora_prestamos;
+    public $papel_tamano_prestamos = '80mm';
+    public $impresora_inventario;
+    public $papel_tamano_inventario = '80mm';
+    public $impresora_compras;
+    public $papel_tamano_compras = '80mm';
 
     // Impresión - footer
     public $ticket_footer_texto;
@@ -166,9 +177,19 @@ class Config extends Component
         $this->impresion_auto_venta = $config->impresion_auto_venta ?? false;
         $this->impresion_auto_prestamo = $config->impresion_auto_prestamo ?? false;
         $this->impresion_auto_inventario = $config->impresion_auto_inventario ?? false;
+        $this->impresion_auto_compra = $config->impresion_auto_compra ?? false;
         $this->print_agent_secret_key = $config->print_agent_secret_key ?? '';
         $this->mostrar_logo = $config->mostrar_logo ?? true;
         $this->ticket_footer_texto = $config->ticket_footer_texto ?? '';
+        // Por módulo
+        $this->impresora_ventas    = $config->impresora_ventas;
+        $this->papel_tamano_ventas = $config->papel_tamano_ventas ?? '80mm';
+        $this->impresora_prestamos    = $config->impresora_prestamos;
+        $this->papel_tamano_prestamos = $config->papel_tamano_prestamos ?? '80mm';
+        $this->impresora_inventario    = $config->impresora_inventario;
+        $this->papel_tamano_inventario = $config->papel_tamano_inventario ?? '80mm';
+        $this->impresora_compras    = $config->impresora_compras;
+        $this->papel_tamano_compras = $config->papel_tamano_compras ?? '80mm';
 
         // WhatsApp
         $this->whatsapp_token = $config->whatsapp_token;
@@ -263,9 +284,18 @@ class Config extends Component
             'impresion_auto_venta' => 'boolean',
             'impresion_auto_prestamo' => 'boolean',
             'impresion_auto_inventario' => 'boolean',
+            'impresion_auto_compra' => 'boolean',
             'print_agent_secret_key' => 'nullable|string|size:64|regex:/^[a-fA-F0-9]+$/',
             'mostrar_logo' => 'boolean',
             'ticket_footer_texto' => 'nullable|string|max:255',
+            'impresora_ventas' => 'nullable|string|max:255',
+            'papel_tamano_ventas' => 'required|in:58mm,80mm,carta,media-carta',
+            'impresora_prestamos' => 'nullable|string|max:255',
+            'papel_tamano_prestamos' => 'required|in:58mm,80mm,carta,media-carta',
+            'impresora_inventario' => 'nullable|string|max:255',
+            'papel_tamano_inventario' => 'required|in:58mm,80mm,carta,media-carta',
+            'impresora_compras' => 'nullable|string|max:255',
+            'papel_tamano_compras' => 'required|in:58mm,80mm,carta,media-carta',
         ]);
 
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -281,9 +311,19 @@ class Config extends Component
             'impresion_auto_venta' => $this->impresion_auto_venta ?? false,
             'impresion_auto_prestamo' => $this->impresion_auto_prestamo ?? false,
             'impresion_auto_inventario' => $this->impresion_auto_inventario ?? false,
+            'impresion_auto_compra' => $this->impresion_auto_compra ?? false,
             'print_agent_secret_key' => $this->print_agent_secret_key ?: null,
             'mostrar_logo' => $this->mostrar_logo ?? true,
             'ticket_footer_texto' => $this->ticket_footer_texto ?: null,
+            // Por módulo
+            'impresora_ventas'    => $this->impresora_ventas ?: null,
+            'papel_tamano_ventas' => $this->papel_tamano_ventas ?? '80mm',
+            'impresora_prestamos'    => $this->impresora_prestamos ?: null,
+            'papel_tamano_prestamos' => $this->papel_tamano_prestamos ?? '80mm',
+            'impresora_inventario'    => $this->impresora_inventario ?: null,
+            'papel_tamano_inventario' => $this->papel_tamano_inventario ?? '80mm',
+            'impresora_compras'    => $this->impresora_compras ?: null,
+            'papel_tamano_compras' => $this->papel_tamano_compras ?? '80mm',
         ]);
 
         $this->toast('success', 'Impresión guardada');

@@ -256,58 +256,52 @@
                                             </div>
 
                                             {{-- Sección: URL + Descargar --}}
-                                            <div class="px-4 pt-3 pb-2 d-flex flex-column gap-2"
-                                                 x-data="{
-                                                    os: null,
-                                                    init() {
-                                                        const ua = navigator.userAgent;
-                                                        if (/android/i.test(ua))            this.os = 'android';
-                                                        else if (/iphone|ipad|ipod/i.test(ua)) this.os = 'ios';
-                                                        else if (/windows/i.test(ua))       this.os = 'windows';
-                                                        else                                 this.os = 'other';
-                                                    },
-                                                    urlWindows: '{{ asset('software/agente_windows.zip') }}',
-                                                    urlAndroid: '{{ asset('software/DSPrinter-release-signed.apk') }}'
-                                                 }">
+                                            @php
+                                                $ua = request()->header('User-Agent', '');
+                                                $dlAndroid = (bool) preg_match('/android/i', $ua);
+                                                $dlIOS     = !$dlAndroid && (bool) preg_match('/iphone|ipad|ipod/i', $ua);
+                                                $dlWindows = !$dlAndroid && !$dlIOS && (bool) preg_match('/windows/i', $ua);
+                                                $dlOther   = !$dlAndroid && !$dlIOS && !$dlWindows;
+                                                $urlWin    = asset('software/agente_windows.zip');
+                                                $urlApk    = asset('software/DSPrinter-release-signed.apk');
+                                            @endphp
+                                            <div class="px-4 pt-3 pb-2 d-flex flex-column gap-2">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <i class="fa-solid fa-circle-dot text-success" style="font-size:.7rem;"></i>
                                                     <span class="text-muted small font-monospace">{{ $printAgentUrl }}</span>
                                                 </div>
 
-                                                {{-- Windows --}}
-                                                <a x-cloak x-show="os === 'windows'" :href="urlWindows"
+                                                @if($dlWindows)
+                                                <a href="{{ $urlWin }}"
                                                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
                                                     <i class="fa-brands fa-windows"></i>
                                                     <span>Descargar para Windows (.zip)</span>
                                                 </a>
-
-                                                {{-- Android --}}
-                                                <a x-cloak x-show="os === 'android'" :href="urlAndroid"
+                                                @elseif($dlAndroid)
+                                                <a href="{{ $urlApk }}"
                                                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
                                                     <i class="fa-brands fa-android"></i>
                                                     <span>Descargar para Android (.apk)</span>
                                                 </a>
-
-                                                {{-- iOS: no soportado --}}
-                                                <div x-cloak x-show="os === 'ios'"
-                                                     class="alert alert-warning py-2 px-3 mb-0 small d-flex align-items-center gap-2">
+                                                @elseif($dlIOS)
+                                                <div class="alert alert-warning py-2 px-3 mb-0 small d-flex align-items-center gap-2">
                                                     <i class="fa-brands fa-apple"></i>
                                                     <span>iOS no es compatible con el Print Agent.</span>
                                                 </div>
-
-                                                {{-- Otro (Linux/Mac/etc) --}}
-                                                <div x-cloak x-show="os === 'other'" class="d-flex flex-column gap-1">
-                                                    <a :href="urlWindows"
+                                                @else
+                                                <div class="d-flex flex-column gap-1">
+                                                    <a href="{{ $urlWin }}"
                                                        class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2">
                                                         <i class="fa-brands fa-windows"></i>
                                                         <span>Windows (.zip)</span>
                                                     </a>
-                                                    <a :href="urlAndroid"
+                                                    <a href="{{ $urlApk }}"
                                                        class="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center gap-2">
                                                         <i class="fa-brands fa-android"></i>
                                                         <span>Android (.apk)</span>
                                                     </a>
                                                 </div>
+                                                @endif
                                             </div>
 
                                             {{-- Divider: Clave de Seguridad --}}
@@ -397,18 +391,22 @@
                                             </div>
                                             <div class="card-body px-4 py-4">
 
-                                                {{-- Sección: impresora --}}
+                                                {{-- Sección: impresora por defecto --}}
+                                                <p class="text-uppercase text-muted fw-bold mb-3"
+                                                   style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">
+                                                    Valores por defecto (si el módulo no tiene impresora asignada)
+                                                </p>
                                                 <div class="row g-3 mb-4">
                                                     <div class="col-md-7">
                                                         <label class="form-label fw-semibold mb-1">
                                                             <i class="fa-solid fa-tag text-secondary me-1"></i>
-                                                            Nombre en el agente
+                                                            Impresora por defecto
                                                         </label>
                                                         <input type="text"
                                                                class="form-control"
                                                                wire:model.blur="impresora_nombre"
                                                                wire:change="guardarImpresion"
-                                                               placeholder="Nombre exacto de la impresora en el agente">
+                                                               placeholder="Nombre exacto de la impresora">
                                                         @error('impresora_nombre')
                                                             <div class="text-danger small mt-1">{{ $message }}</div>
                                                         @enderror
@@ -416,7 +414,7 @@
                                                     <div class="col-md-5">
                                                         <label class="form-label fw-semibold mb-1">
                                                             <i class="fa-solid fa-scroll text-secondary me-1"></i>
-                                                            Tamaño de papel
+                                                            Tamaño de papel por defecto
                                                         </label>
                                                         <select class="form-select"
                                                                 wire:model="papel_tamano"
@@ -461,78 +459,159 @@
                                                     @endforeach
                                                 </div>
 
-                                                {{-- Sección: impresión automática --}}
+                                                {{-- Sección: configuración por módulo --}}
                                                 <p class="text-uppercase text-muted fw-bold mb-3"
                                                    style="font-size:.65rem;letter-spacing:.1em;border-bottom:2px solid #dee2e6;padding-bottom:.4rem;">
-                                                    Impresión automática
+                                                    Configuración por módulo
                                                 </p>
-                                                <div class="row g-3">
-                                                    @if(ventasHabilitados())
-                                                    <div class="col-12 col-sm-4">
-                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
-                                                            <div class="d-flex align-items-center gap-3">
-                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
-                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
-                                                                    <i class="fa-solid fa-cart-shopping text-danger"></i>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Ventas</p>
-                                                                    <small class="text-muted">Al cerrar venta</small>
-                                                                </div>
-                                                            </div>
-                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
-                                                                <input class="form-check-input" type="checkbox" role="switch"
-                                                                       wire:model="impresion_auto_venta"
-                                                                       wire:change="guardarImpresion"
-                                                                       style="width:2.8rem;height:1.4rem;">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    @endif
-                                                    @if(prestamosHabilitados())
-                                                    <div class="col-12 col-sm-4">
-                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
-                                                            <div class="d-flex align-items-center gap-3">
-                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
-                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
-                                                                    <i class="fa-solid fa-hand-holding-dollar text-warning"></i>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Préstamos</p>
-                                                                    <small class="text-muted">Al cerrar préstamo</small>
-                                                                </div>
-                                                            </div>
-                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
-                                                                <input class="form-check-input" type="checkbox" role="switch"
-                                                                       wire:model="impresion_auto_prestamo"
-                                                                       wire:change="guardarImpresion"
-                                                                       style="width:2.8rem;height:1.4rem;">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    @endif
-                                                    @if(comprasHabilitados())
-                                                    <div class="col-12 col-sm-4">
-                                                        <div class="border rounded-3 p-3 h-100 d-flex align-items-center justify-content-between gap-3 bg-light bg-opacity-50">
-                                                            <div class="d-flex align-items-center gap-3">
-                                                                <div class="rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center"
-                                                                     style="width:2.4rem;height:2.4rem;min-width:2.4rem;">
-                                                                    <i class="fa-solid fa-boxes-stacked text-info"></i>
-                                                                </div>
-                                                                <div>
-                                                                    <p class="mb-0 fw-semibold text-dark" style="font-size:.9rem;">Inventario</p>
-                                                                    <small class="text-muted">Al cerrar inventario</small>
-                                                                </div>
-                                                            </div>
-                                                            <div class="form-check form-switch mb-0 flex-shrink-0">
-                                                                <input class="form-check-input" type="checkbox" role="switch"
-                                                                       wire:model="impresion_auto_inventario"
-                                                                       wire:change="guardarImpresion"
-                                                                       style="width:2.8rem;height:1.4rem;">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    @endif
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm align-middle mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="width:130px;">Módulo</th>
+                                                                <th>Impresora</th>
+                                                                <th style="width:160px;">Tamaño papel</th>
+                                                                <th class="text-center" style="width:110px;">Auto-imprimir</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {{-- Ventas --}}
+                                                            @if(ventasHabilitados())
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="d-flex align-items-center gap-2">
+                                                                        <i class="fa-solid fa-cart-shopping text-danger"></i>
+                                                                        <span class="fw-semibold">Ventas</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" class="form-control form-control-sm"
+                                                                           wire:model.blur="impresora_ventas"
+                                                                           wire:change="guardarImpresion"
+                                                                           placeholder="(usa por defecto)">
+                                                                </td>
+                                                                <td>
+                                                                    <select class="form-select form-select-sm"
+                                                                            wire:model="papel_tamano_ventas"
+                                                                            wire:change="guardarImpresion">
+                                                                        <option value="58mm">58 mm</option>
+                                                                        <option value="80mm">80 mm</option>
+                                                                    </select>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="form-check form-switch d-inline-block mb-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                                               wire:model="impresion_auto_venta"
+                                                                               wire:change="guardarImpresion"
+                                                                               style="width:2.5rem;height:1.3rem;">
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            @endif
+
+                                                            {{-- Préstamos --}}
+                                                            @if(prestamosHabilitados())
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="d-flex align-items-center gap-2">
+                                                                        <i class="fa-solid fa-hand-holding-dollar text-warning"></i>
+                                                                        <span class="fw-semibold">Préstamos</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" class="form-control form-control-sm"
+                                                                           wire:model.blur="impresora_prestamos"
+                                                                           wire:change="guardarImpresion"
+                                                                           placeholder="(usa por defecto)">
+                                                                </td>
+                                                                <td>
+                                                                    <select class="form-select form-select-sm"
+                                                                            wire:model="papel_tamano_prestamos"
+                                                                            wire:change="guardarImpresion">
+                                                                        <option value="58mm">58 mm</option>
+                                                                        <option value="80mm">80 mm</option>
+                                                                    </select>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="form-check form-switch d-inline-block mb-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                                               wire:model="impresion_auto_prestamo"
+                                                                               wire:change="guardarImpresion"
+                                                                               style="width:2.5rem;height:1.3rem;">
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            @endif
+
+                                                            {{-- Inventario --}}
+                                                            @if(comprasHabilitados())
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="d-flex align-items-center gap-2">
+                                                                        <i class="fa-solid fa-boxes-stacked text-info"></i>
+                                                                        <span class="fw-semibold">Inventario</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" class="form-control form-control-sm"
+                                                                           wire:model.blur="impresora_inventario"
+                                                                           wire:change="guardarImpresion"
+                                                                           placeholder="(usa por defecto)">
+                                                                </td>
+                                                                <td>
+                                                                    <select class="form-select form-select-sm"
+                                                                            wire:model="papel_tamano_inventario"
+                                                                            wire:change="guardarImpresion">
+                                                                        <option value="58mm">58 mm</option>
+                                                                        <option value="80mm">80 mm</option>
+                                                                    </select>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="form-check form-switch d-inline-block mb-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                                               wire:model="impresion_auto_inventario"
+                                                                               wire:change="guardarImpresion"
+                                                                               style="width:2.5rem;height:1.3rem;">
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            @endif
+
+                                                            {{-- Compras --}}
+                                                            @if(comprasHabilitados())
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="d-flex align-items-center gap-2">
+                                                                        <i class="fa-solid fa-truck-ramp-box text-secondary"></i>
+                                                                        <span class="fw-semibold">Compras</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td>
+                                                                    <input type="text" class="form-control form-control-sm"
+                                                                           wire:model.blur="impresora_compras"
+                                                                           wire:change="guardarImpresion"
+                                                                           placeholder="(usa por defecto)">
+                                                                </td>
+                                                                <td>
+                                                                    <select class="form-select form-select-sm"
+                                                                            wire:model="papel_tamano_compras"
+                                                                            wire:change="guardarImpresion">
+                                                                        <option value="58mm">58 mm</option>
+                                                                        <option value="80mm">80 mm</option>
+                                                                    </select>
+                                                                </td>
+                                                                <td class="text-center">
+                                                                    <div class="form-check form-switch d-inline-block mb-0">
+                                                                        <input class="form-check-input" type="checkbox" role="switch"
+                                                                               wire:model="impresion_auto_compra"
+                                                                               wire:change="guardarImpresion"
+                                                                               style="width:2.5rem;height:1.3rem;">
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                            @endif
+                                                        </tbody>
+                                                    </table>
                                                 </div>
 
                                             </div>
