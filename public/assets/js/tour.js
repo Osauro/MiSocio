@@ -488,8 +488,50 @@
     // Inicializacion
     // ─────────────────────────────────────────────────────────────────────────
 
+    // Mapa slug → clave de STEPS para el atajo F4
+    var SLUG_TOUR_MAP = {
+        'venta':        'venta',
+        'ventas':       'ventas',
+        'productos':    'productos_lista',
+        'compra':       'compra',
+        'compras':      'compras_lista',
+        'clientes':     'clientes_lista',
+        'kardex':       'kardex',
+        'movimientos':  'movimientos',
+        'inventarios':  'inventarios',
+        'inventario':   'inventarios',
+        'prestamos':    'prestamos_lista',
+        'prestamo':     'prestamos_lista',
+        'usuarios':     'usuarios',
+        'config':       'config',
+        'habitaciones': 'habitaciones',
+        'hospedajes':   'habitaciones',
+        'tutoriales':   'tutoriales',
+    };
+
     document.addEventListener('DOMContentLoaded', function () {
         if (typeof window.driver === 'undefined') return;
+
+        // Atajo F4: iniciar/reiniciar el tour del modulo activo
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'F4') return;
+            e.preventDefault();
+            var slug = currentSlug();
+            var key = SLUG_TOUR_MAP[slug];
+            if (key && STEPS[key]) {
+                iniciarTour(STEPS[key](), function () { markCompleted('tour_' + key); });
+            } else {
+                // Fuera de un modulo con tour: lanza el onboarding global
+                abrirSidebar();
+                iniciarTour(buildSteps(), function () {
+                    markCompleted('onboarding');
+                    fetch('/onboarding/completado', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken(), 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    }).catch(function () {});
+                });
+            }
+        });
 
         if (window.__misocioOnboardingPendiente) {
             setTimeout(function () {
