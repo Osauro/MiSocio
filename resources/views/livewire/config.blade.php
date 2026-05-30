@@ -480,7 +480,7 @@
                                                             <tr>
                                                                 <th style="width:130px;">Módulo</th>
                                                                 <th>Impresora</th>
-                                                                <th style="width:160px;">Tamaño papel</th>
+                                                                <th style="width:160px;">Papel</th>
                                                                 <th class="text-center" style="width:110px;">Autoprint</th>
                                                             </tr>
                                                         </thead>
