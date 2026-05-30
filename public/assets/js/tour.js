@@ -412,14 +412,36 @@
 
         prestamo: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Nuevo Prestamo', description: 'Registra productos que entregas a credito o en consignacion. La pantalla funciona igual que una venta: busca productos, ajusta cantidades y confirmas el prestamo.', side: 'over', align: 'center' } });
-            if (el('#buscadorPrestamo')) { steps.push({ element: '#buscadorPrestamo', popover: { title: 'Buscar envase / producto', description: 'Escribe el nombre o codigo del producto que entregas en prestamo. Los envases retornables son el caso mas comun.', side: 'bottom', align: 'start' } }); }
-            if (el('.search-results')) { steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen con su stock disponible. Haz clic para agregar al listado del prestamo.', side: 'left', align: 'start' } }); }
-            if (el('.card-body .card .card-body')) { steps.push({ element: '.card-body .card .card-body', popover: { title: 'Item prestado', description: 'Cada producto muestra imagen, nombre y campos de cantidad (enteros/unidades) y precio de referencia para calcular el total del prestamo.', side: 'bottom', align: 'start' } }); }
-            if (el('.fa-trash')) { steps.push({ element: '.fa-trash', popover: { title: 'Quitar producto', description: 'Elimina este producto de la lista del prestamo.', side: 'left', align: 'start' } }); }
-            if (el('button[wire\\:click="cancelarVenta"]')) { steps.push({ element: 'button[wire\\:click="cancelarVenta"]', popover: { title: 'Cancelar prestamo', description: 'Descarta el prestamo y regresa al listado sin registrar ningun movimiento.', side: 'bottom', align: 'start' } }); }
-            if (el('button[wire\\:click="iniciarCompletarVenta"]')) { steps.push({ element: 'button[wire\\:click="iniciarCompletarVenta"]', popover: { title: 'Completar prestamo', description: 'Abre el flujo de confirmacion en 3 pasos:<br><strong>1.</strong> Fecha del prestamo<br><strong>2.</strong> Cliente (obligatorio para registrar a quien se le presta)<br><strong>3.</strong> Deposito inicial (monto que deja como garantia, puede ser cero)', side: 'bottom', align: 'end' } }); }
-            steps.push({ popover: { title: 'Devolucion', description: 'Una vez confirmado, el prestamo aparece en la lista con estado <strong>Prestado</strong>. Cuando el cliente devuelva los productos, marcas el prestamo como devuelto desde el listado.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Nuevo Prestamo', description: 'Registra productos que entregas en prestamo o consignacion. La pantalla esta dividida: el <strong>listado de items</strong> a la izquierda y el <strong>buscador de productos</strong> a la derecha. Al confirmar, el stock baja y queda registrado a nombre del cliente.', side: 'over', align: 'center' } });
+
+            // Buscador
+            if (el('#buscadorPrestamo')) { steps.push({ element: '#buscadorPrestamo', popover: { title: 'Buscador de productos', description: 'Escribe el nombre o codigo del producto que entregas en prestamo. Los envases retornables son el caso mas comun. Compatible con lectoras de codigo de barras: escanea y el producto se agrega de inmediato.', side: 'bottom', align: 'start' } }); }
+
+            // Resultados
+            if (el('.search-results')) { steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen con su <strong>stock actual</strong> y la <strong>medida</strong> (ej. Caja 12u). Si ya esta en el listado aparece un tilde verde; haz clic en el para ajustar la cantidad.', side: 'left', align: 'start' } }); }
+
+            // Tarjeta item
+            if (el('.card-body .card .card-body')) { steps.push({ element: '.card-body .card .card-body', popover: { title: 'Producto en el prestamo', description: 'Cada producto muestra su imagen y nombre. Los campos de <strong>Enteros</strong>, <strong>Unidades</strong>, <strong>Precio</strong> y <strong>Subtotal</strong> son editables directamente desde la tarjeta.', side: 'right', align: 'start' } }); }
+
+            // Enteros / Unidades
+            if (el('input[placeholder="0"]')) { steps.push({ element: 'input[placeholder="0"]', popover: { title: 'Enteros y Unidades', description: '<strong>Enteros</strong>: cajas o paquetes completos que prestas.<br><strong>Unidades</strong>: unidades sueltas adicionales.<br>Ejemplo: 2 cajas + 3 unidades sueltas. El total de unidades prestadas se calcula automaticamente y descuenta del stock.', side: 'bottom', align: 'start' } }); }
+
+            // Precio / Subtotal
+            if (el('input[placeholder="0"][step="0.01"]')) { steps.push({ element: 'input[placeholder="0"][step="0.01"]', popover: { title: 'Precio y Subtotal', description: '<strong>Precio</strong>: valor de referencia del producto prestado. Se usa para calcular el total del prestamo y el deposito de garantia.<br><strong>Subtotal</strong>: cantidad × precio. Editar el subtotal ajusta el precio automaticamente.', side: 'bottom', align: 'start' } }); }
+
+            // Papelera
+            if (el('.fa-trash')) { steps.push({ element: '.fa-trash', popover: { title: 'Quitar producto', description: 'Elimina este producto del listado. El stock no se modifica hasta que confirmes el prestamo.', side: 'left', align: 'start' } }); }
+
+            // Footer
+            if (el('.fixed-footer')) { steps.push({ element: '.fixed-footer', popover: { title: 'Barra de totales', description: '<strong>Productos</strong>: cantidad de items distintos en el listado.<br><strong>Total</strong>: suma de todos los subtotales. Representa el valor total del prestamo entregado al cliente.', side: 'top', align: 'center' } }); }
+
+            // Cancelar
+            if (el('button[wire\\:click="cancelarVenta"]')) { steps.push({ element: 'button[wire\\:click="cancelarVenta"]', popover: { title: 'Cancelar prestamo', description: 'Descarta el listado y regresa al historial de prestamos. El stock no se ve afectado. Te pedira confirmacion antes de cancelar.', side: 'top', align: 'start' } }); }
+
+            // Completar
+            if (el('button[wire\\:click="iniciarCompletarVenta"]')) { steps.push({ element: 'button[wire\\:click="iniciarCompletarVenta"]', popover: { title: 'Confirmar prestamo', description: 'Muestra el <strong>total del prestamo</strong> en Bolivianos. Al hacer clic se abre el flujo de 3 pasos:<br><strong>1.</strong> Fecha del prestamo (por defecto hoy)<br><strong>2.</strong> Cliente (obligatorio: registra a quien se le presta)<br><strong>3.</strong> Deposito inicial (monto en efectivo/QR que deja como garantia, puede ser cero)', side: 'top', align: 'end' } }); }
+
+            steps.push({ popover: { title: 'Devolucion', description: 'Una vez confirmado, el prestamo aparece en la lista con estado <strong>Prestado</strong>. Cuando el cliente devuelva los productos, marca el prestamo como devuelto desde el listado para que el stock regrese automaticamente.', side: 'over', align: 'center' } });
             return steps;
         },
 
@@ -448,13 +470,23 @@
 
         prestamos_lista: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Prestamos y Consignaciones', description: 'Aqui gestionas los productos prestados a clientes: envases retornables, consignaciones o cualquier entrega que esperas que te devuelvan. Cada prestamo lleva fecha de vencimiento y estado.', side: 'over', align: 'center' } });
-            if (el('#searchInput')) { steps.push({ element: '#searchInput', popover: { title: 'Buscar prestamo', description: 'Filtra por numero de prestamo, cliente o fecha.', side: 'bottom', align: 'start' } }); }
-            if (el('button[wire\\:click="abrirModalFiltro"]')) { steps.push({ element: 'button[wire\\:click="abrirModalFiltro"]', popover: { title: 'Filtrar por fechas', description: 'Acota los prestamos a un rango de fechas especifico para controlar vencimientos del periodo.', side: 'bottom', align: 'start' } }); }
-            if (el('button[wire\\:click="crearPrestamo"]')) { steps.push({ element: 'button[wire\\:click="crearPrestamo"]', popover: { title: 'Nuevo prestamo', description: 'Crea un nuevo registro de prestamo. Se abrira el formulario para agregar los productos que entregas.', side: 'bottom', align: 'end' } }); }
-            if (el('.card.shadow-sm')) { steps.push({ element: '.card.shadow-sm', popover: { title: 'Tarjeta de prestamo', description: 'Cada tarjeta muestra los <strong>productos prestados</strong> con sus cantidades, el <strong>monto total</strong>, la <strong>fecha de vencimiento</strong> y el <strong>estado</strong>:<br>• Azul <em>Prestado</em>: activo y vigente<br>• Amarillo <em>Pendiente</em>: aun sin confirmar<br>• Rojo <em>Vencido</em>: paso la fecha limite<br>• Gris <em>Devuelto</em>: ya fue retornado', side: 'bottom', align: 'start' } }); }
-            steps.push({ popover: { title: 'Acciones por prestamo', description: '<strong>Flecha</strong>: continuar un prestamo pendiente de confirmacion.<br><strong>Ojo</strong>: ver detalle completo de los productos prestados.<br><strong>Impresora</strong>: reimprimir el ticket del prestamo.', side: 'over', align: 'center' } });
-            steps.push({ popover: { title: 'Control de vencimientos', description: 'Las tarjetas con <strong>borde rojo</strong> estan vencidas: el cliente no devolvio a tiempo. Revisalos periodicamente para hacer seguimiento.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Prestamos y Consignaciones', description: 'Aqui gestionas los productos prestados a clientes: envases retornables, consignaciones o cualquier entrega que esperas que te devuelvan. Cada prestamo lleva cliente, fecha de vencimiento y estado en tiempo real.', side: 'over', align: 'center' } });
+
+            // Buscador
+            if (el('#searchInput')) { steps.push({ element: '#searchInput', popover: { title: 'Buscar prestamo', description: 'Filtra por numero de prestamo, nombre de cliente o fecha escribiendo aqui. El resultado se actualiza en tiempo real mientras escribes.', side: 'bottom', align: 'start' } }); }
+
+            // Filtro fechas (puede ser abrirModalFiltro o limpiarFiltroFechas si hay filtro activo)
+            var btnFiltroP = el('button[wire\\:click="abrirModalFiltro"], button[wire\\:click="limpiarFiltroFechas"]');
+            if (btnFiltroP) { steps.push({ element: btnFiltroP, popover: { title: 'Filtrar por fechas', description: 'Por defecto se muestran todos los prestamos. Haz clic en el icono de calendario para filtrar por rango de fechas. Si hay un filtro activo, aparece el boton <strong>X rojo</strong> para quitarlo.', side: 'bottom', align: 'start' } }); }
+
+            // Boton nuevo
+            if (el('button[wire\\:click="crearPrestamo"]')) { steps.push({ element: 'button[wire\\:click="crearPrestamo"]', popover: { title: 'Nuevo prestamo', description: 'Haz clic en <strong>+</strong> para abrir el formulario y registrar un nuevo prestamo. Agregas los productos, indicas cantidades y seleccionas al cliente.', side: 'bottom', align: 'end' } }); }
+
+            // Tarjeta prestamo
+            if (el('.card.shadow-sm')) { steps.push({ element: '.card.shadow-sm', popover: { title: 'Tarjeta de prestamo', description: 'Cada tarjeta muestra los <strong>productos prestados</strong> con sus cantidades, el <strong>monto total</strong>, la <strong>fecha de vencimiento</strong> y el <strong>estado</strong>:<br>• Azul <em>Prestado</em>: activo y vigente<br>• Amarillo <em>Pendiente</em>: aun sin confirmar<br>• Rojo <em>Vencido</em>: paso la fecha limite<br>• Verde <em>Devuelto</em>: ya fue retornado', side: 'bottom', align: 'start' } }); }
+
+            steps.push({ popover: { title: 'Acciones por prestamo', description: '<strong>Flecha amarilla</strong>: continuar un prestamo pendiente de confirmacion (agregar productos antes de cerrarlo).<br><strong>Ojo celeste</strong>: ver detalle completo de los productos prestados y montos.<br><strong>Impresora verde</strong>: reimprimir el ticket del prestamo para entregar al cliente.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Control de vencimientos', description: 'Las tarjetas con <strong>borde rojo</strong> estan vencidas: el cliente no devolvio a tiempo. Revisalos periodicamente para hacer seguimiento. Usa el filtro de fechas para ver prestamos de un periodo especifico.', side: 'over', align: 'center' } });
             return steps;
         },
 
