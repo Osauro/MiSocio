@@ -417,9 +417,11 @@
                 });
             });
 
-            // El botón imprimir llama wire:click="imprimirTicket(id)"
-            // que construye el job ESC/POS en PHP y despacha 'enviar-a-agente'
-            // El listener global en theme.blade.php se encarga del POST al agente.
+            /*
+             * El botón imprimir llama wire:click="imprimirTicket(id)"
+             * que construye el job ESC/POS en PHP y despacha 'enviar-a-agente'.
+             * El listener global en theme.blade.php se encarga del POST al agente.
+             */
         </script>
     @endscript
 
