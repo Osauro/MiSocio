@@ -402,12 +402,10 @@
         const installBtn = document.getElementById('pwa-install-btn');
         const dismissBtn = document.getElementById('pwa-dismiss-btn');
         window.addEventListener('beforeinstallprompt', e => {
+            if (localStorage.getItem('pwa-dismissed')) return;
             e.preventDefault();
             deferredPrompt = e;
-            // Mostrar solo si no fue descartado antes
-            if (!localStorage.getItem('pwa-dismissed')) {
-                banner.style.display = 'flex';
-            }
+            if (banner) banner.style.display = 'flex';
         });
         if (installBtn) installBtn.addEventListener('click', async () => {
             if (!deferredPrompt) return;

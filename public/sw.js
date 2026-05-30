@@ -1,4 +1,4 @@
-const CACHE_NAME = 'misocio-v3';
+const CACHE_NAME = 'misocio-v4';
 
 // Recursos estáticos a cachear en instalación
 const PRECACHE_URLS = [
