@@ -232,6 +232,8 @@ class EscposPrinterService
             $b .= self::SIZE_N . self::BOLD_OFF;
         }
 
+        $b .= self::LF;
+
         return $b;
     }
 
