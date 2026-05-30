@@ -52,7 +52,8 @@
                                         <th style="width: 100px" class="text-end">Anterior</th>
                                         <th style="width: 100px" class="text-end">Ent/Sal</th>
                                         <th style="width: 100px" class="text-end">Saldo</th>
-                                        <th style="width: 100px" class="text-end">Precio</th>
+                                        <th style="width: 110px" class="text-end">Precio</th>
+                                        <th style="width: 100px" class="text-end">P.Unidad</th>
                                         <th style="width: 100px" class="text-end">Total</th>
                                     </tr>
                                 </thead>
@@ -95,17 +96,27 @@
                                             <td class="text-end text-truncate">
                                                 <strong>{{ $item->saldo_formateado }}</strong>
                                             </td>
+                                            @php
+                                                $cantidadPorMedida = $item->producto->cantidad ?? 1;
+                                                $precioPaquete = round($item->precio * $cantidadPorMedida, 2);
+                                                $colorPrecio = $item->entrada > 0 ? 'text-danger' : 'text-success';
+                                                $labelPrecio = $item->entrada > 0 ? 'compra/p' : 'venta/p';
+                                                $labelUnidad = $item->entrada > 0 ? 'compra/u' : 'venta/u';
+                                            @endphp
                                             <td class="text-end text-truncate">
                                                 @if($item->entrada > 0 && !canManageTenant())
                                                     ***
                                                 @else
-                                                    @if($item->entrada > 0)
-                                                        <span class="text-danger fw-semibold">{{ number_format($item->precio, 2) }}</span>
-                                                        <br><small class="text-muted">compra/u</small>
-                                                    @else
-                                                        <span class="text-success fw-semibold">{{ number_format($item->precio, 2) }}</span>
-                                                        <br><small class="text-muted">venta/u</small>
-                                                    @endif
+                                                    <span class="{{ $colorPrecio }} fw-semibold">{{ number_format($precioPaquete, 2) }}</span>
+                                                    <br><small class="text-muted">{{ $labelPrecio }}</small>
+                                                @endif
+                                            </td>
+                                            <td class="text-end text-truncate">
+                                                @if($item->entrada > 0 && !canManageTenant())
+                                                    ***
+                                                @else
+                                                    <span class="{{ $colorPrecio }} fw-semibold">{{ number_format($item->precio, 2) }}</span>
+                                                    <br><small class="text-muted">{{ $labelUnidad }}</small>
                                                 @endif
                                             </td>
                                             <td class="text-end text-truncate">
