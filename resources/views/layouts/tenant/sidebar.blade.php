@@ -148,6 +148,15 @@
                 </li>
             @endif
 
+            {{-- ===== Tutoriales ===== --}}
+            <li class="sidebar-list {{ request()->routeIs('tutoriales') ? 'active' : '' }}">
+                <i class="fa-solid fa-thumbtack"></i>
+                <a class="sidebar-link {{ request()->routeIs('tutoriales') ? 'active' : '' }}" href="{{ route('tutoriales') }}">
+                    <i class="fa-brands fa-youtube fa-fw" style="font-size: 20px; color: #ff0000;"></i>
+                    <h6 class="f-w-600">Tutoriales</h6>
+                </a>
+            </li>
+
         </ul>
     </div>
     <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>

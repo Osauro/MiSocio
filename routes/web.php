@@ -24,6 +24,7 @@ use App\Livewire\Prestamos;
 use App\Livewire\Productos;
 use App\Livewire\Suscripcion;
 use App\Livewire\TiposHabitacion;
+use App\Livewire\Tutoriales;
 use App\Livewire\Usuarios;
 use App\Livewire\Venta;
 use App\Livewire\Ventas;
@@ -93,6 +94,9 @@ Route::middleware(['auth', 'tenant', 'tenant.active'])->group(function () {
     Route::view('tenant-expirado', 'tenant-expirado')->name('tenant.expirado');
     // Ventas - Todos los usuarios pueden acceder
     Route::livewire('ventas', Ventas::class)->name('ventas');
+
+    // Videotutoriales - Todos los usuarios pueden acceder
+    Route::livewire('tutoriales', Tutoriales::class)->name('tutoriales');
 
     // Crear/Editar Venta - Todos los usuarios pueden acceder
     Route::livewire('venta/{ventaId}', Venta::class)->name('venta');
