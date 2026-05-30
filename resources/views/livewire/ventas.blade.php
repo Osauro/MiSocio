@@ -264,7 +264,7 @@
                                             x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                             title="{{ $nombreCompleto }}">
                                             <td class="align-middle" style="max-width: 220px;">
-                                                <strong class="d-block">{{ $nombreMostrar }}</strong>
+                                                <strong class="d-block text-truncate">{{ $nombreMostrar }}</strong>
                                             </td>
                                             <td class="text-end align-middle" style="width: 35px;">{{ $item->cantidad_formateada }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
