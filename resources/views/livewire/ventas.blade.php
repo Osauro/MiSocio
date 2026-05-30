@@ -530,6 +530,37 @@
             // El botón imprimir llama wire:click="imprimirTicket(id)"
             // que construye el job ESC/POS en PHP y despacha 'enviar-a-agente'
             // El listener global en theme.blade.php se encarga del POST al agente.
+
+            // Manejo de teclado para el modal de pago
+            document.addEventListener('keydown', function(e) {
+                if (!$wire.mostrarModalPago || $wire.procesandoPago) return;
+
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const efectivo = parseFloat($wire.montoPagoEfectivo || 0);
+                    const online = parseFloat($wire.montoPagoOnline || 0);
+                    const totalPago = efectivo + online;
+                    const creditoPendiente = parseFloat($wire.ventaAPagar.credito);
+                    if (totalPago > 0 && totalPago <= creditoPendiente) {
+                        $wire.pagarCredito();
+                    }
+                }
+
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    $wire.cerrarModalPago();
+                }
+            });
+
+            // Focus inicial al abrir modal de pago
+            Livewire.hook('morph.updated', ({ el, component }) => {
+                if ($wire.mostrarModalPago && !$wire.procesandoPago) {
+                    setTimeout(() => {
+                        const input = document.querySelector('#montoPagoEfectivo');
+                        if (input) { input.focus(); input.select(); }
+                    }, 100);
+                }
+            });
         </script>
     @endscript
 
@@ -754,48 +785,6 @@
         </div>
     @endif
 
-    @script
-        <script>
-            // Manejo de teclado para el modal de pago
-            document.addEventListener('keydown', function(e) {
-                // Solo si el modal de pago está abierto y no está procesando
-                if (!$wire.mostrarModalPago || $wire.procesandoPago) return;
-
-                // Enter para procesar pago
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const efectivo = parseFloat($wire.montoPagoEfectivo || 0);
-                    const online = parseFloat($wire.montoPagoOnline || 0);
-                    const totalPago = efectivo + online;
-                    const creditoPendiente = parseFloat($wire.ventaAPagar.credito);
-
-                    // Validar que el monto sea válido
-                    if (totalPago > 0 && totalPago <= creditoPendiente) {
-                        $wire.pagarCredito();
-                    }
-                }
-
-                // Escape para cerrar
-                if (e.key === 'Escape') {
-                    e.preventDefault();
-                    $wire.cerrarModalPago();
-                }
-            });
-
-            // Focus inicial al abrir modal
-            Livewire.hook('morph.updated', ({ el, component }) => {
-                if ($wire.mostrarModalPago && !$wire.procesandoPago) {
-                    setTimeout(() => {
-                        const input = document.querySelector('#montoPagoEfectivo');
-                        if (input) {
-                            input.focus();
-                            input.select();
-                        }
-                    }, 100);
-                }
-            });
-        </script>
-    @endscript
     <!-- Componente anidado de Kardex Modal -->
     <livewire:kardex-modal />
 </div>
