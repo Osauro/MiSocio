@@ -1000,8 +1000,8 @@ class Venta extends Component
                             'salida' => $cantidadTotal,
                             'anterior' => $stockAnterior,
                             'saldo' => $producto->stock, // Stock después de la reducción
-                            'precio' => $item['precio'],
-                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
+                            'precio' => round($item['precio'] / ($item['cantidad_por_medida'] ?: 1), 2),
+                            'total' => $item['subtotal'],
                             'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
                         ]);
                     }
@@ -1016,8 +1016,8 @@ class Venta extends Component
                             'salida' => $cantidadTotal, // Registrar salida normalmente
                             'anterior' => 0,
                             'saldo' => 0,
-                            'precio' => $item['precio'],
-                            'total' => round(($item['precio'] / ($item['cantidad_por_medida'] ?: 1)) * $cantidadTotal, 2),
+                            'precio' => round($item['precio'] / ($item['cantidad_por_medida'] ?: 1), 2),
+                            'total' => $item['subtotal'],
                             'obs' => 'Venta #' . $this->venta->numero_folio . ($nombreCliente ? ' - ' . $nombreCliente : ''),
                         ]);
                     }
