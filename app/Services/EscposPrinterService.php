@@ -169,37 +169,36 @@ class EscposPrinterService
         $b .= self::BOLD_OFF . self::ALIGN_L;
         $b .= str_repeat('-', $cols) . self::LF;
 
-        // Columnas fijas (para papel 80mm = 48 cols, 58mm = 32 cols):
-        // [nombre+dots] [cant] [xPrecio] [subtotal]
-        // Espacio reservado: cant=4, sep=1, precio=7, sep=1, subtotal=7 → 20 chars para la derecha
-        $rightWidth  = ($cols >= 48) ? 22 : 18;
-        $nameMaxLen  = $cols - $rightWidth;
+        // Formato por línea: [cantStr]  [nombre...dots...][subtStr]
+        // subtotal: 7 chars fijos, right-aligned (hasta 9999.99)
+        $subtWidth = 7;
 
         foreach ($items as $item) {
             $nombre   = $this->encode($item['nombre']   ?? 'Producto');
-            $cant     = (string) ($item['cantidad'] ?? '');
-            $precio   = (float)  ($item['precio']   ?? 0);
+            $cantStr  = (string) ($item['cantidad'] ?? '');
             $subtotal = (float)  ($item['subtotal'] ?? 0);
 
-            // Formatear cantidad: "3u", precio: "x12.00", subtotal: "36.00"
-            $cantStr  = $cant;
-            $precStr  = 'x' . number_format($precio, 2);
-            $subtStr  = number_format($subtotal, 2);
+            $subtStr  = str_pad(number_format($subtotal, 2), $subtWidth, ' ', STR_PAD_LEFT);
 
-            // Construir la parte derecha: "3u  x12.00   36.00" ajustada a $rightWidth
-            // Subtotal siempre alineado al extremo derecho
-            $rightCore = $cantStr . '  ' . $precStr . '   ' . $subtStr;
-            if (strlen($rightCore) < $rightWidth) {
-                $rightCore = str_pad($rightCore, $rightWidth, ' ', STR_PAD_LEFT);
-            }
+            // Zona disponible para nombre + puntos
+            // Layout: cantStr + '  ' + nombre + dots + subtStr
+            $usedFixed = strlen($cantStr) + 2 + $subtWidth;
+            $nameZone  = $cols - $usedFixed;
 
-            // Nombre truncado con dots hasta completar $nameMaxLen
-            if (strlen($nombre) >= $nameMaxLen) {
-                $nombre = substr($nombre, 0, $nameMaxLen - 1);
-                $b .= $nombre . ' ' . $rightCore . self::LF;
+            if ($nameZone < 4) {
+                // Fallback: nombre en línea propia, cant + subtotal en la siguiente
+                $b .= $nombre . self::LF;
+                $fill = str_repeat(' ', max(1, $cols - strlen($cantStr) - $subtWidth));
+                $b .= $cantStr . $fill . $subtStr . self::LF;
             } else {
-                $dots   = str_repeat('.', $nameMaxLen - strlen($nombre));
-                $b .= $nombre . $dots . $rightCore . self::LF;
+                if (strlen($nombre) >= $nameZone) {
+                    // Truncar y terminar con un espacio
+                    $nombre = substr($nombre, 0, $nameZone - 1);
+                    $dots   = ' ';
+                } else {
+                    $dots = str_repeat('.', $nameZone - strlen($nombre));
+                }
+                $b .= $cantStr . '  ' . $nombre . $dots . $subtStr . self::LF;
             }
         }
 
@@ -218,26 +217,12 @@ class EscposPrinterService
     public function buildEscTotals(array $totals, int $cols = 48): string
     {
         $b = '';
-        $b .= self::ALIGN_L;
 
-        // Desglose de pagos (antes del TOTAL para que quede al fondo)
-        $map = [
-            'efectivo' => 'Efectivo',
-            'online'   => 'Online / QR',
-            'credito'  => $this->encode('Crédito'),
-            'cambio'   => 'Cambio',
-        ];
-
-        foreach ($map as $key => $label) {
-            if (!empty($totals[$key]) && $totals[$key] > 0) {
-                $b .= $this->padLine($label . ':', 'Bs. ' . number_format($totals[$key], 2), $cols) . self::LF;
-            }
-        }
-
-        // TOTAL principal: izquierda "TOTAL", derecha "Bs. 115.00" — doble ancho
+        // Solo muestra el TOTAL, sin desglose de métodos de pago
         if (isset($totals['TOTAL'])) {
             $totalStr = 'Bs. ' . number_format($totals['TOTAL'], 2);
-            // Ajustar: con SIZE_2W cada char ocupa 2, así que usamos cols/2
+            // Con SIZE_2W cada carácter ocupa el doble de ancho físico,
+            // por lo tanto el ancho lógico disponible es cols/2
             $halfCols = (int) ($cols / 2);
             $label    = 'TOTAL';
             $padding  = $halfCols - strlen($label) - strlen($totalStr);
@@ -416,20 +401,17 @@ class EscposPrinterService
             $nombre = $item->producto ? $item->producto->nombre : ($item->nombre ?? 'Producto');
             return [
                 'nombre'   => $nombre,
-                'cantidad' => $item->cantidad . ($item->medida ? ' ' . $item->medida : ''),
+                'cantidad' => $item->cantidad_formateada,
                 'precio'   => (float) $item->precio_unitario,
                 'subtotal' => (float) $item->subtotal,
             ];
         })->toArray();
 
-        $totales = array_filter([
-            'TOTAL'    => (float) $venta->total,
-            'efectivo' => (float) ($venta->efectivo ?? 0),
-            'online'   => (float) ($venta->online   ?? 0),
-            'credito'  => (float) ($venta->credito  ?? 0),
-            'cambio'   => (float) ($venta->cambio   ?? 0),
-        ], fn($v) => $v > 0);
-        $totales['TOTAL'] = (float) $venta->total;
+        // 'total' no es columna en Venta — se calcula como suma de los medios de pago
+        $totalVal = (float) ($venta->efectivo ?? 0)
+                  + (float) ($venta->online   ?? 0)
+                  + (float) ($venta->credito  ?? 0);
+        $totales  = ['TOTAL' => $totalVal];
 
         $footerLines = $this->tenantFooterLines($config);
 
@@ -476,8 +458,8 @@ class EscposPrinterService
             $nombre = $item->producto ? $item->producto->nombre : ($item->nombre ?? 'Producto');
             return [
                 'nombre'   => $nombre,
-                'cantidad' => $item->cantidad . ($item->medida ? ' ' . $item->medida : ''),
-                'precio'   => (float) $item->precio_unitario,
+                'cantidad' => $item->cantidad_formateada,
+                'precio'   => (float) $item->precio,
                 'subtotal' => (float) $item->subtotal,
             ];
         })->toArray();
