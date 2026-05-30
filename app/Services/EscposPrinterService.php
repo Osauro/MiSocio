@@ -100,7 +100,7 @@ class EscposPrinterService
     {
         $b = '';
         $b .= self::INIT;
-        $b .= self::CODEPAGE_WIN1252;  // Seleccionar Windows-1252 para acentos en español
+        $b .= self::CODEPAGE_WIN1252;
 
         // Nombre de la tienda (centrado, doble alto+ancho)
         if (!empty($data['store'])) {
@@ -109,7 +109,7 @@ class EscposPrinterService
             $b .= self::SIZE_N . self::BOLD_OFF;
         }
 
-        // Dirección / teléfono / NIT
+        // Dirección / teléfono / NIT (centrados, tamaño normal)
         $b .= self::ALIGN_C;
         if (!empty($data['address'])) {
             $b .= $this->encode($data['address']) . self::LF;
@@ -121,29 +121,25 @@ class EscposPrinterService
             $b .= $this->encode('NIT: ' . $data['nit']) . self::LF;
         }
 
-        // Separador
-        $b .= self::ALIGN_L;
-        $b .= str_repeat('=', $cols) . self::LF;
-
-        // Título de la sección (ej: "VENTA #23721")
+        // Título de la sección (ej: "VENTA #25826") — grande, centrado
         if (!empty($data['title'])) {
-            $b .= self::ALIGN_C . self::BOLD_ON;
-            $b .= $this->encode($data['title']) . self::LF;
-            $b .= self::BOLD_OFF;
+            $b .= self::LF;
+            $b .= self::ALIGN_C . self::BOLD_ON . self::SIZE_2X;
+            $b .= $this->encode(mb_strtoupper($data['title'])) . self::LF;
+            $b .= self::SIZE_N . self::BOLD_OFF;
+            $b .= self::LF;
         }
 
-        $b .= str_repeat('=', $cols) . self::LF;
-
-        // Datos de la transacción
+        // Datos de la transacción (alineados izquierda)
         $b .= self::ALIGN_L;
         if (!empty($data['date'])) {
-            $b .= $this->padLine('Fecha:', $this->encode($data['date']), $cols) . self::LF;
+            $b .= $this->encode('Fecha:   ' . $data['date']) . self::LF;
         }
         if (!empty($data['user'])) {
-            $b .= $this->padLine('Cajero:', $this->encode($data['user']), $cols) . self::LF;
+            $b .= $this->encode('Cajero:  ' . $data['user']) . self::LF;
         }
         if (!empty($data['client'])) {
-            $b .= $this->padLine('Cliente:', $this->encode($data['client']), $cols) . self::LF;
+            $b .= $this->encode('Cliente: ' . $data['client']) . self::LF;
         }
 
         $b .= str_repeat('-', $cols) . self::LF;
@@ -167,27 +163,44 @@ class EscposPrinterService
     {
         $b = '';
 
-        // Encabezado de columnas
-        $b .= self::ALIGN_L . self::BOLD_ON;
-        $b .= $this->padLine('PRODUCTO / CANT', 'TOTAL', $cols) . self::LF;
-        $b .= self::BOLD_OFF;
+        // Título de sección centrado
+        $b .= self::ALIGN_C . self::BOLD_ON;
+        $b .= $this->encode('D E T A L L E') . self::LF;
+        $b .= self::BOLD_OFF . self::ALIGN_L;
         $b .= str_repeat('-', $cols) . self::LF;
+
+        // Columnas fijas (para papel 80mm = 48 cols, 58mm = 32 cols):
+        // [nombre+dots] [cant] [xPrecio] [subtotal]
+        // Espacio reservado: cant=4, sep=1, precio=7, sep=1, subtotal=7 → 20 chars para la derecha
+        $rightWidth  = ($cols >= 48) ? 22 : 18;
+        $nameMaxLen  = $cols - $rightWidth;
 
         foreach ($items as $item) {
             $nombre   = $this->encode($item['nombre']   ?? 'Producto');
-            $cant     = $item['cantidad'] ?? '';           // Ya formateado: "2p - 3u"
-            $subtotal = $item['subtotal'] ?? 0;
-            $precio   = $item['precio']   ?? 0;
+            $cant     = (string) ($item['cantidad'] ?? '');
+            $precio   = (float)  ($item['precio']   ?? 0);
+            $subtotal = (float)  ($item['subtotal'] ?? 0);
 
-            $subtStr = 'Bs.' . number_format($subtotal, 2);
+            // Formatear cantidad: "3u", precio: "x12.00", subtotal: "36.00"
+            $cantStr  = $cant;
+            $precStr  = 'x' . number_format($precio, 2);
+            $subtStr  = number_format($subtotal, 2);
 
-            // Línea 1: nombre (truncado si no cabe; strlen porque ya es CP850)
-            $nombreTrunc = strlen($nombre) > $cols ? substr($nombre, 0, $cols - 1) : $nombre;
-            $b .= $nombreTrunc . self::LF;
+            // Construir la parte derecha: "3u  x12.00   36.00" ajustada a $rightWidth
+            // Subtotal siempre alineado al extremo derecho
+            $rightCore = $cantStr . '  ' . $precStr . '   ' . $subtStr;
+            if (strlen($rightCore) < $rightWidth) {
+                $rightCore = str_pad($rightCore, $rightWidth, ' ', STR_PAD_LEFT);
+            }
 
-            // Línea 2: cantidad y precio → subtotal (alineado derecha)
-            $detalle = '  ' . $cant . ' x Bs.' . number_format($precio, 2);
-            $b .= $this->padLine($detalle, $subtStr, $cols) . self::LF;
+            // Nombre truncado con dots hasta completar $nameMaxLen
+            if (strlen($nombre) >= $nameMaxLen) {
+                $nombre = substr($nombre, 0, $nameMaxLen - 1);
+                $b .= $nombre . ' ' . $rightCore . self::LF;
+            } else {
+                $dots   = str_repeat('.', $nameMaxLen - strlen($nombre));
+                $b .= $nombre . $dots . $rightCore . self::LF;
+            }
         }
 
         $b .= str_repeat('-', $cols) . self::LF;
@@ -207,16 +220,7 @@ class EscposPrinterService
         $b = '';
         $b .= self::ALIGN_L;
 
-        // TOTAL principal en doble ancho
-        if (isset($totals['TOTAL'])) {
-            $b .= self::ALIGN_R . self::BOLD_ON . self::SIZE_2W;
-            $b .= 'TOTAL: Bs.' . number_format($totals['TOTAL'], 2) . self::LF;
-            $b .= self::SIZE_N . self::BOLD_OFF;
-        }
-
-        $b .= self::ALIGN_L;
-
-        // Desglose de pagos
+        // Desglose de pagos (antes del TOTAL para que quede al fondo)
         $map = [
             'efectivo' => 'Efectivo',
             'online'   => 'Online / QR',
@@ -226,11 +230,22 @@ class EscposPrinterService
 
         foreach ($map as $key => $label) {
             if (!empty($totals[$key]) && $totals[$key] > 0) {
-                $b .= $this->padLine($label . ':', 'Bs.' . number_format($totals[$key], 2), $cols) . self::LF;
+                $b .= $this->padLine($label . ':', 'Bs. ' . number_format($totals[$key], 2), $cols) . self::LF;
             }
         }
 
-        $b .= str_repeat('=', $cols) . self::LF;
+        // TOTAL principal: izquierda "TOTAL", derecha "Bs. 115.00" — doble ancho
+        if (isset($totals['TOTAL'])) {
+            $totalStr = 'Bs. ' . number_format($totals['TOTAL'], 2);
+            // Ajustar: con SIZE_2W cada char ocupa 2, así que usamos cols/2
+            $halfCols = (int) ($cols / 2);
+            $label    = 'TOTAL';
+            $padding  = $halfCols - strlen($label) - strlen($totalStr);
+            $padding  = max(1, $padding);
+            $b .= self::ALIGN_L . self::BOLD_ON . self::SIZE_2W;
+            $b .= $label . str_repeat(' ', $padding) . $totalStr . self::LF;
+            $b .= self::SIZE_N . self::BOLD_OFF;
+        }
 
         return $b;
     }
