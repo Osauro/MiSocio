@@ -678,51 +678,27 @@
                             <!-- Tab WhatsApp -->
                             @if ($activeTab === 'whatsapp')
                                 <div class="tab-pane fade show active">
-                                    <div class="alert alert-info mb-4">
-                                        <i class="fa-solid fa-info-circle me-2"></i>
-                                        <strong>Nota:</strong> Esta funcionalidad está en desarrollo. Próximamente
-                                        podrás enviar notificaciones automáticas por WhatsApp.
-                                    </div>
                                     <div class="row">
-                                        <div class="col-md-8">
+                                        <div class="col-md-6">
                                             <div class="card border shadow-sm">
                                                 <div class="card-header bg-success text-white">
                                                     <h5 class="mb-0">
                                                         <i class="fa-brands fa-whatsapp me-2"></i>
-                                                        API de WhatsApp Business
+                                                        Notificaciones WhatsApp
                                                     </h5>
                                                 </div>
                                                 <div class="card-body">
-                                                    <div class="mb-3">
-                                                        <div class="form-check form-switch">
-                                                            <input class="form-check-input" type="checkbox"
-                                                                wire:model="whatsapp_enabled"
-                                                                wire:change="guardarWhatsApp" id="whatsappEnabled">
-                                                            <label class="form-check-label fw-semibold"
-                                                                for="whatsappEnabled">
-                                                                Habilitar WhatsApp
-                                                            </label>
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            wire:model="greenapi_notif_ventas"
+                                                            wire:change="guardarWhatsApp" id="greenApiNotifVentas">
+                                                        <label class="form-check-label fw-semibold"
+                                                            for="greenApiNotifVentas">
+                                                            Notificar ventas por WhatsApp
+                                                        </label>
+                                                        <div class="text-muted small mt-1">
+                                                            Envía un mensaje al propietario cada vez que se registre una venta.
                                                         </div>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-semibold">Token de Acceso</label>
-                                                        <input type="password" class="form-control"
-                                                            wire:model="whatsapp_token" wire:blur="guardarWhatsApp"
-                                                            placeholder="Token de la API de WhatsApp">
-                                                        <small class="text-muted">Obténlo desde Meta Business
-                                                            Suite</small>
-                                                        @error('whatsapp_token')
-                                                            <span class="text-danger small">{{ $message }}</span>
-                                                        @enderror
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label fw-semibold">Phone Number ID</label>
-                                                        <input type="text" class="form-control"
-                                                            wire:model="whatsapp_phone_id" wire:blur="guardarWhatsApp"
-                                                            placeholder="ID del número de teléfono">
-                                                        @error('whatsapp_phone_id')
-                                                            <span class="text-danger small">{{ $message }}</span>
-                                                        @enderror
                                                     </div>
                                                 </div>
                                             </div>

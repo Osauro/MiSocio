@@ -59,10 +59,13 @@ class Config extends Component
     // Impresión - footer
     public $ticket_footer_texto;
 
-    // WhatsApp API
+    // WhatsApp API (legacy Meta)
     public $whatsapp_token;
     public $whatsapp_phone_id;
     public $whatsapp_enabled;
+
+    // Green API
+    public $greenapi_notif_ventas;
 
     // Préstamos
     public $prestamos_enabled;
@@ -195,6 +198,7 @@ class Config extends Component
         $this->whatsapp_token = $config->whatsapp_token;
         $this->whatsapp_phone_id = $config->whatsapp_phone_id;
         $this->whatsapp_enabled = $config->whatsapp_enabled;
+        $this->greenapi_notif_ventas = $config->greenapi_notif_ventas ?? false;
 
         // Préstamos
         $this->prestamos_enabled = $config->prestamos_enabled ?? true;
@@ -503,20 +507,12 @@ class Config extends Component
 
     public function guardarWhatsApp()
     {
-        $this->validate([
-            'whatsapp_token' => 'nullable|string|max:500',
-            'whatsapp_phone_id' => 'nullable|string|max:100',
-            'whatsapp_enabled' => 'boolean',
-        ]);
-
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
         $config->update([
-            'whatsapp_token' => $this->whatsapp_token,
-            'whatsapp_phone_id' => $this->whatsapp_phone_id,
-            'whatsapp_enabled' => $this->whatsapp_enabled ?? false,
+            'greenapi_notif_ventas' => (bool) $this->greenapi_notif_ventas,
         ]);
 
-        $this->toast('success', 'WhatsApp guardado');
+        $this->toast('success', 'Configuración guardada');
     }
 
     public function guardarFacebook()
