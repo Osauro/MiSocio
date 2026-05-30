@@ -258,18 +258,18 @@
                                             x-on:click="$dispatch('mostrarKardex', { productoId: {{ $item->producto_id }} })"
                                             title="{{ $item->producto->nombre ?? 'Producto' }}">
                                             <td class="align-middle" style="max-width: 220px;">
-                                                <strong class="d-block text-truncate">{{ $item->producto->nombre ?? 'Producto' }}</strong>
+                                                <strong class="d-block text-truncate text-center">{{ $item->producto->nombre ?? 'Producto' }}</strong>
                                             </td>
                                             <td class="text-end align-middle" style="width: 35px;">{{ $item->cantidad_formateada }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
-                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_compra_por_paquete, 2) }}</td>
+                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">{{ number_format($item->precio_compra_por_paquete, 2) }}</td>
                                             @endif
-                                            <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_por_paquete, 2) }}</td>
-                                            <td class="text-end align-middle text-truncate" style="max-width: 90px;">Bs. {{ number_format($item->precio_unitario, 2) }}</td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 105px;">{{ number_format($item->precio_por_paquete, 2) }}</td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 90px;">{{ number_format($item->precio_unitario, 2) }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
-                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->beneficio_por_paquete, 2) }}</td>
+                                                <td class="text-end align-middle text-truncate" style="max-width: 105px;">{{ number_format($item->beneficio_por_paquete, 2) }}</td>
                                             @endif
-                                            <td class="text-end align-middle text-truncate" style="max-width: 130px;"><strong>Bs. {{ number_format($item->subtotal, 2) }}</strong></td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 130px;"><strong>{{ number_format($item->subtotal, 2) }}</strong></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -328,7 +328,7 @@
                                 <div class="row g-2 @if (!$loop->last) mb-2 @endif">
                                     @foreach ($fila as $tarjeta)
                                         <div class="{{ $colClass }}">
-                                            <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center" style="background-color: #f0f0f0;">
+                                            <div class="rounded px-3 py-2 text-center h-100 d-flex flex-column justify-content-center align-items-center" style="background-color: #f0f0f0;">
                                                 <small class="text-dark d-block">{{ $tarjeta['label'] }}</small>
                                                 <span class="fw-bold fs-5 {{ $tarjeta['color'] ?: 'text-dark' }}">Bs. {{ number_format($tarjeta['valor'], 2) }}</span>
                                             </div>
