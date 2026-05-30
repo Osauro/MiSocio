@@ -381,8 +381,10 @@ class Venta extends Component
                 $entrerosInicial = 0;
                 $unidadesInicial = 1;
                 $cantidadInicial = 1;
-                $precioVenta = $producto->precio_por_menor;
-                $subtotalInicial = $this->redondearSubtotal($precioVenta);
+                // precio almacenado = equivalente paquete (precio_por_menor × cantidadPorMedida)
+                // subtotal = precio_por_menor × cantidadInicial (precio real por 1 unidad)
+                $precioVenta = $producto->precio_por_menor * $cantidadPorMedida;
+                $subtotalInicial = $this->redondearSubtotal($producto->precio_por_menor);
             } else {
                 // Por defecto: iniciar con 1 entero (paquete)
                 $entrerosInicial = 1;

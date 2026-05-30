@@ -121,26 +121,10 @@ class VentaItem extends Model
     }
 
     /**
-     * Obtiene el beneficio por paquete/medida completa
+     * Obtiene el beneficio total del item (para mostrar en la fila de la venta)
      */
     public function getBeneficioPorPaqueteAttribute(): float
     {
-        if (!$this->producto) {
-            return $this->beneficio;
-        }
-
-        $cantidadPorMedida = $this->producto->cantidad ?? 1;
-
-        if ($cantidadPorMedida <= 1) {
-            return $this->beneficio;
-        }
-
-        // Calcular beneficio por paquete
-        $totalPaquetes = floor($this->cantidad / $cantidadPorMedida);
-        if ($totalPaquetes <= 0) {
-            return 0;
-        }
-
-        return $this->beneficio / $totalPaquetes;
+        return $this->beneficio;
     }
 }
