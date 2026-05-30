@@ -245,6 +245,7 @@
                                             <th class="text-end align-middle" style="width: 105px;">Compra</th>
                                         @endif
                                         <th class="text-end align-middle" style="width: 105px;">Precio</th>
+                                        <th class="text-end align-middle" style="width: 90px;">P.Unidad</th>
                                         @if (auth()->user()->canManageCurrentTenant())
                                             <th class="text-end align-middle" style="width: 105px;">Beneficio</th>
                                         @endif
@@ -264,6 +265,7 @@
                                                 <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_compra_por_paquete, 2) }}</td>
                                             @endif
                                             <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->precio_por_paquete, 2) }}</td>
+                                            <td class="text-end align-middle text-truncate" style="max-width: 90px;">Bs. {{ number_format($item->precio_unitario, 2) }}</td>
                                             @if (auth()->user()->canManageCurrentTenant())
                                                 <td class="text-end align-middle text-truncate" style="max-width: 105px;">Bs. {{ number_format($item->beneficio_por_paquete, 2) }}</td>
                                             @endif

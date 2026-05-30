@@ -121,6 +121,21 @@ class VentaItem extends Model
     }
 
     /**
+     * Obtiene el precio por unidad individual:
+     * precio (equivalente paquete) / cantidadPorMedida
+     */
+    public function getPrecioUnitarioAttribute(): float
+    {
+        if (!$this->producto) {
+            return $this->precio;
+        }
+
+        $cantidadPorMedida = max(1, $this->producto->cantidad ?? 1);
+
+        return round($this->precio / $cantidadPorMedida, 2);
+    }
+
+    /**
      * Obtiene el beneficio total del item (para mostrar en la fila de la venta)
      */
     public function getBeneficioPorPaqueteAttribute(): float
