@@ -18,14 +18,13 @@ $scrollIntoViewJsSnippet = ($scrollTo !== false)
             last: {{ $paginator->lastPage() }},
             goToPage(val) {
                 const p = parseInt(val);
-                if (p >= 1 && p <= this.last) {
+                if (p >= 1 && p <= this.last && p !== {{ $paginator->currentPage() }}) {
                     $wire.gotoPage(p, '{{ $paginator->getPageName() }}');
                 } else {
                     this.current = {{ $paginator->currentPage() }};
                 }
             }
-         }"
-         wire:key="paginator-{{ $paginator->currentPage() }}-{{ $paginator->lastPage() }}">
+         }">
 
         {{-- Anterior --}}
         @if ($paginator->onFirstPage())
