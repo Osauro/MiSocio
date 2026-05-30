@@ -377,16 +377,36 @@
 
         compra: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Nueva Compra', description: 'Aqui agregas los productos que recibiste de tu proveedor. La pantalla esta dividida en dos columnas: <strong>items del carrito</strong> (izquierda) y <strong>buscador de productos</strong> (derecha).', side: 'over', align: 'center' } });
-            if (el('#buscadorCompra')) { steps.push({ element: '#buscadorCompra', popover: { title: 'Buscar producto', description: 'Escribe el nombre o codigo del producto para agregarlo a la compra. Compatible con lectoras de codigo de barras.', side: 'bottom', align: 'start' } }); }
-            if (el('.search-results')) { steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen aqui con su stock actual. Haz clic en uno para agregarlo. Si ya esta en el carrito, muestra la cantidad en verde.', side: 'left', align: 'start' } }); }
-            if (el('.card-body .card .card-body')) { steps.push({ element: '.card-body .card .card-body', popover: { title: 'Item en la compra', description: 'Cada producto agregado muestra su imagen, nombre y campos editables de cantidad y precio de costo.', side: 'bottom', align: 'start' } }); }
-            if (el('input[placeholder="0"]')) { steps.push({ element: 'input[placeholder="0"]', popover: { title: 'Enteros y Unidades', description: '<strong>Enteros</strong>: cajas o paquetes completos recibidos. <strong>Unidades</strong>: unidades sueltas adicionales. El total de unidades se calcula automaticamente para actualizar el stock.', side: 'bottom', align: 'start' } }); }
-            if (el('input[placeholder="0"][step="0.01"]')) { steps.push({ element: 'input[placeholder="0"][step="0.01"]', popover: { title: 'Precio de costo y Subtotal', description: '<strong>Precio</strong>: precio de costo unitario pagado al proveedor. <strong>Subtotal</strong>: cantidad × precio. Estos datos actualizan el costo del producto y sirven para calcular el precio de venta.', side: 'bottom', align: 'start' } }); }
-            if (el('.fa-trash')) { steps.push({ element: '.fa-trash', popover: { title: 'Quitar producto', description: 'Elimina este producto del carrito de compra. No afecta el stock hasta que completes la compra.', side: 'left', align: 'start' } }); }
-            if (el('button[wire\\:click="cancelarCompra"]')) { steps.push({ element: 'button[wire\\:click="cancelarCompra"]', popover: { title: 'Cancelar compra', description: 'Descarta todos los productos del carrito y regresa al listado de compras. El stock no se ve afectado.', side: 'bottom', align: 'start' } }); }
-            if (el('button[wire\\:click="iniciarCompletarCompra"]')) { steps.push({ element: 'button[wire\\:click="iniciarCompletarCompra"]', popover: { title: 'Completar compra', description: 'Abre el flujo de confirmacion en 2 pasos:<br><strong>1.</strong> Fecha de la compra<br><strong>2.</strong> Proveedor (opcional)<br>Al finalizar, el stock de cada producto se incrementa con las cantidades ingresadas.', side: 'bottom', align: 'end' } }); }
-            steps.push({ popover: { title: 'Pago al proveedor', description: 'Durante la confirmacion puedes registrar cuanto pagaste en efectivo o transferencia. Si quedas a deber, el credito queda registrado y puedes pagarlo despues desde la lista de compras.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Nueva Compra', description: 'Aqui registras los productos que recibiste de tu proveedor. La pantalla esta dividida: <strong>carrito</strong> a la izquierda y <strong>buscador</strong> a la derecha. Al completar, el stock de cada producto sube automaticamente.', side: 'over', align: 'center' } });
+
+            // Buscador
+            if (el('#buscadorCompra')) { steps.push({ element: '#buscadorCompra', popover: { title: 'Buscador de productos', description: 'Escribe el nombre o codigo del producto para agregarlo. Compatible con lectoras de codigo de barras: escanea y el producto se agrega al instante.', side: 'bottom', align: 'start' } }); }
+
+            // Resultados
+            if (el('.search-results')) { steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen con su <strong>stock actual</strong> (azul) y la <strong>medida de venta</strong> (ej. Caja 12u). Si ya esta en el carrito aparece un tilde verde; haz clic para ajustar la cantidad.', side: 'left', align: 'start' } }); }
+
+            // Tarjeta item
+            if (el('.card-body .card .card-body')) { steps.push({ element: '.card-body .card .card-body', popover: { title: 'Producto en la compra', description: 'Cada producto muestra su imagen y nombre. Los campos de cantidad y precio de costo son editables directamente desde la tarjeta.', side: 'right', align: 'start' } }); }
+
+            // Enteros / Unidades
+            if (el('input[placeholder="0"]')) { steps.push({ element: 'input[placeholder="0"]', popover: { title: 'Enteros y Unidades', description: '<strong>Enteros</strong>: cajas o paquetes completos que recibiste.<br><strong>Unidades</strong>: unidades sueltas adicionales dentro de la ultima caja parcial.<br>Ejemplo: 3 cajas + 4 unidades sueltas. El stock sube por el total de unidades calculado.', side: 'bottom', align: 'start' } }); }
+
+            // Precio / Subtotal
+            if (el('input[placeholder="0"][step="0.01"]')) { steps.push({ element: 'input[placeholder="0"][step="0.01"]', popover: { title: 'Precio de costo y Subtotal', description: '<strong>Precio</strong>: costo unitario pagado al proveedor. Se usa para calcular los precios de venta al mayor y al detal.<br><strong>Subtotal</strong>: cantidad total × precio. Editar el subtotal ajusta el precio automaticamente.', side: 'bottom', align: 'start' } }); }
+
+            // Papelera
+            if (el('.fa-trash')) { steps.push({ element: '.fa-trash', popover: { title: 'Quitar producto', description: 'Elimina este producto de la compra. El stock no se modifica hasta que completes y confirmes la compra.', side: 'left', align: 'start' } }); }
+
+            // Footer
+            if (el('.fixed-footer')) { steps.push({ element: '.fixed-footer', popover: { title: 'Barra de totales', description: '<strong>Productos</strong>: cantidad de items distintos en el carrito.<br><strong>Total</strong>: suma de todos los subtotales. Es lo que debes pagar al proveedor.', side: 'top', align: 'center' } }); }
+
+            // Cancelar
+            if (el('button[wire\\:click="cancelarCompra"]')) { steps.push({ element: 'button[wire\\:click="cancelarCompra"]', popover: { title: 'Cancelar compra', description: 'Descarta el carrito y regresa al listado. El stock no se ve afectado. Te pedira confirmacion antes de cancelar.', side: 'bottom', align: 'start' } }); }
+
+            // Completar
+            if (el('button[wire\\:click="iniciarCompletarCompra"]')) { steps.push({ element: 'button[wire\\:click="iniciarCompletarCompra"]', popover: { title: 'Completar compra', description: 'Abre el flujo de 4 pasos para cerrar la compra:<br><strong>1.</strong> Fecha de la compra<br><strong>2.</strong> Proveedor (opcional, para llevar credito)<br><strong>3.</strong> Saldo a caja (cuanto dinero salia de caja)<br><strong>4.</strong> Pago: efectivo o credito al proveedor', side: 'bottom', align: 'end' } }); }
+
+            steps.push({ popover: { title: 'Credito al proveedor', description: 'Si no pagas el total en efectivo, la diferencia queda registrada como <strong>credito al proveedor</strong>. Puedes pagarlo despues desde la lista de compras usando el boton de moneda en cada tarjeta.', side: 'over', align: 'center' } });
             return steps;
         },
 
