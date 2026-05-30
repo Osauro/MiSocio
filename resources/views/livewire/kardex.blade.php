@@ -52,7 +52,7 @@
                                         <th style="width: 100px" class="text-end">Anterior</th>
                                         <th style="width: 100px" class="text-end">Ent/Sal</th>
                                         <th style="width: 100px" class="text-end">Saldo</th>
-                                        <th style="width: 100px" class="text-end">P.Unidad</th>
+                                        <th style="width: 100px" class="text-end">Precio</th>
                                         <th style="width: 100px" class="text-end">Total</th>
                                     </tr>
                                 </thead>
@@ -99,7 +99,13 @@
                                                 @if($item->entrada > 0 && !canManageTenant())
                                                     ***
                                                 @else
-                                                    {{ number_format($item->precio, 2) }}
+                                                    @if($item->entrada > 0)
+                                                        <span class="text-danger fw-semibold">{{ number_format($item->precio, 2) }}</span>
+                                                        <br><small class="text-muted">compra/u</small>
+                                                    @else
+                                                        <span class="text-success fw-semibold">{{ number_format($item->precio, 2) }}</span>
+                                                        <br><small class="text-muted">venta/u</small>
+                                                    @endif
                                                 @endif
                                             </td>
                                             <td class="text-end text-truncate">
