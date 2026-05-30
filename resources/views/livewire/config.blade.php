@@ -258,11 +258,16 @@
                                             {{-- Sección: URL + Descargar --}}
                                             <div class="px-4 pt-3 pb-2 d-flex flex-column gap-2"
                                                  x-data="{
-                                                    get isAndroid() { return /android/i.test(navigator.userAgent); },
-                                                    get isIOS()     { return /iphone|ipad|ipod/i.test(navigator.userAgent); },
-                                                    get isWindows() { return /windows/i.test(navigator.userAgent); },
-                                                    get urlWindows(){ return '{{ asset('software/agente_windows.zip') }}'; },
-                                                    get urlAndroid(){ return '{{ asset('software/DSPrinter-release-signed.apk') }}'; }
+                                                    os: null,
+                                                    init() {
+                                                        const ua = navigator.userAgent;
+                                                        if (/android/i.test(ua))            this.os = 'android';
+                                                        else if (/iphone|ipad|ipod/i.test(ua)) this.os = 'ios';
+                                                        else if (/windows/i.test(ua))       this.os = 'windows';
+                                                        else                                 this.os = 'other';
+                                                    },
+                                                    urlWindows: '{{ asset('software/agente_windows.zip') }}',
+                                                    urlAndroid: '{{ asset('software/DSPrinter-release-signed.apk') }}'
                                                  }">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <i class="fa-solid fa-circle-dot text-success" style="font-size:.7rem;"></i>
@@ -270,29 +275,28 @@
                                                 </div>
 
                                                 {{-- Windows --}}
-                                                <a x-show="isWindows" :href="urlWindows"
+                                                <a x-cloak x-show="os === 'windows'" :href="urlWindows"
                                                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
                                                     <i class="fa-brands fa-windows"></i>
                                                     <span>Descargar para Windows (.zip)</span>
                                                 </a>
 
                                                 {{-- Android --}}
-                                                <a x-show="isAndroid" :href="urlAndroid"
+                                                <a x-cloak x-show="os === 'android'" :href="urlAndroid"
                                                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
                                                     <i class="fa-brands fa-android"></i>
                                                     <span>Descargar para Android (.apk)</span>
                                                 </a>
 
                                                 {{-- iOS: no soportado --}}
-                                                <div x-show="isIOS"
+                                                <div x-cloak x-show="os === 'ios'"
                                                      class="alert alert-warning py-2 px-3 mb-0 small d-flex align-items-center gap-2">
                                                     <i class="fa-brands fa-apple"></i>
                                                     <span>iOS no es compatible con el Print Agent.</span>
                                                 </div>
 
                                                 {{-- Otro (Linux/Mac/etc) --}}
-                                                <div x-show="!isWindows && !isAndroid && !isIOS"
-                                                     class="d-flex flex-column gap-1">
+                                                <div x-cloak x-show="os === 'other'" class="d-flex flex-column gap-1">
                                                     <a :href="urlWindows"
                                                        class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2">
                                                         <i class="fa-brands fa-windows"></i>

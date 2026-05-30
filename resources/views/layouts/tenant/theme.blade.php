@@ -57,6 +57,7 @@
             --primary-color: {{ $themeColor }};
             --livewire-progress-bar-color: {{ $themeColor }} !important;
         }
+        [x-cloak] { display: none !important; }
     </style>
     <script>
         // Forzar inline style con prioridad 'important' para ganar sobre cualquier hoja de estilos
