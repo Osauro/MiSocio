@@ -205,12 +205,64 @@
 
         productos_form: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Formulario de Producto', description: 'Completa estos campos para registrar un nuevo producto en tu catalogo.', side: 'over', align: 'center' } });
-            if (el('#nombre')) { steps.push({ element: '#nombre', popover: { title: 'Nombre', description: 'Nombre descriptivo del producto. Aparecera en ventas, compras, tickets y reportes.', side: 'bottom', align: 'start' } }); }
-            if (el('#codigo')) { steps.push({ element: '#codigo', popover: { title: 'Codigo de barras', description: 'Opcional. Si el producto tiene codigo de barras, ingrésalo aqui para escanearlo en ventas.', side: 'bottom', align: 'start' } }); }
-            if (el('#cantidad')) { steps.push({ element: '#cantidad', popover: { title: 'Stock inicial', description: 'Cantidad disponible en inventario. Se actualiza con cada venta y compra.', side: 'bottom', align: 'start' } }); }
-            if (el('#precio_de_costo')) { steps.push({ element: '#precio_de_costo', popover: { title: 'Precio de costo', description: 'Lo que te costo el producto. Se usa para calcular la utilidad en reportes.', side: 'bottom', align: 'start' } }); }
-            steps.push({ popover: { title: 'Imagen del producto', description: 'Usa el boton <strong>Abrir Galeria</strong> para asignar o subir una foto al producto.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Formulario de Producto', description: 'Este formulario tiene todos los campos necesarios para registrar un producto. Te explicamos cada uno.', side: 'over', align: 'center' } });
+
+            // Imagen
+            if (el('.modal-xl .fa-image, .modal-xl [wire\\:click*="abrir"], .modal-xl button[wire\\:click*="galeria"]')) {
+                steps.push({ element: '.modal-xl .fa-image', popover: { title: 'Imagen del producto', description: 'Haz clic en <strong>Seleccionar imagen</strong> para asignar una foto al producto desde la galeria. Mejora la identificacion visual en ventas.', side: 'right', align: 'start' } });
+            }
+
+            // Control de stock
+            if (el('#control')) {
+                steps.push({ element: '#control', popover: { title: 'Control de Stock', description: 'Cuando esta <strong>Activado</strong>, el stock disminuye automaticamente con cada venta. Desactivalo para productos de servicio o sin inventario fisico.', side: 'right', align: 'start' } });
+            }
+
+            // Nombre
+            if (el('#nombre')) {
+                steps.push({ element: '#nombre', popover: { title: 'Nombre *', description: 'Nombre completo del producto tal como aparecera en ventas, tickets y reportes. Se puede buscar por este nombre en el punto de venta.', side: 'bottom', align: 'start' } });
+            }
+
+            // Categoria
+            if (el('#categoria_id')) {
+                steps.push({ element: '#categoria_id', popover: { title: 'Categoria *', description: 'Agrupa el producto en una categoria para facilitar su busqueda y los reportes por categoria. Usa el boton <strong>+</strong> para crear una nueva categoria al instante.', side: 'bottom', align: 'start' } });
+            }
+
+            // Codigo
+            if (el('#codigo')) {
+                steps.push({ element: '#codigo', popover: { title: 'Codigo de barras', description: 'Opcional. Ingresa el codigo de barras del producto (EAN, UPC, etc.) para poder escanearlo en el punto de venta con una lectora. Tambien puedes usarlo como referencia interna.', side: 'bottom', align: 'start' } });
+            }
+
+            // Medida
+            if (el('#medida')) {
+                steps.push({ element: '#medida', popover: { title: 'Medida *', description: 'Unidad de empaque del producto: caja, paquete, six pack, litro, etc. Define en que unidad se vende al por mayor. Usa <strong>+</strong> para agregar nuevas medidas.', side: 'bottom', align: 'start' } });
+            }
+
+            // Cantidad
+            if (el('#cantidad')) {
+                steps.push({ element: '#cantidad', popover: { title: 'Cantidad (unidades) *', description: 'Stock inicial del producto expresado en unidades. Cada vez que registres una venta o compra, este numero se actualiza automaticamente.', side: 'bottom', align: 'start' } });
+            }
+
+            // Precio compra
+            if (el('#precio_de_compra')) {
+                steps.push({ element: '#precio_de_compra', popover: { title: 'Precio Compra (Bs.)', description: 'Lo que te costo el producto al comprarlo a tu proveedor. Se usa para calcular la <strong>utilidad bruta</strong> en los reportes de ventas y compras.', side: 'bottom', align: 'start' } });
+            }
+
+            // Precio mayor
+            if (el('#precio_por_mayor')) {
+                steps.push({ element: '#precio_por_mayor', popover: { title: 'Precio Mayor (Bs.)', description: 'Precio de venta <strong>por mayor</strong> (caja, paquete o la medida definida). Se aplica cuando el cliente compra en esa unidad de empaque en el punto de venta.', side: 'bottom', align: 'start' } });
+            }
+
+            // Precio menor
+            if (el('#precio_por_menor')) {
+                steps.push({ element: '#precio_por_menor', popover: { title: 'Precio Menor (Bs.)', description: 'Precio de venta <strong>al detalle</strong> (por unidad individual). Es el precio mas comun en ventas al publico en general.', side: 'bottom', align: 'start' } });
+            }
+
+            // Tags
+            if (el('.tags-container')) {
+                steps.push({ element: '.tags-container', popover: { title: 'Tags / Nombres Alternativos', description: 'Agrega palabras clave o nombres alternativos del producto (ej: "Paceña", "cerveza", "pilsener"). Sirven para encontrarlo mas facil en el buscador del punto de venta. Presiona <kbd>,</kbd> o <kbd>Enter</kbd> para agregar cada uno.', side: 'top', align: 'start' } });
+            }
+
+            steps.push({ popover: { title: 'Listo para guardar', description: 'Con todos los campos completados, haz clic en <strong>Guardar</strong>. El producto quedara disponible de inmediato en el punto de venta para ser vendido.', side: 'over', align: 'center' } });
             return steps;
         },
 
