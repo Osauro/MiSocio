@@ -52,7 +52,7 @@
                                         <th style="width: 100px" class="text-end">Anterior</th>
                                         <th style="width: 100px" class="text-end">Ent/Sal</th>
                                         <th style="width: 100px" class="text-end">Saldo</th>
-                                        <th style="width: 100px" class="text-end">Precio</th>
+                                        <th style="width: 100px" class="text-end">P.Unidad</th>
                                         <th style="width: 100px" class="text-end">Total</th>
                                     </tr>
                                 </thead>
