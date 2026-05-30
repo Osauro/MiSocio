@@ -189,8 +189,36 @@
 
         ventas: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Historial de Ventas', description: 'Consulta todas las ventas registradas. Puedes filtrar, ver detalles e imprimir tickets anteriores.', side: 'over', align: 'center' } });
-            if (el('.table-responsive')) { steps.push({ element: '.table-responsive', popover: { title: 'Lista de ventas', description: 'Cada fila es una venta. Haz clic en una para ver el detalle: productos, totales y forma de pago.', side: 'top', align: 'center' } }); }
+            steps.push({ popover: { title: 'Historial de Ventas', description: 'Aqui consultas todas las ventas registradas con sus detalles, totales y forma de pago.', side: 'over', align: 'center' } });
+
+            // Buscador + boton filtro fecha + boton +
+            if (el('#searchInput')) {
+                steps.push({ element: '#searchInput', popover: { title: 'Buscador', description: 'Busca ventas por numero, nombre de producto, cliente o cajero. El resultado se filtra en tiempo real mientras escribes.', side: 'bottom', align: 'start' } });
+            }
+
+            // Boton filtro / limpiar fechas (icono calendario o X rojo)
+            var btnFiltro = el('button[wire\\:click="abrirModalFiltro"], button[wire\\:click="limpiarFiltroFechas"]');
+            if (btnFiltro) {
+                steps.push({ element: btnFiltro, popover: { title: 'Filtro de fechas', description: 'Por defecto se muestran las ventas de <strong>hoy</strong>. Haz clic en el icono de calendario para filtrar por rango de fechas. Si hay un filtro activo, aparece el boton <strong>X rojo</strong> para quitarlo y ver todas las ventas.', side: 'bottom', align: 'start' } });
+            }
+
+            // Boton + nueva venta
+            var btnNueva = el('button[wire\\:click="crearVenta"]');
+            if (btnNueva) {
+                steps.push({ element: btnNueva, popover: { title: 'Nueva venta', description: 'Haz clic en <strong>+</strong> para abrir el punto de venta y registrar una nueva transaccion.', side: 'bottom', align: 'start' } });
+            }
+
+            // Tarjeta de venta
+            if (el('.card .compra-card-body, .card-body .card')) {
+                steps.push({ element: '.card-body .card', popover: { title: 'Tarjeta de venta', description: 'Cada tarjeta muestra: numero de venta, imagenes de los productos, totales, cajero, fecha y cliente. Usa el icono <strong>ojo</strong> para ver el detalle completo o el de <strong>impresora</strong> para reimprimir el ticket.', side: 'bottom', align: 'start' } });
+            }
+
+            // Paginado
+            if (el('.pagination, nav[aria-label*="pagina"], .paginate-bar')) {
+                steps.push({ element: '.pagination', popover: { title: 'Paginado', description: 'Las ventas se muestran de a 12 por pagina. Navega entre paginas con los controles de paginacion o cambia la cantidad de resultados por pagina.', side: 'top', align: 'center' } });
+            }
+
+            steps.push({ popover: { title: 'Tip', description: 'Combina el <strong>buscador</strong> con el <strong>filtro de fechas</strong> para encontrar rapidamente cualquier venta historica.', side: 'over', align: 'center' } });
             return steps;
         },
 
