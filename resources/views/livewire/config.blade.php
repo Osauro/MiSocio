@@ -256,16 +256,54 @@
                                             </div>
 
                                             {{-- Sección: URL + Descargar --}}
-                                            <div class="px-4 pt-3 pb-2 d-flex flex-column gap-2">
+                                            <div class="px-4 pt-3 pb-2 d-flex flex-column gap-2"
+                                                 x-data="{
+                                                    get isAndroid() { return /android/i.test(navigator.userAgent); },
+                                                    get isIOS()     { return /iphone|ipad|ipod/i.test(navigator.userAgent); },
+                                                    get isWindows() { return /windows/i.test(navigator.userAgent); },
+                                                    get urlWindows(){ return '{{ asset('software/agente_windows.zip') }}'; },
+                                                    get urlAndroid(){ return '{{ asset('software/DSPrinter-release-signed.apk') }}'; }
+                                                 }">
                                                 <div class="d-flex align-items-center gap-2">
                                                     <i class="fa-solid fa-circle-dot text-success" style="font-size:.7rem;"></i>
                                                     <span class="text-muted small font-monospace">{{ $printAgentUrl }}</span>
                                                 </div>
-                                                <a href="https://fadi.com.bo/download.php?file=installPrinterFADI.bat"
+
+                                                {{-- Windows --}}
+                                                <a x-show="isWindows" :href="urlWindows"
                                                    class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
-                                                    <i class="fa-solid fa-download"></i>
-                                                    <span>Descargar Instalador</span>
+                                                    <i class="fa-brands fa-windows"></i>
+                                                    <span>Descargar para Windows (.zip)</span>
                                                 </a>
+
+                                                {{-- Android --}}
+                                                <a x-show="isAndroid" :href="urlAndroid"
+                                                   class="btn btn-success btn-sm d-flex align-items-center justify-content-center gap-2">
+                                                    <i class="fa-brands fa-android"></i>
+                                                    <span>Descargar para Android (.apk)</span>
+                                                </a>
+
+                                                {{-- iOS: no soportado --}}
+                                                <div x-show="isIOS"
+                                                     class="alert alert-warning py-2 px-3 mb-0 small d-flex align-items-center gap-2">
+                                                    <i class="fa-brands fa-apple"></i>
+                                                    <span>iOS no es compatible con el Print Agent.</span>
+                                                </div>
+
+                                                {{-- Otro (Linux/Mac/etc) --}}
+                                                <div x-show="!isWindows && !isAndroid && !isIOS"
+                                                     class="d-flex flex-column gap-1">
+                                                    <a :href="urlWindows"
+                                                       class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center gap-2">
+                                                        <i class="fa-brands fa-windows"></i>
+                                                        <span>Windows (.zip)</span>
+                                                    </a>
+                                                    <a :href="urlAndroid"
+                                                       class="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center gap-2">
+                                                        <i class="fa-brands fa-android"></i>
+                                                        <span>Android (.apk)</span>
+                                                    </a>
+                                                </div>
                                             </div>
 
                                             {{-- Divider: Clave de Seguridad --}}
