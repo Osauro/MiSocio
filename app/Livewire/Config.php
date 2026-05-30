@@ -394,13 +394,7 @@ class Config extends Component
 
         /** @var \App\Services\EscposPrinterService $svc */
         $svc  = app(\App\Services\EscposPrinterService::class);
-        $key  = $this->print_agent_secret_key ?? config('print_agent.secret_key');
         $cols = ($this->papel_tamano === '58mm') ? 32 : 48;
-
-        if (empty($key)) {
-            $this->alertError('Configura la clave secreta del Print Agent primero');
-            return;
-        }
 
         $header = $svc->buildEscHeader([
             'store' => $this->nombre_tienda ?? 'Mi Tienda',
@@ -423,18 +417,15 @@ class Config extends Component
             5, $cols
         );
 
-        $job = [
-            'printer' => $this->impresora_nombre,
-            'logo'    => (bool) ($this->mostrar_logo ?? true),
-            'header'  => $svc->encryptSection($key, $header),
-            'body'    => $svc->encryptSection($key, $body),
-            'footer'  => $svc->encryptSection($key, $footer),
-        ];
-
-        // La llamada la hace el navegador (el agente corre en el PC del cliente)
         $this->dispatch('enviar-a-agente',
-            agentUrl: config('print_agent.base_url'),
-            job: $job,
+            agentUrl:   config('print_agent.base_url'),
+            printer:    $this->impresora_nombre,
+            logo:       (bool) ($this->mostrar_logo ?? true),
+            sections:   [
+                'header' => base64_encode($header),
+                'body'   => base64_encode($body),
+                'footer' => base64_encode($footer),
+            ],
             successMsg: 'Impresión de prueba enviada'
         );
     }
@@ -457,12 +448,6 @@ class Config extends Component
         $svc    = app(\App\Services\EscposPrinterService::class);
         $config = \App\Models\TenantConfig::getOrCreateForTenant($tenantId);
         $cols   = ($config->papel_tamano === '58mm') ? 32 : 48;
-        $key    = $config->print_agent_secret_key ?? config('print_agent.secret_key');
-
-        if (empty($key)) {
-            $this->alertError('Configura la clave secreta del Print Agent primero');
-            return;
-        }
 
         $header = [
             'store'   => $config->nombre_tienda ?? 'MI TIENDA',
@@ -494,24 +479,21 @@ class Config extends Component
         ], fn($v) => $v > 0);
         $totales['TOTAL'] = (float) $venta->total;
 
-        $job = [
-            'printer' => $config->impresora_nombre ?? '',
-            'logo'    => (bool) ($config->mostrar_logo ?? true),
-            'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
-            'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
-            'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
-            'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
-                $this->footerMsg($config->propietario_nombre, $config->propietario_celular),
-                (bool) ($config->corte_automatico ?? true),
-                (bool) ($config->abrir_cajon ?? false),
-                5, $cols
-            )),
-        ];
-
-        // La llamada la hace el navegador (el agente corre en el PC del cliente)
         $this->dispatch('enviar-a-agente',
-            agentUrl: config('print_agent.base_url'),
-            job: $job,
+            agentUrl:   config('print_agent.base_url'),
+            printer:    $config->impresora_nombre ?? '',
+            logo:       (bool) ($config->mostrar_logo ?? true),
+            sections:   [
+                'header' => base64_encode($svc->buildEscHeader($header, $cols)),
+                'body'   => base64_encode($svc->buildEscBody($items, $cols)),
+                'totals' => base64_encode($svc->buildEscTotals($totales, $cols)),
+                'footer' => base64_encode($svc->buildEscFooter(
+                    $this->footerMsg($config->propietario_nombre, $config->propietario_celular),
+                    (bool) ($config->corte_automatico ?? true),
+                    (bool) ($config->abrir_cajon ?? false),
+                    5, $cols
+                )),
+            ],
             successMsg: 'Venta #' . $venta->numero_folio . ' enviada a imprimir'
         );
     }
@@ -533,12 +515,6 @@ class Config extends Component
         $svc    = app(\App\Services\EscposPrinterService::class);
         $config = \App\Models\TenantConfig::getOrCreateForTenant($tenantId);
         $cols   = ($config->papel_tamano === '58mm') ? 32 : 48;
-        $key    = $config->print_agent_secret_key ?? config('print_agent.secret_key');
-
-        if (empty($key)) {
-            $this->alertError('Configura la clave secreta del Print Agent primero');
-            return;
-        }
 
         $header = [
             'store'  => $config->nombre_tienda ?? 'MI TIENDA',
@@ -563,22 +539,20 @@ class Config extends Component
 
         $totales = ['TOTAL' => (float) $prestamo->total];
 
-        $job = [
-            'printer' => $config->impresora_nombre ?? '',
-            'logo'    => (bool) ($config->mostrar_logo ?? true),
-            'header'  => $svc->encryptSection($key, $svc->buildEscHeader($header, $cols)),
-            'body'    => $svc->encryptSection($key, $svc->buildEscBody($items, $cols)),
-            'totals'  => $svc->encryptSection($key, $svc->buildEscTotals($totales, $cols)),
-            'footer'  => $svc->encryptSection($key, $svc->buildEscFooter(
-                $this->footerMsg($config->propietario_nombre, $config->propietario_celular),
-                (bool) ($config->corte_automatico ?? true),
-                false, 5, $cols
-            )),
-        ];
-
         $this->dispatch('enviar-a-agente',
-            agentUrl: config('print_agent.base_url'),
-            job: $job,
+            agentUrl:   config('print_agent.base_url'),
+            printer:    $config->impresora_nombre ?? '',
+            logo:       (bool) ($config->mostrar_logo ?? true),
+            sections:   [
+                'header' => base64_encode($svc->buildEscHeader($header, $cols)),
+                'body'   => base64_encode($svc->buildEscBody($items, $cols)),
+                'totals' => base64_encode($svc->buildEscTotals($totales, $cols)),
+                'footer' => base64_encode($svc->buildEscFooter(
+                    $this->footerMsg($config->propietario_nombre, $config->propietario_celular),
+                    (bool) ($config->corte_automatico ?? true),
+                    false, 5, $cols
+                )),
+            ],
             successMsg: 'Préstamo #' . ($prestamo->numero_folio ?? $prestamo->id) . ' enviado a imprimir'
         );
     }

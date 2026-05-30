@@ -213,14 +213,27 @@
                             <div class="tab-pane fade show active"
                                  x-data="{
                                     printando: false,
-                                    async enviarAgente(agentUrl, job, successMsg) {
+                                    async enviarAgente(agentUrl, printer, logo, sections) {
                                         this.printando = true;
                                         const baseUrl = (agentUrl || '').replace(/\/$/, '');
+                                        const encryptSection = async (raw) => {
+                                            const r = await fetch(baseUrl + '/api/encrypt/section', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ data_base64: raw }),
+                                            });
+                                            if (!r.ok) throw new Error('encrypt/section HTTP ' + r.status);
+                                            return (await r.json()).encrypted;
+                                        };
                                         try {
+                                            const keys = Object.keys(sections);
+                                            const enc = await Promise.all(keys.map(k => encryptSection(sections[k])));
+                                            const encSections = {};
+                                            keys.forEach((k, i) => encSections[k] = enc[i]);
                                             const res = await fetch(baseUrl + '/api/encrypt', {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify(job),
+                                                body: JSON.stringify({ printer, logo, ...encSections }),
                                             });
                                             if (!res.ok) throw new Error(await res.text().catch(() => 'HTTP ' + res.status));
                                             const { protocol_url } = await res.json();
@@ -232,7 +245,7 @@
                                         }
                                     }
                                  }"
-                                 @enviar-a-agente.window="enviarAgente($event.detail.agentUrl, $event.detail.job, $event.detail.successMsg)">
+                                 @enviar-a-agente.window="enviarAgente($event.detail.agentUrl, $event.detail.printer, $event.detail.logo, $event.detail.sections)">
 
                                 <div class="row g-4 align-items-start">
 

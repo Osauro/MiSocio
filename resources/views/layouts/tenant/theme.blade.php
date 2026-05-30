@@ -414,24 +414,42 @@
         });
     </script>
 
-    {{-- Print Agent: listener global — usa print:// para Android + Windows --}}
+    {{-- Print Agent: listener global — usa /api/encrypt/section + print:// --}}
     <script>
         window.addEventListener('enviar-a-agente', async function (e) {
-            const { agentUrl, job, successMsg } = e.detail;
+            const { agentUrl, printer, logo, sections, successMsg } = e.detail;
             const baseUrl = (agentUrl || '').replace(/\/$/, '');
+
+            async function encryptSection(rawBase64) {
+                const res = await fetch(baseUrl + '/api/encrypt/section', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data_base64: rawBase64 }),
+                });
+                if (!res.ok) throw new Error('encrypt/section HTTP ' + res.status);
+                const json = await res.json();
+                return json.encrypted;
+            }
+
             try {
-                // Pedir al agente que encripte el job completo y devuelva la protocol_url
+                // Encriptar todas las secciones en paralelo vía el agente
+                const keys = Object.keys(sections);
+                const encrypted = await Promise.all(keys.map(k => encryptSection(sections[k])));
+                const encSections = {};
+                keys.forEach((k, i) => encSections[k] = encrypted[i]);
+
+                // Obtener la protocol_url con el job completo ya encriptado
                 const res = await fetch(baseUrl + '/api/encrypt', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(job),
+                    body: JSON.stringify({ printer, logo, ...encSections }),
                 });
-                if (!res.ok) {
-                    throw new Error(await res.text().catch(() => 'HTTP ' + res.status));
-                }
+                if (!res.ok) throw new Error(await res.text().catch(() => 'HTTP ' + res.status));
                 const { protocol_url } = await res.json();
-                // Navegar al protocolo — el agente lo intercepta e imprime (Android + Windows)
+
+                // El agente intercepta el protocolo e imprime
                 window.location.href = protocol_url;
+
             } catch (err) {
                 if (window.Swal) {
                     Swal.fire({
