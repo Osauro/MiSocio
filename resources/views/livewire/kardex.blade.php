@@ -123,7 +123,7 @@
                                                 @if($item->entrada > 0 && !canManageTenant())
                                                     ***
                                                 @else
-                                                    <span class="{{ $colorPrecio }} fw-semibold">{{ number_format($item->precio, 2) }}</span>
+                                                    <span class="{{ $colorPrecio }} fw-semibold">{{ number_format($precioUnidad, 2) }}</span>
                                                     <br><small class="text-muted">{{ $labelUnidad }}</small>
                                                 @endif
                                             </td>
