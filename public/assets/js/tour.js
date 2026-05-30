@@ -176,14 +176,54 @@
 
         venta: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Punto de Venta', description: 'Aqui registras las ventas de tu negocio. Te mostramos los elementos principales.', side: 'over', align: 'center' } });
-            if (el('#buscadorVenta')) { steps.push({ element: '#buscadorVenta', popover: { title: 'Buscar producto', description: 'Escribe el nombre o codigo del producto para agregarlo al carrito. Compatible con lectoras de codigo de barras.', side: 'bottom', align: 'start' } }); }
-            if (el('.table-responsive')) { steps.push({ element: '.table-responsive', popover: { title: 'Carrito', description: 'Los productos seleccionados aparecen aqui. Puedes cambiar la cantidad o eliminar items antes de confirmar.', side: 'top', align: 'center' } }); }
-            if (el('#buscarCliente')) { steps.push({ element: '#buscarCliente', popover: { title: 'Cliente', description: 'Selecciona el cliente. Si es nuevo, puedes crearlo directamente desde aqui.', side: 'top', align: 'start' } }); }
-            if (el('#fechaVenta')) { steps.push({ element: '#fechaVenta', popover: { title: 'Fecha de venta', description: 'Por defecto es hoy. Puedes cambiarla si necesitas registrar una venta de otra fecha.', side: 'top', align: 'start' } }); }
-            if (el('#montoPagoEfectivo')) { steps.push({ element: '#montoPagoEfectivo', popover: { title: 'Pago en efectivo', description: 'Ingresa el monto recibido. El sistema calcula el cambio a devolver automaticamente.', side: 'top', align: 'start' } }); }
-            if (el('#montoPagoOnline')) { steps.push({ element: '#montoPagoOnline', popover: { title: 'Pago QR / Transferencia', description: 'Registra pagos digitales. Puedes combinar efectivo y pago online en una misma venta.', side: 'top', align: 'start' } }); }
-            steps.push({ popover: { title: 'A vender!', description: 'Con el carrito lleno y el pago ingresado, haz clic en <strong>Confirmar venta</strong> para cerrarla e imprimir el ticket.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Punto de Venta', description: 'Aqui registras las ventas de tu negocio. La pantalla esta dividida en dos partes: el <strong>carrito</strong> a la izquierda y el <strong>buscador de productos</strong> a la derecha.', side: 'over', align: 'center' } });
+
+            // Buscador
+            if (el('#buscadorVenta')) {
+                steps.push({ element: '#buscadorVenta', popover: { title: 'Buscador de productos', description: 'Escribe el nombre, codigo de barras o tag del producto para agregarlo al carrito. Compatible con lectoras de codigo de barras: escanea y el producto se agrega automaticamente.', side: 'bottom', align: 'start' } });
+            }
+
+            // Panel derecho de resultados
+            if (el('.search-results')) {
+                steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen aqui con su <strong>stock disponible</strong> (azul = hay stock, rojo = sin stock) y su <strong>medida de venta</strong> (caja, paquete, etc.). Haz clic en uno para agregarlo al carrito. Si ya esta en el carrito, muestra la cantidad actual en verde.', side: 'left', align: 'start' } });
+            }
+
+            // Tarjeta de item en carrito
+            if (el('.card-body .card .card-body')) {
+                steps.push({ element: '.card-body .card .card-body', popover: { title: 'Item en el carrito', description: 'Cada producto agregado muestra su imagen, nombre y los campos de cantidad y precio editables.', side: 'bottom', align: 'start' } });
+            }
+
+            // Enteros / Unidades
+            if (el('input[placeholder="0"]')) {
+                steps.push({ element: 'input[placeholder="0"]', popover: { title: 'Enteros y Unidades', description: '<strong>Enteros</strong>: cajas/paquetes completos. <strong>Unidades</strong>: unidades sueltas dentro de la caja. Por ejemplo: 2 cajas + 3 unidades = 2 enteros, 3 unidades. El precio se calcula automaticamente segun el precio por mayor y menor configurado.', side: 'bottom', align: 'start' } });
+            }
+
+            // Campo precio
+            if (el('input[placeholder="0"][step="0.01"]')) {
+                steps.push({ element: 'input[placeholder="0"][step="0.01"]', popover: { title: 'Precio y Subtotal', description: '<strong>Precio</strong>: puedes modificarlo directamente si necesitas hacer un descuento. <strong>Subtotal</strong>: se calcula automaticamente (cantidad × precio). Tambien puedes editar el subtotal y el precio se ajustara.', side: 'bottom', align: 'start' } });
+            }
+
+            // Icono eliminar
+            if (el('.fa-trash')) {
+                steps.push({ element: '.fa-trash', popover: { title: 'Eliminar producto', description: 'Haz clic en el icono de papelera para quitar este producto del carrito. Te pedira confirmacion antes de eliminar.', side: 'left', align: 'start' } });
+            }
+
+            // Footer - contador de productos
+            if (el('.fixed-footer')) {
+                steps.push({ element: '.fixed-footer', popover: { title: 'Barra inferior', description: 'La barra inferior muestra el <strong>total de productos</strong> en el carrito. Desde aqui confirmas o cancelas la venta.', side: 'top', align: 'center' } });
+            }
+
+            // Boton cancelar venta
+            if (el('button[wire\\:click="cancelarVenta"]')) {
+                steps.push({ element: 'button[wire\\:click="cancelarVenta"]', popover: { title: 'Cancelar venta', description: 'Descarta todos los productos del carrito y vuelve al historial de ventas. Te pedira confirmacion antes de cancelar para no perder los items agregados.', side: 'top', align: 'start' } });
+            }
+
+            // Boton confirmar
+            if (el('button[wire\\:click="iniciarCompletarVenta"]')) {
+                steps.push({ element: 'button[wire\\:click="iniciarCompletarVenta"]', popover: { title: 'Confirmar venta', description: 'Muestra el <strong>total a cobrar</strong> en Bolivianos. Al hacer clic se abre el flujo de 3 pasos: 1) Fecha de venta, 2) Seleccion de cliente, 3) Metodo de pago (efectivo, QR/online o credito). Al finalizar imprime el ticket automaticamente.', side: 'top', align: 'end' } });
+            }
+
+            steps.push({ popover: { title: 'Flujo de confirmacion', description: 'Al confirmar la venta pasaras por 3 pasos rapidos:<br><strong>1.</strong> Fecha de venta (por defecto hoy)<br><strong>2.</strong> Cliente (opcional, puedes omitir)<br><strong>3.</strong> Pago (efectivo + QR, calcula el cambio y credito automaticamente)', side: 'over', align: 'center' } });
             return steps;
         },
 
