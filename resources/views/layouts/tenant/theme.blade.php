@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="description" content="MiSocio — Panel de gestión de tu negocio. Ventas, inventario, compras y más." />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="author" content="MiSocio" />
@@ -43,6 +44,8 @@
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/css/vendors/slick-theme.css') }}" />
     <!-- App css -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}" />
+    <!-- Driver.js (tour) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1/dist/driver.css" />
     @php
         $currentTenant = currentTenant();
         $themeNumber = $currentTenant?->theme_number ?? 5;
@@ -359,6 +362,15 @@
     </script>
 
     @stack('scripts')
+
+    {{-- Driver.js tour --}}
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1/dist/driver.js.iife.js"></script>
+    @auth
+    <script>
+        window.__misocioOnboardingPendiente = {{ auth()->user()->onboarding_completado ? 'false' : 'true' }};
+    </script>
+    @endauth
+    <script src="{{ asset('assets/js/tour.js') }}"></script>
 
     <!-- PWA: Service Worker + Banner Instalación -->
     <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;

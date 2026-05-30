@@ -159,5 +159,18 @@
 
         </ul>
     </div>
+
+    {{-- Botón reiniciar tour --}}
+    <div class="px-3 py-2 border-top" style="position: sticky; bottom: 0; background: var(--sidebar-bg, #fff);">
+        <button id="btn-iniciar-tour"
+            onclick="window.MiSocioTour && window.MiSocioTour.iniciar()"
+            class="btn btn-sm w-100 d-flex align-items-center gap-2"
+            style="background: transparent; border: 1px dashed rgba(128,128,128,.4); color: inherit; font-size: .78rem; padding: 6px 10px;"
+            title="Ver guía de inicio">
+            <i class="fa-solid fa-circle-play" style="color: var(--theme-default); font-size: 15px;"></i>
+            <span class="f-w-500">Ver guía de inicio</span>
+        </button>
+    </div>
+
     <div class="right-arrow" id="right-arrow"><i data-feather="arrow-right"></i></div>
 </aside>

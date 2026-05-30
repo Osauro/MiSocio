@@ -24,6 +24,7 @@ class User extends Authenticatable
         'imagen',
         'password',
         'is_super_admin',
+        'onboarding_completado',
     ];
 
     /**

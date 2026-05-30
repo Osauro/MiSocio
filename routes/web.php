@@ -177,4 +177,10 @@ Route::middleware(['auth', 'landlord'])->prefix('admin')->group(function () {
     Route::livewire('galeria', \App\Livewire\Landlord\GaleriaManager::class)->name('admin.galeria');
 });
 
+// Marcar onboarding como completado
+Route::middleware('auth')->post('/onboarding/completado', function () {
+    auth()->user()->update(['onboarding_completado' => true]);
+    return response()->json(['ok' => true]);
+})->name('onboarding.completado');
+
 require __DIR__.'/auth.php';
