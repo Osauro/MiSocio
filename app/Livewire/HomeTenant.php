@@ -254,12 +254,16 @@ class HomeTenant extends Component
     {
         $hoy = Carbon::now()->toDateString();
 
-        $productos = Kardex::select('producto_id', DB::raw('SUM(salida) as total_salida'), DB::raw('SUM(total) as total_bs'))
-            ->where('salida', '>', 0)
-            ->where('obs', 'like', 'Venta%')
-            ->whereDate('created_at', $hoy)
+        $productos = VentaItem::select(
+                'venta_items.producto_id',
+                DB::raw('SUM(venta_items.cantidad) as total_salida'),
+                DB::raw('SUM(venta_items.subtotal) as total_bs')
+            )
+            ->join('ventas', 'ventas.id', '=', 'venta_items.venta_id')
+            ->whereDate('ventas.created_at', $hoy)
+            ->where('ventas.tenant_id', currentTenantId())
             ->with('producto')
-            ->groupBy('producto_id')
+            ->groupBy('venta_items.producto_id')
             ->orderByDesc('total_bs')
             ->get()
             ->map(function ($item) {
