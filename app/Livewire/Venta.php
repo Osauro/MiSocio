@@ -9,7 +9,6 @@ use App\Models\Cliente;
 use App\Models\Kardex;
 use App\Models\Movimiento;
 use App\Models\TenantConfig;
-use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +20,7 @@ use Livewire\Component;
 
 class Venta extends Component
 {
-    use RequiresTenant, SweetAlertTrait, PrintsViaAgent;
+    use RequiresTenant, SweetAlertTrait;
 
     public $ventaId;
     public $venta;
@@ -1076,7 +1075,16 @@ class Venta extends Component
                     'cliente', 'user',
                     'ventaItems.producto' => fn($q) => $q->withTrashed(),
                 ])->find($this->venta->id);
-                $this->dispatchVentaPrint($ventaCompleta, $config);
+                /** @var \App\Services\EscposPrinterService $svc */
+                $svc = app(\App\Services\EscposPrinterService::class);
+                $job = $svc->buildVentaJob($ventaCompleta, $config);
+                if ($job) {
+                    $this->dispatch('enviar-a-agente',
+                        agentUrl:   config('print_agent.base_url'),
+                        job:        $job,
+                        successMsg: 'Venta #' . $ventaCompleta->numero_folio . ' enviada a imprimir'
+                    );
+                }
             }
             $this->dispatch('abrir-ticket-y-redirigir');
         } catch (\Exception $e) {

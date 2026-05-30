@@ -9,7 +9,6 @@ use App\Models\Cliente;
 use App\Models\Kardex;
 use App\Models\Movimiento;
 use App\Models\TenantConfig;
-use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +20,7 @@ use Livewire\Component;
 
 class Prestamo extends Component
 {
-    use RequiresTenant, SweetAlertTrait, PrintsViaAgent;
+    use RequiresTenant, SweetAlertTrait;
 
     public $prestamoId;
     public $prestamo;
@@ -797,7 +796,16 @@ class Prestamo extends Component
                     'cliente', 'user',
                     'prestamoItems.producto' => fn($q) => $q->withTrashed(),
                 ])->find($this->prestamo->id);
-                $this->dispatchPrestamoPrint($prestamoCompleto, $config);
+                /** @var \App\Services\EscposPrinterService $svc */
+                $svc = app(\App\Services\EscposPrinterService::class);
+                $job = $svc->buildPrestamoJob($prestamoCompleto, $config);
+                if ($job) {
+                    $this->dispatch('enviar-a-agente',
+                        agentUrl:   config('print_agent.base_url'),
+                        job:        $job,
+                        successMsg: 'Préstamo #' . ($prestamoCompleto->numero_folio ?? $prestamoCompleto->id) . ' enviado a imprimir'
+                    );
+                }
             }
             $this->dispatch('abrir-ticket-prestamo-y-redirigir');
         } catch (\Exception $e) {

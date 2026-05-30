@@ -7,7 +7,6 @@ use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
 use App\Models\TenantConfig;
-use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Livewire\Component;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\DB;
 
 class Prestamos extends Component
 {
-    use WithPagination, RequiresTenant, SweetAlertTrait, PrintsViaAgent;
+    use WithPagination, RequiresTenant, SweetAlertTrait;
 
     public $search = '';
     public $perPage = 12;
@@ -227,7 +226,16 @@ class Prestamos extends Component
         ])->where('tenant_id', currentTenantId())->findOrFail($prestamoId);
 
         $config = TenantConfig::getOrCreateForTenant(currentTenantId());
-        $this->dispatchPrestamoPrint($prestamo, $config);
+        /** @var \App\Services\EscposPrinterService $svc */
+        $svc = app(\App\Services\EscposPrinterService::class);
+        $job = $svc->buildPrestamoJob($prestamo, $config);
+        if ($job) {
+            $this->dispatch('enviar-a-agente',
+                agentUrl:   config('print_agent.base_url'),
+                job:        $job,
+                successMsg: 'Préstamo #' . ($prestamo->numero_folio ?? $prestamo->id) . ' enviado a imprimir'
+            );
+        }
     }
 
     public function render()

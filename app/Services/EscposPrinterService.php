@@ -373,6 +373,124 @@ class EscposPrinterService
         return $this->print($printerName, $job);
     }
 
+    /**
+     * Construye el UniversalJob encriptado para una venta, listo para despachar al agente.
+     * Retorna null si no hay clave configurada.
+     */
+    public function buildVentaJob(\App\Models\Venta $venta, \App\Models\TenantConfig $config): ?array
+    {
+        $key = $config->print_agent_secret_key ?? config('print_agent.secret_key');
+        if (empty($key)) return null;
+
+        $papel   = $config->papel_tamano_ventas  ?: ($config->papel_tamano    ?? '80mm');
+        $printer = $config->impresora_ventas     ?: ($config->impresora_nombre ?? '');
+        $cols    = ($papel === '58mm') ? 32 : 48;
+
+        $header = [
+            'store'   => $config->nombre_tienda  ?? 'MI TIENDA',
+            'address' => $config->direccion      ?? '',
+            'phone'   => $config->telefono       ?? '',
+            'nit'     => $config->nit            ?? '',
+            'title'   => 'VENTA #' . $venta->numero_folio,
+            'date'    => $venta->created_at->format('d/m/Y H:i:s'),
+            'user'    => $venta->user->name       ?? '',
+            'client'  => $venta->cliente->nombre  ?? '',
+        ];
+
+        $items = $venta->ventaItems->map(function ($item) {
+            $nombre = $item->producto ? $item->producto->nombre : ($item->nombre ?? 'Producto');
+            return [
+                'nombre'   => $nombre,
+                'cantidad' => $item->cantidad . ($item->medida ? ' ' . $item->medida : ''),
+                'precio'   => (float) $item->precio_unitario,
+                'subtotal' => (float) $item->subtotal,
+            ];
+        })->toArray();
+
+        $totales = array_filter([
+            'TOTAL'    => (float) $venta->total,
+            'efectivo' => (float) ($venta->efectivo ?? 0),
+            'online'   => (float) ($venta->online   ?? 0),
+            'credito'  => (float) ($venta->credito  ?? 0),
+            'cambio'   => (float) ($venta->cambio   ?? 0),
+        ], fn($v) => $v > 0);
+        $totales['TOTAL'] = (float) $venta->total;
+
+        $footerLines = $this->tenantFooterLines($config);
+
+        return [
+            'printer' => $printer,
+            'logo'    => (bool) ($config->mostrar_logo ?? true),
+            'header'  => $this->encryptSection($key, $this->buildEscHeader($header, $cols)),
+            'body'    => $this->encryptSection($key, $this->buildEscBody($items, $cols)),
+            'totals'  => $this->encryptSection($key, $this->buildEscTotals($totales, $cols)),
+            'footer'  => $this->encryptSection($key, $this->buildEscFooter(
+                $footerLines,
+                (bool) ($config->corte_automatico ?? true),
+                (bool) ($config->abrir_cajon      ?? false),
+                5, $cols
+            )),
+        ];
+    }
+
+    /**
+     * Construye el UniversalJob encriptado para un préstamo, listo para despachar al agente.
+     * Retorna null si no hay clave configurada.
+     */
+    public function buildPrestamoJob(\App\Models\Prestamo $prestamo, \App\Models\TenantConfig $config): ?array
+    {
+        $key = $config->print_agent_secret_key ?? config('print_agent.secret_key');
+        if (empty($key)) return null;
+
+        $papel   = $config->papel_tamano_prestamos  ?: ($config->papel_tamano    ?? '80mm');
+        $printer = $config->impresora_prestamos     ?: ($config->impresora_nombre ?? '');
+        $cols    = ($papel === '58mm') ? 32 : 48;
+
+        $header = [
+            'store'   => $config->nombre_tienda  ?? 'MI TIENDA',
+            'address' => $config->direccion      ?? '',
+            'phone'   => $config->telefono       ?? '',
+            'nit'     => $config->nit            ?? '',
+            'title'   => 'PRÉSTAMO #' . ($prestamo->numero_folio ?? $prestamo->id),
+            'date'    => $prestamo->created_at->format('d/m/Y H:i:s'),
+            'user'    => $prestamo->user->name      ?? '',
+            'client'  => $prestamo->cliente->nombre ?? '',
+        ];
+
+        $items = $prestamo->prestamoItems->map(function ($item) {
+            $nombre = $item->producto ? $item->producto->nombre : ($item->nombre ?? 'Producto');
+            return [
+                'nombre'   => $nombre,
+                'cantidad' => $item->cantidad . ($item->medida ? ' ' . $item->medida : ''),
+                'precio'   => (float) $item->precio_unitario,
+                'subtotal' => (float) $item->subtotal,
+            ];
+        })->toArray();
+
+        $footerLines = $this->tenantFooterLines($config);
+
+        return [
+            'printer' => $printer,
+            'logo'    => (bool) ($config->mostrar_logo ?? true),
+            'header'  => $this->encryptSection($key, $this->buildEscHeader($header, $cols)),
+            'body'    => $this->encryptSection($key, $this->buildEscBody($items, $cols)),
+            'totals'  => $this->encryptSection($key, $this->buildEscTotals(['TOTAL' => (float) $prestamo->total], $cols)),
+            'footer'  => $this->encryptSection($key, $this->buildEscFooter(
+                $footerLines,
+                (bool) ($config->corte_automatico ?? true),
+                false, 5, $cols
+            )),
+        ];
+    }
+
+    private function tenantFooterLines(\App\Models\TenantConfig $config): array
+    {
+        $lines = ['¡Gracias por su compra!'];
+        if (!empty($config->propietario_nombre))  $lines[] = $config->propietario_nombre;
+        if (!empty($config->propietario_celular)) $lines[] = $config->propietario_celular;
+        return $lines;
+    }
+
     // ═══════════════════════════════════════════════════════════════════════
     // UTILIDADES
     // ═══════════════════════════════════════════════════════════════════════

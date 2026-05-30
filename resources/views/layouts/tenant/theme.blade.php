@@ -417,45 +417,35 @@
     {{-- Print Agent: listener global — usa /api/encrypt/section + print:// --}}
     <script>
         window.addEventListener('enviar-a-agente', async function (e) {
-            const { agentUrl, printer, logo, sections, successMsg } = e.detail;
-            const baseUrl = (agentUrl || '').replace(/\/$/, '');
-
-            async function encryptSection(rawBase64) {
-                const res = await fetch(baseUrl + '/api/encrypt/section', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ data_base64: rawBase64 }),
-                });
-                if (!res.ok) throw new Error('encrypt/section HTTP ' + res.status);
-                const json = await res.json();
-                return json.encrypted;
-            }
-
+            const { agentUrl, job, successMsg } = e.detail;
+            const url = (agentUrl || '').replace(/\/$/, '') + '/api/print/universal';
             try {
-                // Encriptar todas las secciones en paralelo vía el agente
-                const keys = Object.keys(sections);
-                const encrypted = await Promise.all(keys.map(k => encryptSection(sections[k])));
-                const encSections = {};
-                keys.forEach((k, i) => encSections[k] = encrypted[i]);
-
-                // Obtener la protocol_url con el job completo ya encriptado
-                const res = await fetch(baseUrl + '/api/encrypt', {
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ printer, logo, ...encSections }),
+                    body: JSON.stringify(job),
+                    signal: AbortSignal.timeout(8000),
                 });
-                if (!res.ok) throw new Error(await res.text().catch(() => 'HTTP ' + res.status));
-                const { protocol_url } = await res.json();
-
-                // El agente intercepta el protocolo e imprime
-                window.location.href = protocol_url;
-
+                if (res.ok) {
+                    if (window.Swal) {
+                        Swal.fire({
+                            toast: true, position: 'top-end', icon: 'success',
+                            title: successMsg || 'Impresión enviada',
+                            timer: 2500, showConfirmButton: false,
+                        });
+                    }
+                } else {
+                    const txt = await res.text().catch(() => res.status);
+                    if (window.Swal) {
+                        Swal.fire({ icon: 'error', title: 'Error del agente de impresión', text: txt });
+                    }
+                }
             } catch (err) {
                 if (window.Swal) {
                     Swal.fire({
                         icon: 'warning',
                         title: 'Agente de impresión no disponible',
-                        text: 'Verifica que el Print Agent esté corriendo en ' + baseUrl,
+                        text: 'Verifica que el Print Agent esté corriendo en ' + (agentUrl || 'la URL configurada'),
                     });
                 }
             }

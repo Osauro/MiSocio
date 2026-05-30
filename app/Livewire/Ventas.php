@@ -7,7 +7,6 @@ use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
 use App\Models\TenantConfig;
-use App\Traits\PrintsViaAgent;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Livewire\Component;
@@ -17,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class Ventas extends Component
 {
-    use WithPagination, RequiresTenant, SweetAlertTrait, PrintsViaAgent;
+    use WithPagination, RequiresTenant, SweetAlertTrait;
 
     public $search = '';
     public $perPage = 12;
@@ -468,7 +467,16 @@ class Ventas extends Component
         ])->where('tenant_id', currentTenantId())->findOrFail($ventaId);
 
         $config = TenantConfig::getOrCreateForTenant(currentTenantId());
-        $this->dispatchVentaPrint($venta, $config);
+        /** @var \App\Services\EscposPrinterService $svc */
+        $svc = app(\App\Services\EscposPrinterService::class);
+        $job = $svc->buildVentaJob($venta, $config);
+        if ($job) {
+            $this->dispatch('enviar-a-agente',
+                agentUrl:   config('print_agent.base_url'),
+                job:        $job,
+                successMsg: 'Venta #' . $venta->numero_folio . ' enviada a imprimir'
+            );
+        }
     }
 
     public function render()
