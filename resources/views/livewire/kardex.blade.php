@@ -116,7 +116,6 @@
                                                     ***
                                                 @else
                                                     <span class="{{ $colorPrecio }} fw-semibold">{{ number_format($precioPaquete, 2) }}</span>
-                                                    <br><small class="text-muted">{{ $labelPrecio }}</small>
                                                 @endif
                                             </td>
                                             <td class="text-end text-truncate">
@@ -124,7 +123,6 @@
                                                     ***
                                                 @else
                                                     <span class="{{ $colorPrecio }} fw-semibold">{{ number_format($precioUnidad, 2) }}</span>
-                                                    <br><small class="text-muted">{{ $labelUnidad }}</small>
                                                 @endif
                                             </td>
                                             <td class="text-end text-truncate">
