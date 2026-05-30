@@ -98,10 +98,18 @@
                                             </td>
                                             @php
                                                 $cantidadPorMedida = $item->producto->cantidad ?? 1;
-                                                $precioPaquete = round($item->precio * $cantidadPorMedida, 2);
                                                 $colorPrecio = $item->entrada > 0 ? 'text-danger' : 'text-success';
                                                 $labelPrecio = $item->entrada > 0 ? 'compra/p' : 'venta/p';
                                                 $labelUnidad = $item->entrada > 0 ? 'compra/u' : 'venta/u';
+                                                if ($item->entrada > 0) {
+                                                    // Compra: kardex.precio ya es precio por paquete
+                                                    $precioPaquete = $item->precio;
+                                                    $precioUnidad  = round($item->precio / ($cantidadPorMedida ?: 1), 2);
+                                                } else {
+                                                    // Venta: kardex.precio es precio unitario
+                                                    $precioUnidad  = $item->precio;
+                                                    $precioPaquete = round($item->precio * $cantidadPorMedida, 2);
+                                                }
                                             @endphp
                                             <td class="text-end text-truncate">
                                                 @if($item->entrada > 0 && !canManageTenant())
