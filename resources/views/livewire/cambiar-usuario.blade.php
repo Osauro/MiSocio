@@ -37,16 +37,15 @@
         </div>
     </div>
     @endif
-</div>
 
-<script>
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'F2') {
-            e.preventDefault();
-            Livewire.dispatch('openCambiarUsuario');
-        }
-    });
-</script>
+    <script>
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'F2') {
+                e.preventDefault();
+                Livewire.dispatch('openCambiarUsuario');
+            }
+        });
+    </script>
 
 <style>
     .cu-overlay {
@@ -178,3 +177,4 @@
 
     .cu-user-role { font-size: 11px; }
 </style>
+</div>
