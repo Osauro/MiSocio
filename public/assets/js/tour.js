@@ -364,17 +364,42 @@
 
         compras_lista: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Registro de Compras', description: 'Registra las compras a tus proveedores. El stock se actualiza automaticamente.', side: 'over', align: 'center' } });
-            if (el('.table-responsive')) { steps.push({ element: '.table-responsive', popover: { title: 'Historial de compras', description: 'Lista de todas las compras registradas. Haz clic en una para ver el detalle.', side: 'top', align: 'center' } }); }
-            steps.push({ popover: { title: 'Tip', description: 'Registrar compras correctamente mantiene tu inventario actualizado y calcula el costo real de cada producto.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Registro de Compras', description: 'Aqui registras las compras a tus proveedores. Cada compra aumenta el stock de los productos y lleva un historial de costos para calcular el precio de venta ideal.', side: 'over', align: 'center' } });
+            if (el('#searchInput')) { steps.push({ element: '#searchInput', popover: { title: 'Buscar compra', description: 'Filtra por numero de compra, proveedor o fecha escribiendo aqui.', side: 'bottom', align: 'start' } }); }
+            if (el('button[wire\\:click="abrirModalFiltro"]')) { steps.push({ element: 'button[wire\\:click="abrirModalFiltro"]', popover: { title: 'Filtrar por fechas', description: 'Acota las compras a un rango de fechas especifico para revisar periodos concretos (semana, mes, etc.).', side: 'bottom', align: 'start' } }); }
+            if (el('button[title="Importar compra por QR"]')) { steps.push({ element: 'button[title="Importar compra por QR"]', popover: { title: 'Importar por QR', description: 'Escanea el codigo QR de una compra FADI para importar todos los productos automaticamente sin tener que ingresarlos uno a uno.', side: 'bottom', align: 'end' } }); }
+            if (el('button[wire\\:click="crearCompra"]')) { steps.push({ element: 'button[wire\\:click="crearCompra"]', popover: { title: 'Nueva compra', description: 'Crea una nueva compra. Se abrira el formulario donde agregas los productos y cantidades recibidas.', side: 'bottom', align: 'end' } }); }
+            if (el('.card.shadow-sm')) { steps.push({ element: '.card.shadow-sm', popover: { title: 'Tarjeta de compra', description: 'Cada tarjeta muestra los <strong>productos comprados</strong> (con sus imagenes y cantidades), el <strong>total pagado</strong>, el proveedor y la fecha. Las compras canceladas aparecen semitransparentes.', side: 'bottom', align: 'start' } }); }
+            steps.push({ popover: { title: 'Acciones por compra', description: '<strong>Ojo</strong>: ver detalle completo con precios y totales.<br><strong>Flecha</strong>: continuar una compra incompleta.<br><strong>Moneda</strong>: registrar un pago de credito al proveedor.<br><strong>Papelera</strong>: cancelar una compra pendiente.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Consejo', description: 'Registrar las compras con el precio de costo correcto permite que el sistema calcule automaticamente los precios de venta al mayor y al detal de cada producto.', side: 'over', align: 'center' } });
             return steps;
         },
 
         compra: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Nueva Compra', description: 'Registra los productos que compraste a tu proveedor para actualizar el stock automaticamente.', side: 'over', align: 'center' } });
-            if (el('.table-responsive')) { steps.push({ element: '.table-responsive', popover: { title: 'Detalle de la compra', description: 'Aqui aparecen los productos agregados. Puedes ajustar cantidad y precio de costo de cada uno.', side: 'top', align: 'center' } }); }
-            steps.push({ popover: { title: 'Confirmar', description: 'Al confirmar, el stock de cada producto se incrementa automaticamente con las cantidades ingresadas.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Nueva Compra', description: 'Aqui agregas los productos que recibiste de tu proveedor. La pantalla esta dividida en dos columnas: <strong>items del carrito</strong> (izquierda) y <strong>buscador de productos</strong> (derecha).', side: 'over', align: 'center' } });
+            if (el('#buscadorCompra')) { steps.push({ element: '#buscadorCompra', popover: { title: 'Buscar producto', description: 'Escribe el nombre o codigo del producto para agregarlo a la compra. Compatible con lectoras de codigo de barras.', side: 'bottom', align: 'start' } }); }
+            if (el('.search-results')) { steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen aqui con su stock actual. Haz clic en uno para agregarlo. Si ya esta en el carrito, muestra la cantidad en verde.', side: 'left', align: 'start' } }); }
+            if (el('.card-body .card .card-body')) { steps.push({ element: '.card-body .card .card-body', popover: { title: 'Item en la compra', description: 'Cada producto agregado muestra su imagen, nombre y campos editables de cantidad y precio de costo.', side: 'bottom', align: 'start' } }); }
+            if (el('input[placeholder="0"]')) { steps.push({ element: 'input[placeholder="0"]', popover: { title: 'Enteros y Unidades', description: '<strong>Enteros</strong>: cajas o paquetes completos recibidos. <strong>Unidades</strong>: unidades sueltas adicionales. El total de unidades se calcula automaticamente para actualizar el stock.', side: 'bottom', align: 'start' } }); }
+            if (el('input[placeholder="0"][step="0.01"]')) { steps.push({ element: 'input[placeholder="0"][step="0.01"]', popover: { title: 'Precio de costo y Subtotal', description: '<strong>Precio</strong>: precio de costo unitario pagado al proveedor. <strong>Subtotal</strong>: cantidad × precio. Estos datos actualizan el costo del producto y sirven para calcular el precio de venta.', side: 'bottom', align: 'start' } }); }
+            if (el('.fa-trash')) { steps.push({ element: '.fa-trash', popover: { title: 'Quitar producto', description: 'Elimina este producto del carrito de compra. No afecta el stock hasta que completes la compra.', side: 'left', align: 'start' } }); }
+            if (el('button[wire\\:click="cancelarCompra"]')) { steps.push({ element: 'button[wire\\:click="cancelarCompra"]', popover: { title: 'Cancelar compra', description: 'Descarta todos los productos del carrito y regresa al listado de compras. El stock no se ve afectado.', side: 'bottom', align: 'start' } }); }
+            if (el('button[wire\\:click="iniciarCompletarCompra"]')) { steps.push({ element: 'button[wire\\:click="iniciarCompletarCompra"]', popover: { title: 'Completar compra', description: 'Abre el flujo de confirmacion en 2 pasos:<br><strong>1.</strong> Fecha de la compra<br><strong>2.</strong> Proveedor (opcional)<br>Al finalizar, el stock de cada producto se incrementa con las cantidades ingresadas.', side: 'bottom', align: 'end' } }); }
+            steps.push({ popover: { title: 'Pago al proveedor', description: 'Durante la confirmacion puedes registrar cuanto pagaste en efectivo o transferencia. Si quedas a deber, el credito queda registrado y puedes pagarlo despues desde la lista de compras.', side: 'over', align: 'center' } });
+            return steps;
+        },
+
+        prestamo: function () {
+            var steps = [];
+            steps.push({ popover: { title: 'Nuevo Prestamo', description: 'Registra productos que entregas a credito o en consignacion. La pantalla funciona igual que una venta: busca productos, ajusta cantidades y confirmas el prestamo.', side: 'over', align: 'center' } });
+            if (el('#buscadorPrestamo')) { steps.push({ element: '#buscadorPrestamo', popover: { title: 'Buscar envase / producto', description: 'Escribe el nombre o codigo del producto que entregas en prestamo. Los envases retornables son el caso mas comun.', side: 'bottom', align: 'start' } }); }
+            if (el('.search-results')) { steps.push({ element: '.search-results', popover: { title: 'Resultados de busqueda', description: 'Los productos encontrados aparecen con su stock disponible. Haz clic para agregar al listado del prestamo.', side: 'left', align: 'start' } }); }
+            if (el('.card-body .card .card-body')) { steps.push({ element: '.card-body .card .card-body', popover: { title: 'Item prestado', description: 'Cada producto muestra imagen, nombre y campos de cantidad (enteros/unidades) y precio de referencia para calcular el total del prestamo.', side: 'bottom', align: 'start' } }); }
+            if (el('.fa-trash')) { steps.push({ element: '.fa-trash', popover: { title: 'Quitar producto', description: 'Elimina este producto de la lista del prestamo.', side: 'left', align: 'start' } }); }
+            if (el('button[wire\\:click="cancelarVenta"]')) { steps.push({ element: 'button[wire\\:click="cancelarVenta"]', popover: { title: 'Cancelar prestamo', description: 'Descarta el prestamo y regresa al listado sin registrar ningun movimiento.', side: 'bottom', align: 'start' } }); }
+            if (el('button[wire\\:click="iniciarCompletarVenta"]')) { steps.push({ element: 'button[wire\\:click="iniciarCompletarVenta"]', popover: { title: 'Completar prestamo', description: 'Abre el flujo de confirmacion en 3 pasos:<br><strong>1.</strong> Fecha del prestamo<br><strong>2.</strong> Cliente (obligatorio para registrar a quien se le presta)<br><strong>3.</strong> Deposito inicial (monto que deja como garantia, puede ser cero)', side: 'bottom', align: 'end' } }); }
+            steps.push({ popover: { title: 'Devolucion', description: 'Una vez confirmado, el prestamo aparece en la lista con estado <strong>Prestado</strong>. Cuando el cliente devuelva los productos, marcas el prestamo como devuelto desde el listado.', side: 'over', align: 'center' } });
             return steps;
         },
 
@@ -403,9 +428,13 @@
 
         prestamos_lista: function () {
             var steps = [];
-            steps.push({ popover: { title: 'Prestamos y Creditos', description: 'Gestiona los creditos otorgados a clientes: cuotas, fechas de pago y saldos pendientes.', side: 'over', align: 'center' } });
-            if (el('.table-responsive')) { steps.push({ element: '.table-responsive', popover: { title: 'Lista de prestamos', description: 'Cada fila muestra cliente, monto prestado, saldo pendiente y estado del credito.', side: 'top', align: 'center' } }); }
-            steps.push({ popover: { title: 'Tip', description: 'Haz clic en un prestamo para ver el historial de pagos y registrar nuevas cuotas.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Prestamos y Consignaciones', description: 'Aqui gestionas los productos prestados a clientes: envases retornables, consignaciones o cualquier entrega que esperas que te devuelvan. Cada prestamo lleva fecha de vencimiento y estado.', side: 'over', align: 'center' } });
+            if (el('#searchInput')) { steps.push({ element: '#searchInput', popover: { title: 'Buscar prestamo', description: 'Filtra por numero de prestamo, cliente o fecha.', side: 'bottom', align: 'start' } }); }
+            if (el('button[wire\\:click="abrirModalFiltro"]')) { steps.push({ element: 'button[wire\\:click="abrirModalFiltro"]', popover: { title: 'Filtrar por fechas', description: 'Acota los prestamos a un rango de fechas especifico para controlar vencimientos del periodo.', side: 'bottom', align: 'start' } }); }
+            if (el('button[wire\\:click="crearPrestamo"]')) { steps.push({ element: 'button[wire\\:click="crearPrestamo"]', popover: { title: 'Nuevo prestamo', description: 'Crea un nuevo registro de prestamo. Se abrira el formulario para agregar los productos que entregas.', side: 'bottom', align: 'end' } }); }
+            if (el('.card.shadow-sm')) { steps.push({ element: '.card.shadow-sm', popover: { title: 'Tarjeta de prestamo', description: 'Cada tarjeta muestra los <strong>productos prestados</strong> con sus cantidades, el <strong>monto total</strong>, la <strong>fecha de vencimiento</strong> y el <strong>estado</strong>:<br>• Azul <em>Prestado</em>: activo y vigente<br>• Amarillo <em>Pendiente</em>: aun sin confirmar<br>• Rojo <em>Vencido</em>: paso la fecha limite<br>• Gris <em>Devuelto</em>: ya fue retornado', side: 'bottom', align: 'start' } }); }
+            steps.push({ popover: { title: 'Acciones por prestamo', description: '<strong>Flecha</strong>: continuar un prestamo pendiente de confirmacion.<br><strong>Ojo</strong>: ver detalle completo de los productos prestados.<br><strong>Impresora</strong>: reimprimir el ticket del prestamo.', side: 'over', align: 'center' } });
+            steps.push({ popover: { title: 'Control de vencimientos', description: 'Las tarjetas con <strong>borde rojo</strong> estan vencidas: el cliente no devolvio a tiempo. Revisalos periodicamente para hacer seguimiento.', side: 'over', align: 'center' } });
             return steps;
         },
 
@@ -491,8 +520,10 @@
                 if (!isCompleted('tour_inventarios')) { autoIniciar('tour_inventarios', STEPS.inventarios); }
                 break;
             case 'prestamos':
-            case 'prestamo':
                 if (!isCompleted('tour_prestamos_lista')) { autoIniciar('tour_prestamos_lista', STEPS.prestamos_lista); }
+                break;
+            case 'prestamo':
+                if (!isCompleted('tour_prestamo')) { autoIniciar('tour_prestamo', STEPS.prestamo); }
                 break;
             case 'usuarios':
                 if (!isCompleted('tour_usuarios')) { autoIniciar('tour_usuarios', STEPS.usuarios); }
@@ -569,7 +600,7 @@
         'inventarios':  'inventarios',
         'inventario':   'inventarios',
         'prestamos':    'prestamos_lista',
-        'prestamo':     'prestamos_lista',
+        'prestamo':     'prestamo',
         'usuarios':     'usuarios',
         'config':       'config',
         'habitaciones': 'habitaciones',
