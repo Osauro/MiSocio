@@ -7,7 +7,7 @@
       localStorage → paginate{Ucfirst(storageKey)}  ej: paginateVentas
     - El componente Livewire debe tener la propiedad pública $perPage y leerla en mount() desde la cookie.
 --}}
-<div class="paginate-bar-fixed" x-data="{
+<div class="paginate-bar-fixed" wire:key="paginate-bar-{{ $storageKey }}-{{ $results->currentPage() }}" x-data="{
     perPage: {{ $results->perPage() }},
     lsKey: 'paginate{{ ucfirst($storageKey) }}',
     cookieKey: 'paginate{{ ucfirst($storageKey) }}',
@@ -49,7 +49,7 @@
 
         {{-- Paginación compacta: < [página]/[total] > --}}
         @if($results->lastPage() > 1)
-        <div class="paginate-nav" wire:key="paginate-nav-{{ $results->currentPage() }}" x-data="{
+        <div class="paginate-nav" x-data="{
             current: {{ $results->currentPage() }},
             last: {{ $results->lastPage() }},
             goToPage(val) {
