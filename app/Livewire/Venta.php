@@ -981,6 +981,10 @@ class Venta extends Component
                 $producto = Producto::lockForUpdate()->find($item['producto_id']);
                 $cantidadTotal = ($item['enteros'] * $item['cantidad_por_medida']) + $item['unidades'];
 
+                // Sincronizar VentaItem.cantidad con la cantidad real deducida del stock,
+                // para que una futura cancelación devuelva exactamente lo que se descontó.
+                VentaItem::where('id', $item['id'])->update(['cantidad' => $cantidadTotal]);
+
                 if (!comprasHabilitados()) {
                     // SIN control de stock: no tocar stock ni kardex
                 } elseif ($producto->control) {
