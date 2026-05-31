@@ -175,6 +175,7 @@ class Ventas extends Component
 
             if ($result) {
                 $this->toast('success', 'Recordatorio enviado a ' . $venta->cliente->nombre);
+                $this->cerrarModalPago();
             } else {
                 $this->toast('error', 'No se pudo enviar el mensaje. Revisa la configuración de WhatsApp.');
             }
