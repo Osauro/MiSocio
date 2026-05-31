@@ -373,6 +373,22 @@
     @endauth
     <script src="{{ asset('assets/js/tour.js') }}"></script>
 
+    <!-- PWA: Banner nueva versión disponible -->
+    <div id="sw-update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:99999;
+        background:#0d6efd;color:#fff;padding:10px 16px;
+        align-items:center;justify-content:space-between;gap:12px;
+        box-shadow:0 2px 12px rgba(0,0,0,0.25);font-family:inherit;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.2rem;">🔄</span>
+            <div>
+                <div style="font-weight:700;font-size:.9rem;">Nueva versión disponible</div>
+                <div style="font-size:.78rem;opacity:.9;">Actualiza para obtener las últimas mejoras</div>
+            </div>
+        </div>
+        <button id="sw-update-btn" style="background:#fff;color:#0d6efd;border:none;border-radius:6px;
+            padding:7px 16px;font-weight:700;cursor:pointer;font-size:.85rem;flex-shrink:0;">Actualizar</button>
+    </div>
+
     <!-- PWA: Service Worker + Banner Instalación -->
     <div id="pwa-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:99999;
         background:#1a472a;color:#fff;padding:12px 20px;
@@ -395,19 +411,30 @@
     <script>
         // Registrar Service Worker
         if ('serviceWorker' in navigator) {
+            let swReg;
             navigator.serviceWorker.register('/sw.js').then(reg => {
+                swReg = reg;
                 // Detectar nueva versión disponible
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     newWorker.addEventListener('statechange', () => {
-                        if (newWorker.state === 'activated') {
-                            window.location.reload();
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            document.getElementById('sw-update-banner').style.display = 'flex';
                         }
                     });
                 });
+                // Verificar si ya hay una versión esperando
+                if (reg.waiting && navigator.serviceWorker.controller) {
+                    document.getElementById('sw-update-banner').style.display = 'flex';
+                }
             }).catch(() => {});
 
-            // Recargar cuando el SW tome control (skipWaiting activo)
+            document.getElementById('sw-update-btn')?.addEventListener('click', () => {
+                if (swReg && swReg.waiting) {
+                    swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+                }
+            });
+
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 window.location.reload();
             });
