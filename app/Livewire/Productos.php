@@ -221,8 +221,10 @@ class Productos extends Component
     /**
      * Aplicar el ajuste de stock.
      */
-    public function aplicarAjusteStock()
+    public function aplicarAjusteStock(string $accion)
     {
+        $this->stockAccion = $accion;
+
         $this->validate([
             'stockEnteros'  => 'required|integer|min:0',
             'stockUnidades' => 'required|integer|min:0',
