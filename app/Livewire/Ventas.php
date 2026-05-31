@@ -44,6 +44,20 @@ class Ventas extends Component
         $this->fecha_fin    = now()->format('Y-m-d');
     }
 
+    public function updatedSearch($value)
+    {
+        if ($value !== '') {
+            // Al buscar, quitar filtro de fechas para buscar en todos los tiempos
+            $this->fecha_inicio = null;
+            $this->fecha_fin    = null;
+        } else {
+            // Al limpiar búsqueda, restaurar filtro de hoy
+            $this->fecha_inicio = now()->format('Y-m-d');
+            $this->fecha_fin    = now()->format('Y-m-d');
+        }
+        $this->resetPage();
+    }
+
     public function updatedMontoPagoEfectivo($value)
     {
         if (!$this->ventaAPagar) return;
