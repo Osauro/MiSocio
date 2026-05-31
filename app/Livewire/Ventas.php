@@ -185,6 +185,8 @@ class Ventas extends Component
     }
 
 
+    public function pagarCredito()
+    {
         // Validaciones
         $efectivo = round((float) $this->montoPagoEfectivo, 2);
         $online = round((float) $this->montoPagoOnline, 2);
