@@ -49,7 +49,7 @@ class Usuarios extends Component
         'role.required' => 'El rol es obligatorio',
     ];
 
-    protected $listeners = ['deleteUsuario', 'asociarUsuarioExistente'];
+    protected $listeners = ['deleteUsuario', 'asociarUsuarioExistente', 'resetPin'];
 
     public function mount()
     {

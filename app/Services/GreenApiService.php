@@ -206,15 +206,16 @@ class GreenApiService
     {
         if (empty($user->celular)) return false;
 
-        $tienda = $config->nombre_tienda ?: 'MiSocio';
+        $tienda  = $config->nombre_tienda ?: 'MiSocio';
         $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $url     = config('app.url');
 
-        $msg = "👋 *Bienvenido a {$tienda}*\n"
+        $msg = "\u{1F44B} *Bienvenido a {$tienda}*\n"
             . "Hola {$user->name}, tu cuenta ha sido creada.\n\n"
-            . "📱 *Tus credenciales de acceso:*\n"
+            . "\u{1F4F1} *Tus credenciales de acceso:*\n"
             . "Celular: {$user->celular}\n"
             . "PIN: *{$pin}*\n\n"
-            . "Puedes cambiar tu PIN desde tu perfil en cualquier momento.";
+            . "\u{1F310} Ingresa en: {$url}";
 
         return $this->sendMessage($prefijo . $user->celular, $msg);
     }
@@ -226,13 +227,16 @@ class GreenApiService
     {
         if (empty($user->celular)) return false;
 
-        $tienda = $config->nombre_tienda ?: 'MiSocio';
+        $tienda  = $config->nombre_tienda ?: 'MiSocio';
         $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $url     = config('app.url');
 
-        $msg = "🔑 *Tu PIN ha sido reseteado - {$tienda}*\n"
+        $msg = "\u{1F511} *Tu PIN ha sido reseteado - {$tienda}*\n"
             . "Hola {$user->name},\n\n"
-            . "Tu nuevo PIN de acceso es: *{$pin}*\n\n"
-            . "Puedes cambiarlo desde tu perfil una vez que ingreses.";
+            . "*Tus nuevas credenciales:*\n"
+            . "Celular: {$user->celular}\n"
+            . "PIN: *{$pin}*\n\n"
+            . "\u{1F310} Ingresa en: {$url}";
 
         return $this->sendMessage($prefijo . $user->celular, $msg);
     }
