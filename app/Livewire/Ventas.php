@@ -508,8 +508,22 @@ class Ventas extends Component
             ->orderBy('id', 'desc')
             ->paginate($this->perPage);
 
+        $productosCoincidentes = collect();
+        if (strlen($this->search) >= 2) {
+            $productosCoincidentes = Producto::where(function ($q) {
+                    $q->where('nombre', 'like', '%' . $this->search . '%')
+                      ->orWhere('codigo', 'like', '%' . $this->search . '%')
+                      ->orWhereHas('tags', function ($tagQuery) {
+                          $tagQuery->where('nombre', 'like', '%' . $this->search . '%');
+                      });
+                })
+                ->orderBy('nombre')
+                ->get();
+        }
+
         return view('livewire.ventas', [
-            'ventas' => $ventas
+            'ventas' => $ventas,
+            'productosCoincidentes' => $productosCoincidentes,
         ]);
     }
 }

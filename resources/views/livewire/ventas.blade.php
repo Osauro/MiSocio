@@ -43,6 +43,55 @@
                         </div>
                     </div>
 
+                    {{-- Productos coincidentes con la búsqueda --}}
+                    @if($productosCoincidentes->isNotEmpty())
+                        <div class="card-body pb-0 pt-2">
+                            <p class="text-muted small mb-2">
+                                <i class="fa-solid fa-tag me-1"></i>
+                                Productos que coinciden con "<strong>{{ $search }}</strong>":
+                            </p>
+                            <div class="d-flex gap-2 overflow-auto pb-2" style="flex-wrap: nowrap;">
+                                @foreach($productosCoincidentes as $producto)
+                                    @php
+                                        $stockFormateado = $producto->stock_formateado;
+                                        $sinStock = comprasHabilitados() && $producto->stock <= 0;
+                                    @endphp
+                                    <div class="card border shadow-sm flex-shrink-0" style="width: 150px;">
+                                        <div class="position-relative">
+                                            <img src="{{ $producto->photo_url }}"
+                                                alt="{{ $producto->nombre }}"
+                                                class="card-img-top"
+                                                style="height: 90px; object-fit: contain; padding: 4px;"
+                                                data-fallback="{{ asset('assets/images/product-placeholder.svg') }}">
+                                            @if(comprasHabilitados())
+                                                <span class="position-absolute top-0 end-0 badge {{ $sinStock ? 'bg-danger' : 'bg-dark' }}" style="font-size: 0.65rem; margin: 3px;">
+                                                    {{ $sinStock ? 'Sin stock' : $stockFormateado }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                        <div class="card-body p-1 text-center">
+                                            <p class="mb-1 small fw-semibold text-truncate" title="{{ $producto->nombre }}" style="font-size: 0.75rem;">
+                                                {{ $producto->nombre }}
+                                            </p>
+                                            <div class="d-flex gap-1">
+                                                @if(!ventasSoloUnidad() && $producto->precio_por_mayor > 0)
+                                                    <span class="btn btn-success btn-sm flex-fill p-0" style="font-size: 0.75rem; pointer-events: none;">
+                                                        {{ number_format($producto->precio_por_mayor, 2) }}
+                                                    </span>
+                                                @endif
+                                                @if($producto->precio_por_menor > 0)
+                                                    <span class="btn btn-primary btn-sm flex-fill p-0" style="font-size: 0.75rem; pointer-events: none;">
+                                                        {{ number_format($producto->precio_por_menor, 2) }}
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="card-body transaction-history pt-0 mt-1 pb-1">
                         <div class="row g-2">
                             @forelse($ventas as $venta)
