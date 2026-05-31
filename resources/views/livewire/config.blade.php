@@ -715,109 +715,142 @@
                             <!-- Tab WhatsApp -->
                             @if ($activeTab === 'whatsapp')
                                 <div class="tab-pane fade show active">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="card border shadow-sm">
-                                                <div class="card-header bg-success text-white">
-                                                    <h5 class="mb-0">
-                                                        <i class="fa-brands fa-whatsapp me-2"></i>
-                                                        Notificaciones WhatsApp
-                                                    </h5>
+
+                                    {{-- Etiqueta de sección Ventas --}}
+                                    <p class="text-uppercase fw-bold text-muted small mb-2 mt-1">
+                                        <i class="fa-solid fa-cart-shopping me-1"></i>Ventas
+                                    </p>
+                                    <div class="row g-3 mb-4">
+
+                                        {{-- Notificar ventas --}}
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label for="greenApiNotifVentas"
+                                                class="card border h-100 shadow-sm p-3 cursor-pointer text-center
+                                                    {{ $greenapi_notif_ventas ? 'border-success bg-success bg-opacity-10' : '' }}"
+                                                style="cursor:pointer;">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_ventas ? 'text-success' : 'text-secondary' }}">
+                                                    <i class="fa-solid fa-receipt"></i>
                                                 </div>
-                                                <div class="card-body">
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="greenapi_notif_ventas"
-                                                            wire:change="guardarWhatsApp" id="greenApiNotifVentas">
-                                                        <label class="form-check-label fw-semibold"
-                                                            for="greenApiNotifVentas">
-                                                            Notificar ventas por WhatsApp
-                                                        </label>
-                                                        <div class="text-muted small mt-1">
-                                                            Envía un mensaje al propietario cada vez que se registre una venta.
-                                                        </div>
-                                                    </div>
-
-                                                    <hr class="my-3">
-
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="greenapi_notif_credito"
-                                                            wire:change="guardarWhatsApp" id="greenApiNotifCredito">
-                                                        <label class="form-check-label fw-semibold"
-                                                            for="greenApiNotifCredito">
-                                                            Notificar venta a crédito al cliente
-                                                        </label>
-                                                        <div class="text-muted small mt-1">
-                                                            Envía un mensaje al cliente informando su deuda cuando se registra una venta a crédito.
-                                                        </div>
-                                                    </div>
-
-                                                    <hr class="my-3">
-
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="greenapi_notif_pago_credito"
-                                                            wire:change="guardarWhatsApp" id="greenApiNotifPagoCredito">
-                                                        <label class="form-check-label fw-semibold"
-                                                            for="greenApiNotifPagoCredito">
-                                                            Notificar pago de crédito al cliente
-                                                        </label>
-                                                        <div class="text-muted small mt-1">
-                                                            Envía un mensaje al cliente confirmando su pago y el saldo pendiente.
-                                                        </div>
-                                                    </div>
-
-                                                    <hr class="my-3">
-                                                    <p class="fw-bold text-muted small text-uppercase mb-2">
-                                                        <i class="fa-solid fa-hand-holding me-1"></i>Préstamos
-                                                    </p>
-
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="greenapi_notif_prestamo"
-                                                            wire:change="guardarWhatsApp" id="greenApiNotifPrestamo">
-                                                        <label class="form-check-label fw-semibold"
-                                                            for="greenApiNotifPrestamo">
-                                                            Notificar nuevo préstamo al cliente
-                                                        </label>
-                                                        <div class="text-muted small mt-1">
-                                                            Envía al cliente los detalles del préstamo y la ubicación de la tienda al registrarlo.
-                                                        </div>
-                                                    </div>
-
-                                                    <hr class="my-3">
-
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="greenapi_notif_devolucion_prestamo"
-                                                            wire:change="guardarWhatsApp" id="greenApiNotifDevolucionPrestamo">
-                                                        <label class="form-check-label fw-semibold"
-                                                            for="greenApiNotifDevolucionPrestamo">
-                                                            Notificar devolución de préstamo al cliente
-                                                        </label>
-                                                        <div class="text-muted small mt-1">
-                                                            Confirma al cliente que su devolución fue registrada correctamente.
-                                                        </div>
-                                                    </div>
-
-                                                    <hr class="my-3">
-
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox"
-                                                            wire:model="greenapi_notif_vencimiento_prestamo"
-                                                            wire:change="guardarWhatsApp" id="greenApiNotifVencimientoPrestamo">
-                                                        <label class="form-check-label fw-semibold"
-                                                            for="greenApiNotifVencimientoPrestamo">
-                                                            Notificar vencimiento de préstamo al cliente
-                                                        </label>
-                                                        <div class="text-muted small mt-1">
-                                                            Envía un aviso 1 día antes del vencimiento y otro el día que vence. Requiere cron diario.
-                                                        </div>
-                                                    </div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar ventas al propietario</div>
+                                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        wire:model="greenapi_notif_ventas"
+                                                        wire:change="guardarWhatsApp"
+                                                        id="greenApiNotifVentas"
+                                                        style="width:2.5rem;height:1.3rem;">
                                                 </div>
-                                            </div>
+                                            </label>
                                         </div>
+
+                                        {{-- Notificar venta a crédito --}}
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label for="greenApiNotifCredito"
+                                                class="card border h-100 shadow-sm p-3 text-center
+                                                    {{ $greenapi_notif_credito ? 'border-success bg-success bg-opacity-10' : '' }}"
+                                                style="cursor:pointer;">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_credito ? 'text-success' : 'text-secondary' }}">
+                                                    <i class="fa-solid fa-credit-card"></i>
+                                                </div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar venta a crédito al cliente</div>
+                                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        wire:model="greenapi_notif_credito"
+                                                        wire:change="guardarWhatsApp"
+                                                        id="greenApiNotifCredito"
+                                                        style="width:2.5rem;height:1.3rem;">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        {{-- Notificar pago de crédito --}}
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label for="greenApiNotifPagoCredito"
+                                                class="card border h-100 shadow-sm p-3 text-center
+                                                    {{ $greenapi_notif_pago_credito ? 'border-success bg-success bg-opacity-10' : '' }}"
+                                                style="cursor:pointer;">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_pago_credito ? 'text-success' : 'text-secondary' }}">
+                                                    <i class="fa-solid fa-money-bill-wave"></i>
+                                                </div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar pago de crédito al cliente</div>
+                                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        wire:model="greenapi_notif_pago_credito"
+                                                        wire:change="guardarWhatsApp"
+                                                        id="greenApiNotifPagoCredito"
+                                                        style="width:2.5rem;height:1.3rem;">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                    </div>
+
+                                    {{-- Etiqueta de sección Préstamos --}}
+                                    <p class="text-uppercase fw-bold text-muted small mb-2">
+                                        <i class="fa-solid fa-hand-holding me-1"></i>Préstamos
+                                    </p>
+                                    <div class="row g-3">
+
+                                        {{-- Nuevo préstamo --}}
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label for="greenApiNotifPrestamo"
+                                                class="card border h-100 shadow-sm p-3 text-center
+                                                    {{ $greenapi_notif_prestamo ? 'border-success bg-success bg-opacity-10' : '' }}"
+                                                style="cursor:pointer;">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_prestamo ? 'text-success' : 'text-secondary' }}">
+                                                    <i class="fa-solid fa-box-open"></i>
+                                                </div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar nuevo préstamo al cliente</div>
+                                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        wire:model="greenapi_notif_prestamo"
+                                                        wire:change="guardarWhatsApp"
+                                                        id="greenApiNotifPrestamo"
+                                                        style="width:2.5rem;height:1.3rem;">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        {{-- Devolución --}}
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label for="greenApiNotifDevolucionPrestamo"
+                                                class="card border h-100 shadow-sm p-3 text-center
+                                                    {{ $greenapi_notif_devolucion_prestamo ? 'border-success bg-success bg-opacity-10' : '' }}"
+                                                style="cursor:pointer;">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_devolucion_prestamo ? 'text-success' : 'text-secondary' }}">
+                                                    <i class="fa-solid fa-rotate-left"></i>
+                                                </div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar devolución de préstamo al cliente</div>
+                                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        wire:model="greenapi_notif_devolucion_prestamo"
+                                                        wire:change="guardarWhatsApp"
+                                                        id="greenApiNotifDevolucionPrestamo"
+                                                        style="width:2.5rem;height:1.3rem;">
+                                                </div>
+                                            </label>
+                                        </div>
+
+                                        {{-- Vencimiento --}}
+                                        <div class="col-6 col-md-4 col-lg-2">
+                                            <label for="greenApiNotifVencimientoPrestamo"
+                                                class="card border h-100 shadow-sm p-3 text-center
+                                                    {{ $greenapi_notif_vencimiento_prestamo ? 'border-warning bg-warning bg-opacity-10' : '' }}"
+                                                style="cursor:pointer;">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_vencimiento_prestamo ? 'text-warning' : 'text-secondary' }}">
+                                                    <i class="fa-solid fa-clock"></i>
+                                                </div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar vencimiento de préstamo al cliente</div>
+                                                <div class="text-muted" style="font-size:0.7rem;">1 día antes y al vencer</div>
+                                                <div class="form-check form-switch d-flex justify-content-center mb-0 mt-1">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        wire:model="greenapi_notif_vencimiento_prestamo"
+                                                        wire:change="guardarWhatsApp"
+                                                        id="greenApiNotifVencimientoPrestamo"
+                                                        style="width:2.5rem;height:1.3rem;">
+                                                </div>
+                                            </label>
+                                        </div>
+
                                     </div>
                                 </div>
                             @endif
