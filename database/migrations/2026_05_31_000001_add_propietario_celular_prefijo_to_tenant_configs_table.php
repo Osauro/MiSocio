@@ -8,10 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('tenant_configs', function (Blueprint $table) {
-            $table->string('propietario_celular_prefijo', 10)->nullable()->default('591')
-                ->after('propietario_nombre');
-        });
+        if (!Schema::hasColumn('tenant_configs', 'propietario_celular_prefijo')) {
+            Schema::table('tenant_configs', function (Blueprint $table) {
+                $table->string('propietario_celular_prefijo', 10)->nullable()->default('591')
+                    ->after('propietario_nombre');
+            });
+        }
     }
 
     public function down(): void
