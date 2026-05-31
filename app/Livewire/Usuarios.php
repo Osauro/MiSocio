@@ -28,8 +28,6 @@ class Usuarios extends Component
     public $usuarioId;
     public $name;
     public $celular;
-    public $password;
-    public $password_confirmation;
     public $role;
     public $imagen;
     public $usuario_actual_imagen;
@@ -39,7 +37,6 @@ class Usuarios extends Component
         return [
             'name' => 'required|string|max:255',
             'celular' => 'required|string|digits:8',
-            'password' => $this->editMode ? 'nullable|string|digits:4|confirmed' : 'nullable|string|digits:4|confirmed',
             'role' => 'required|in:tenant,user',
             'imagen' => 'nullable|image|max:2048',
         ];
@@ -49,8 +46,6 @@ class Usuarios extends Component
         'name.required' => 'El nombre es obligatorio',
         'celular.required' => 'El celular es obligatorio',
         'celular.digits' => 'El celular debe tener 8 dígitos',
-        'password.digits' => 'El PIN debe tener 4 dígitos',
-        'password.confirmed' => 'Los PINs no coinciden',
         'role.required' => 'El rol es obligatorio',
     ];
 
@@ -141,10 +136,6 @@ class Usuarios extends Component
                     'name' => $this->name,
                     'celular' => $this->celular,
                 ];
-
-                if ($this->password) {
-                    $data['password'] = Hash::make($this->password);
-                }
 
                 // Solo actualizar imagen si se subió una nueva
                 if ($imagenPath) {
@@ -286,8 +277,6 @@ class Usuarios extends Component
         $this->usuarioId = null;
         $this->name = '';
         $this->celular = '';
-        $this->password = '';
-        $this->password_confirmation = '';
         $this->role = 'user';
         $this->imagen = null;
         $this->usuario_actual_imagen = null;
