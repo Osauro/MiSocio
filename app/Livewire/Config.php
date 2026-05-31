@@ -25,6 +25,7 @@ class Config extends Component
 
     // General - Propietario
     public $propietario_nombre;
+    public $propietario_celular_prefijo = '591';
     public $propietario_celular;
 
     // General - Otros
@@ -102,6 +103,7 @@ class Config extends Component
             'nit' => 'nullable|string|max:50',
             // General - Propietario
             'propietario_nombre' => 'nullable|string|max:255',
+            'propietario_celular_prefijo' => 'nullable|string|max:10',
             'propietario_celular' => 'nullable|string|max:50',
             // General - Otros
             'sueldo_base' => 'nullable|numeric|min:0',
@@ -163,6 +165,7 @@ class Config extends Component
 
         // General - Propietario
         $this->propietario_nombre = $config->propietario_nombre;
+        $this->propietario_celular_prefijo = $config->propietario_celular_prefijo ?? '591';
         $this->propietario_celular = $config->propietario_celular;
 
         // General - Otros
@@ -241,6 +244,7 @@ class Config extends Component
             'email' => 'nullable|email|max:255',
             'nit' => 'nullable|string|max:50',
             'propietario_nombre' => 'nullable|string|max:255',
+            'propietario_celular_prefijo' => 'nullable|string|max:10',
             'propietario_celular' => 'nullable|string|max:50',
             'sueldo_base' => 'nullable|numeric|min:0',
         ]);
@@ -254,6 +258,7 @@ class Config extends Component
             'email' => $this->email,
             'nit' => $this->nit,
             'propietario_nombre' => $this->propietario_nombre,
+            'propietario_celular_prefijo' => $this->propietario_celular_prefijo ?: '591',
             'propietario_celular' => $this->propietario_celular,
             'sueldo_base' => $this->sueldo_base ?? 0,
         ]);

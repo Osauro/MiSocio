@@ -184,9 +184,25 @@
                                                         <div class="input-group">
                                                             <span class="input-group-text"><i
                                                                     class="fa-brands fa-whatsapp"></i></span>
+                                                            <select class="form-select flex-grow-0" style="max-width:110px"
+                                                                wire:model="propietario_celular_prefijo"
+                                                                wire:change="guardarGeneral">
+                                                                <option value="591">🇧🇴 +591</option>
+                                                                <option value="54">🇦🇷 +54</option>
+                                                                <option value="55">🇧🇷 +55</option>
+                                                                <option value="56">🇨🇱 +56</option>
+                                                                <option value="57">🇨🇴 +57</option>
+                                                                <option value="51">🇵🇪 +51</option>
+                                                                <option value="595">🇵🇾 +595</option>
+                                                                <option value="598">🇺🇾 +598</option>
+                                                                <option value="58">🇻🇪 +58</option>
+                                                                <option value="593">🇪🇨 +593</option>
+                                                                <option value="52">🇲🇽 +52</option>
+                                                                <option value="1">🇺🇸 +1</option>
+                                                            </select>
                                                             <input type="text" class="form-control"
                                                                 wire:model="propietario_celular"
-                                                                wire:blur="guardarGeneral" placeholder="77712345">
+                                                                wire:blur="guardarGeneral" placeholder="73010688">
                                                         </div>
                                                         @error('propietario_celular')
                                                             <span class="text-danger small">{{ $message }}</span>

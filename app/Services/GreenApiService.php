@@ -30,11 +30,13 @@ class GreenApiService
     /**
      * Send a WhatsApp message via Green API.
      *
-     * @param  string  $phone   Phone number without '+' (e.g. 59173010688)
+     * @param  string  $phone   Phone number completo con código de país (e.g. 59173010688)
      * @param  string  $message
      */
     public function sendMessage(string $phone, string $message): bool
     {
+        $phone = preg_replace('/\D/', '', $phone);
+
         if (empty($this->instanceId) || empty($this->apiToken) || empty($phone)) {
             return false;
         }
@@ -174,6 +176,10 @@ class GreenApiService
     {
         if (empty($config->propietario_celular)) return;
 
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $numero  = preg_replace('/\D/', '', $config->propietario_celular);
+        $phone   = $prefijo . $numero;
+
         $total   = (float) ($venta->efectivo ?? 0)
                  + (float) ($venta->online   ?? 0)
                  + (float) ($venta->credito  ?? 0);
@@ -190,6 +196,6 @@ class GreenApiService
             $msg .= "\nCliente: {$cliente}";
         }
 
-        $this->sendMessage($config->propietario_celular, $msg);
+        $this->sendMessage($phone, $msg);
     }
 }

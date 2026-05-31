@@ -20,6 +20,7 @@ class TenantConfig extends Model
         'nit',
         // Propietario
         'propietario_nombre',
+        'propietario_celular_prefijo',
         'propietario_celular',
         // Logo
         'logo',
