@@ -716,6 +716,36 @@
                                                             Envía un mensaje al propietario cada vez que se registre una venta.
                                                         </div>
                                                     </div>
+
+                                                    <hr class="my-3">
+
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            wire:model="greenapi_notif_credito"
+                                                            wire:change="guardarWhatsApp" id="greenApiNotifCredito">
+                                                        <label class="form-check-label fw-semibold"
+                                                            for="greenApiNotifCredito">
+                                                            Notificar venta a crédito al cliente
+                                                        </label>
+                                                        <div class="text-muted small mt-1">
+                                                            Envía un mensaje al cliente informando su deuda cuando se registra una venta a crédito.
+                                                        </div>
+                                                    </div>
+
+                                                    <hr class="my-3">
+
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            wire:model="greenapi_notif_pago_credito"
+                                                            wire:change="guardarWhatsApp" id="greenApiNotifPagoCredito">
+                                                        <label class="form-check-label fw-semibold"
+                                                            for="greenApiNotifPagoCredito">
+                                                            Notificar pago de crédito al cliente
+                                                        </label>
+                                                        <div class="text-muted small mt-1">
+                                                            Envía un mensaje al cliente confirmando su pago y el saldo pendiente.
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

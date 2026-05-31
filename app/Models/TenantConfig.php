@@ -51,6 +51,8 @@ class TenantConfig extends Model
         'whatsapp_enabled',
         // Green API (WhatsApp)
         'greenapi_notif_ventas',
+        'greenapi_notif_credito',
+        'greenapi_notif_pago_credito',
         // Facebook API
         'facebook_page_id',
         'facebook_access_token',
@@ -85,6 +87,8 @@ class TenantConfig extends Model
         'mostrar_logo' => 'boolean',
         'whatsapp_enabled' => 'boolean',
         'greenapi_notif_ventas' => 'boolean',
+        'greenapi_notif_credito' => 'boolean',
+        'greenapi_notif_pago_credito' => 'boolean',
         'facebook_enabled' => 'boolean',
         'prestamos_enabled' => 'boolean',
         'prestamos_categoria_id' => 'integer',

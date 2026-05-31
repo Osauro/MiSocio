@@ -7,6 +7,7 @@ use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
 use App\Models\TenantConfig;
+use App\Services\GreenApiService;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Livewire\Component;
@@ -217,6 +218,17 @@ class Ventas extends Component
             }
 
             DB::commit();
+
+            // Notificar al cliente por WhatsApp si está configurado
+            try {
+                $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_notif_pago_credito)) {
+                    $ventaConCliente = Venta::with('cliente')->find($this->ventaAPagar->id);
+                    if ($ventaConCliente) {
+                        app(GreenApiService::class)->notifyPagoCredito($ventaConCliente, $totalPago, $nuevoCredito, $config);
+                    }
+                }
+            } catch (\Throwable) {}
 
             $mensaje = 'Pago registrado exitosamente';
             if ($nuevoCredito > 0) {

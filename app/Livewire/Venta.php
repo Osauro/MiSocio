@@ -1095,6 +1095,12 @@ class Venta extends Component
                     app(\App\Services\GreenApiService::class)->notifyVenta($this->venta, $config);
                 } catch (\Throwable) {}
             }
+            if (!empty($config->greenapi_notif_credito) && ($this->venta->credito ?? 0) > 0) {
+                try {
+                    $ventaConCliente = $this->venta->load('cliente');
+                    app(\App\Services\GreenApiService::class)->notifyVentaCredito($ventaConCliente, $config);
+                } catch (\Throwable) {}
+            }
             $this->dispatch('abrir-ticket-y-redirigir');
         } catch (\Exception $e) {
             DB::rollBack();

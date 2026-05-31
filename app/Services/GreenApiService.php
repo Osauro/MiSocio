@@ -200,6 +200,65 @@ class GreenApiService
     }
 
     /**
+     * Notifica al cliente cuando se registra una venta a crédito.
+     */
+    public function notifyVentaCredito(Venta $venta, TenantConfig $config): bool
+    {
+        $cliente = $venta->cliente;
+        if (!$cliente || empty($cliente->celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $phone   = $prefijo . preg_replace('/\D/', '', $cliente->celular);
+        $tienda  = $config->nombre_tienda ?: 'Tu proveedor';
+        $total   = (float) ($venta->efectivo ?? 0)
+                 + (float) ($venta->online   ?? 0)
+                 + (float) ($venta->credito  ?? 0);
+        $credito = (float) ($venta->credito ?? 0);
+        $fecha   = $venta->fecha ? \Carbon\Carbon::parse($venta->fecha)->format('d/m/Y') : now()->format('d/m/Y');
+
+        $msg = "\uD83D\uDED2 *Venta a crédito - {$tienda}*\n"
+            . "Hola {$cliente->nombre},\n\n"
+            . "Se registró una venta a tu cuenta:\n"
+            . "Folio: #{$venta->numero_folio}\n"
+            . "Fecha: {$fecha}\n"
+            . "Total: Bs. " . number_format($total, 2) . "\n"
+            . "Saldo pendiente: *Bs. " . number_format($credito, 2) . "*\n\n"
+            . "Por favor, acércate a cancelar tu deuda. ¡Gracias!";
+
+        return $this->sendMessage($phone, $msg);
+    }
+
+    /**
+     * Notifica al cliente cuando realiza un pago de su crédito.
+     */
+    public function notifyPagoCredito(Venta $venta, float $montoPagado, float $saldoPendiente, TenantConfig $config): bool
+    {
+        $cliente = $venta->cliente;
+        if (!$cliente || empty($cliente->celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $phone   = $prefijo . preg_replace('/\D/', '', $cliente->celular);
+        $tienda  = $config->nombre_tienda ?: 'Tu proveedor';
+
+        if ($saldoPendiente > 0) {
+            $msg = "\u2705 *Pago de crédito recibido - {$tienda}*\n"
+                . "Hola {$cliente->nombre},\n\n"
+                . "Recibimos tu pago de la venta #{$venta->numero_folio}:\n"
+                . "Monto pagado: Bs. " . number_format($montoPagado, 2) . "\n"
+                . "Saldo pendiente: *Bs. " . number_format($saldoPendiente, 2) . "*\n\n"
+                . "¡Gracias por tu pago!";
+        } else {
+            $msg = "\u2705 *Deuda cancelada - {$tienda}*\n"
+                . "Hola {$cliente->nombre},\n\n"
+                . "Tu deuda de la venta #{$venta->numero_folio} ha sido cancelada completamente.\n"
+                . "Monto pagado: Bs. " . number_format($montoPagado, 2) . "\n\n"
+                . "¡Muchas gracias!";
+        }
+
+        return $this->sendMessage($phone, $msg);
+    }
+
+    /**
      * Envía credenciales de acceso a un nuevo usuario recién creado.
      */
     public function notifyNuevoUsuario(User $user, string $pin, TenantConfig $config): bool

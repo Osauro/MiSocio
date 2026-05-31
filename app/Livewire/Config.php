@@ -67,6 +67,8 @@ class Config extends Component
 
     // Green API
     public $greenapi_notif_ventas;
+    public $greenapi_notif_credito;
+    public $greenapi_notif_pago_credito;
 
     // Préstamos
     public $prestamos_enabled;
@@ -202,6 +204,8 @@ class Config extends Component
         $this->whatsapp_phone_id = $config->whatsapp_phone_id;
         $this->whatsapp_enabled = $config->whatsapp_enabled;
         $this->greenapi_notif_ventas = $config->greenapi_notif_ventas ?? false;
+        $this->greenapi_notif_credito = $config->greenapi_notif_credito ?? false;
+        $this->greenapi_notif_pago_credito = $config->greenapi_notif_pago_credito ?? false;
 
         // Préstamos
         $this->prestamos_enabled = $config->prestamos_enabled ?? true;
@@ -514,7 +518,9 @@ class Config extends Component
     {
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
         $config->update([
-            'greenapi_notif_ventas' => (bool) $this->greenapi_notif_ventas,
+            'greenapi_notif_ventas'      => (bool) $this->greenapi_notif_ventas,
+            'greenapi_notif_credito'     => (bool) $this->greenapi_notif_credito,
+            'greenapi_notif_pago_credito'=> (bool) $this->greenapi_notif_pago_credito,
         ]);
 
         $this->toast('success', 'Configuración guardada');
