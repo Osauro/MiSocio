@@ -119,6 +119,27 @@
                                                             <span class="text-danger small">{{ $message }}</span>
                                                         @enderror
                                                     </div>
+                                                    <div class="row mb-3">
+                                                        <div class="col-6">
+                                                            <label class="form-label fw-semibold">
+                                                                <i class="fa-solid fa-location-dot me-1 text-danger"></i>Latitud
+                                                            </label>
+                                                            <input type="text" class="form-control"
+                                                                wire:model="latitud" wire:blur="guardarGeneral"
+                                                                placeholder="Ej: -17.783327">
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="form-label fw-semibold">
+                                                                <i class="fa-solid fa-location-dot me-1 text-danger"></i>Longitud
+                                                            </label>
+                                                            <input type="text" class="form-control"
+                                                                wire:model="longitud" wire:blur="guardarGeneral"
+                                                                placeholder="Ej: -63.182132">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <small class="text-muted">Opcional. Se usará para enviar un link de Google Maps en notificaciones de préstamos.</small>
+                                                        </div>
+                                                    </div>
                                                     <div class="row">
                                                         <div class="col-6">
                                                             <div class="mb-3">
@@ -744,6 +765,54 @@
                                                         </label>
                                                         <div class="text-muted small mt-1">
                                                             Envía un mensaje al cliente confirmando su pago y el saldo pendiente.
+                                                        </div>
+                                                    </div>
+
+                                                    <hr class="my-3">
+                                                    <p class="fw-bold text-muted small text-uppercase mb-2">
+                                                        <i class="fa-solid fa-hand-holding me-1"></i>Préstamos
+                                                    </p>
+
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            wire:model="greenapi_notif_prestamo"
+                                                            wire:change="guardarWhatsApp" id="greenApiNotifPrestamo">
+                                                        <label class="form-check-label fw-semibold"
+                                                            for="greenApiNotifPrestamo">
+                                                            Notificar nuevo préstamo al cliente
+                                                        </label>
+                                                        <div class="text-muted small mt-1">
+                                                            Envía al cliente los detalles del préstamo y la ubicación de la tienda al registrarlo.
+                                                        </div>
+                                                    </div>
+
+                                                    <hr class="my-3">
+
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            wire:model="greenapi_notif_devolucion_prestamo"
+                                                            wire:change="guardarWhatsApp" id="greenApiNotifDevolucionPrestamo">
+                                                        <label class="form-check-label fw-semibold"
+                                                            for="greenApiNotifDevolucionPrestamo">
+                                                            Notificar devolución de préstamo al cliente
+                                                        </label>
+                                                        <div class="text-muted small mt-1">
+                                                            Confirma al cliente que su devolución fue registrada correctamente.
+                                                        </div>
+                                                    </div>
+
+                                                    <hr class="my-3">
+
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            wire:model="greenapi_notif_vencimiento_prestamo"
+                                                            wire:change="guardarWhatsApp" id="greenApiNotifVencimientoPrestamo">
+                                                        <label class="form-check-label fw-semibold"
+                                                            for="greenApiNotifVencimientoPrestamo">
+                                                            Notificar vencimiento de préstamo al cliente
+                                                        </label>
+                                                        <div class="text-muted small mt-1">
+                                                            Envía un aviso 1 día antes del vencimiento y otro el día que vence. Requiere cron diario.
                                                         </div>
                                                     </div>
                                                 </div>

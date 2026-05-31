@@ -65,10 +65,17 @@ class Config extends Component
     public $whatsapp_phone_id;
     public $whatsapp_enabled;
 
+    // Ubicación tienda
+    public $latitud;
+    public $longitud;
+
     // Green API
     public $greenapi_notif_ventas;
     public $greenapi_notif_credito;
     public $greenapi_notif_pago_credito;
+    public $greenapi_notif_prestamo;
+    public $greenapi_notif_devolucion_prestamo;
+    public $greenapi_notif_vencimiento_prestamo;
 
     // Préstamos
     public $prestamos_enabled;
@@ -203,9 +210,14 @@ class Config extends Component
         $this->whatsapp_token = $config->whatsapp_token;
         $this->whatsapp_phone_id = $config->whatsapp_phone_id;
         $this->whatsapp_enabled = $config->whatsapp_enabled;
+        $this->latitud  = $config->latitud;
+        $this->longitud = $config->longitud;
         $this->greenapi_notif_ventas = $config->greenapi_notif_ventas ?? false;
         $this->greenapi_notif_credito = $config->greenapi_notif_credito ?? false;
         $this->greenapi_notif_pago_credito = $config->greenapi_notif_pago_credito ?? false;
+        $this->greenapi_notif_prestamo = $config->greenapi_notif_prestamo ?? false;
+        $this->greenapi_notif_devolucion_prestamo = $config->greenapi_notif_devolucion_prestamo ?? false;
+        $this->greenapi_notif_vencimiento_prestamo = $config->greenapi_notif_vencimiento_prestamo ?? false;
 
         // Préstamos
         $this->prestamos_enabled = $config->prestamos_enabled ?? true;
@@ -258,6 +270,8 @@ class Config extends Component
         $config->update([
             'nombre_tienda' => $this->nombre_tienda,
             'direccion' => $this->direccion,
+            'latitud'   => $this->latitud,
+            'longitud'  => $this->longitud,
             'telefono' => $this->telefono,
             'email' => $this->email,
             'nit' => $this->nit,
@@ -518,9 +532,12 @@ class Config extends Component
     {
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
         $config->update([
-            'greenapi_notif_ventas'      => (bool) $this->greenapi_notif_ventas,
-            'greenapi_notif_credito'     => (bool) $this->greenapi_notif_credito,
-            'greenapi_notif_pago_credito'=> (bool) $this->greenapi_notif_pago_credito,
+            'greenapi_notif_ventas'               => (bool) $this->greenapi_notif_ventas,
+            'greenapi_notif_credito'              => (bool) $this->greenapi_notif_credito,
+            'greenapi_notif_pago_credito'         => (bool) $this->greenapi_notif_pago_credito,
+            'greenapi_notif_prestamo'             => (bool) $this->greenapi_notif_prestamo,
+            'greenapi_notif_devolucion_prestamo'  => (bool) $this->greenapi_notif_devolucion_prestamo,
+            'greenapi_notif_vencimiento_prestamo' => (bool) $this->greenapi_notif_vencimiento_prestamo,
         ]);
 
         $this->toast('success', 'Configuración guardada');

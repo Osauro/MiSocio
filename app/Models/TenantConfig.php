@@ -15,6 +15,8 @@ class TenantConfig extends Model
         // Tienda
         'nombre_tienda',
         'direccion',
+        'latitud',
+        'longitud',
         'telefono',
         'email',
         'nit',
@@ -53,6 +55,12 @@ class TenantConfig extends Model
         'greenapi_notif_ventas',
         'greenapi_notif_credito',
         'greenapi_notif_pago_credito',
+        'greenapi_notif_prestamo',
+        'greenapi_notif_devolucion_prestamo',
+        'greenapi_notif_vencimiento_prestamo',
+        // Ubicación tienda
+        'latitud',
+        'longitud',
         // Facebook API
         'facebook_page_id',
         'facebook_access_token',
@@ -89,6 +97,9 @@ class TenantConfig extends Model
         'greenapi_notif_ventas' => 'boolean',
         'greenapi_notif_credito' => 'boolean',
         'greenapi_notif_pago_credito' => 'boolean',
+        'greenapi_notif_prestamo' => 'boolean',
+        'greenapi_notif_devolucion_prestamo' => 'boolean',
+        'greenapi_notif_vencimiento_prestamo' => 'boolean',
         'facebook_enabled' => 'boolean',
         'prestamos_enabled' => 'boolean',
         'prestamos_categoria_id' => 'integer',

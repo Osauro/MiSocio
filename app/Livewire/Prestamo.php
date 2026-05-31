@@ -789,6 +789,18 @@ class Prestamo extends Component
 
             $this->toast('success', 'Préstamo completado exitosamente');
 
+            // Notificación WhatsApp al cliente si está configurado
+            $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+            if (!empty($config->greenapi_notif_prestamo)) {
+                try {
+                    $prestamoNotif = \App\Models\Prestamo::with(['cliente', 'prestamoItems.producto'])
+                        ->find($this->prestamo->id);
+                    if ($prestamoNotif) {
+                        app(\App\Services\GreenApiService::class)->notifyNuevoPrestamo($prestamoNotif, $config);
+                    }
+                } catch (\Throwable) {}
+            }
+
             // Imprimir ticket automáticamente si está configurado
             $config = TenantConfig::getOrCreateForTenant(currentTenantId());
             if ($config->impresion_auto_prestamo) {

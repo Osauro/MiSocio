@@ -133,6 +133,15 @@ class Prestamos extends Component
 
             DB::commit();
 
+            // Notificación WhatsApp al cliente
+            $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+            if (!empty($config->greenapi_notif_devolucion_prestamo)) {
+                try {
+                    app(\App\Services\GreenApiService::class)
+                        ->notifyDevolucionPrestamo($this->prestamoSeleccionado, $config);
+                } catch (\Throwable) {}
+            }
+
             $this->cerrarModal();
             $this->toast('success', 'Préstamo devuelto. En garantía: Bs. ' . number_format($depositoDevolver, 2));
         } catch (\Exception $e) {

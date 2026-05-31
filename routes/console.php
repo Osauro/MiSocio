@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('greenapi:notificar-por-vencer')->daily();
+Schedule::command('prestamos:notificar-vencimiento')->dailyAt('08:00');

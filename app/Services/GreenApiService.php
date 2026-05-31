@@ -429,4 +429,117 @@ class GreenApiService
 
         return $result;
     }
+
+    /**
+     * Notifica al cliente cuando se crea un nuevo préstamo.
+     */
+    public function notifyNuevoPrestamo(\App\Models\Prestamo $prestamo, TenantConfig $config): bool
+    {
+        $cliente = $prestamo->cliente;
+        if (!$cliente || empty($cliente->celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $phone   = $prefijo . preg_replace('/\D/', '', $cliente->celular);
+        $tienda  = $config->nombre_tienda ?: 'Tu proveedor';
+
+        $prestamo->loadMissing(['prestamoItems.producto']);
+
+        $lineasItems = '';
+        foreach ($prestamo->prestamoItems as $item) {
+            $nombre = $item->producto?->nombre ?? 'Artículo';
+            $lineasItems .= "  • {$nombre} x{$item->cantidad} — Bs. " . number_format($item->subtotal, 2) . "\n";
+        }
+
+        $vencimiento = $prestamo->expired_at
+            ? $prestamo->expired_at->format('d/m/Y')
+            : 'Sin fecha';
+
+        // Link de ubicación
+        $ubicacion = '';
+        if (!empty($config->latitud) && !empty($config->longitud)) {
+            $lat = $config->latitud;
+            $lng = $config->longitud;
+            $ubicacion = "\n📍 *Ubicación de la tienda:*\nhttps://www.google.com/maps?q={$lat},{$lng}";
+        } elseif (!empty($config->direccion)) {
+            $ubicacion = "\n📍 *Dirección:* {$config->direccion}";
+        }
+
+        $mensaje = "📦 *Nuevo préstamo registrado - {$tienda}*\n"
+            . "Hola *{$cliente->nombre}*, se registró un préstamo a tu nombre:\n\n"
+            . "*Folio:* #{$prestamo->numero_folio}\n"
+            . "*Fecha:* " . now()->format('d/m/Y') . "\n"
+            . "*Vence:* {$vencimiento}\n\n"
+            . "*Artículos prestados:*\n{$lineasItems}"
+            . "*Depósito/Garantía:* Bs. " . number_format($prestamo->total, 2) . "\n"
+            . $ubicacion . "\n\n"
+            . "Por favor devuelve los artículos antes de la fecha de vencimiento. ¡Gracias!";
+
+        return $this->sendMessage($phone, $mensaje);
+    }
+
+    /**
+     * Notifica al cliente cuando devuelve el préstamo.
+     */
+    public function notifyDevolucionPrestamo(\App\Models\Prestamo $prestamo, TenantConfig $config): bool
+    {
+        $cliente = $prestamo->cliente;
+        if (!$cliente || empty($cliente->celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $phone   = $prefijo . preg_replace('/\D/', '', $cliente->celular);
+        $tienda  = $config->nombre_tienda ?: 'Tu proveedor';
+
+        $mensaje = "✅ *Devolución registrada - {$tienda}*\n"
+            . "Hola *{$cliente->nombre}*, confirmamos que devolviste correctamente el préstamo:\n\n"
+            . "*Folio:* #{$prestamo->numero_folio}\n"
+            . "*Fecha de devolución:* " . now()->format('d/m/Y') . "\n"
+            . "*Depósito devuelto:* Bs. " . number_format($prestamo->total, 2) . "\n\n"
+            . "¡Gracias por tu puntualidad! Vuelve cuando necesites. 😊";
+
+        return $this->sendMessage($phone, $mensaje);
+    }
+
+    /**
+     * Notifica al cliente sobre vencimiento próximo o vencido del préstamo.
+     *
+     * @param bool $manana true = aviso 1 día antes, false = aviso de vencimiento hoy
+     */
+    public function notifyVencimientoPrestamo(\App\Models\Prestamo $prestamo, TenantConfig $config, bool $manana = false): bool
+    {
+        $cliente = $prestamo->cliente;
+        if (!$cliente || empty($cliente->celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $phone   = $prefijo . preg_replace('/\D/', '', $cliente->celular);
+        $tienda  = $config->nombre_tienda ?: 'Tu proveedor';
+
+        $vencimiento = $prestamo->expired_at
+            ? $prestamo->expired_at->format('d/m/Y')
+            : 'Sin fecha';
+
+        $ubicacion = '';
+        if (!empty($config->latitud) && !empty($config->longitud)) {
+            $lat = $config->latitud;
+            $lng = $config->longitud;
+            $ubicacion = "\n📍 *Ubicación de la tienda:*\nhttps://www.google.com/maps?q={$lat},{$lng}";
+        } elseif (!empty($config->direccion)) {
+            $ubicacion = "\n📍 *Dirección:* {$config->direccion}";
+        }
+
+        if ($manana) {
+            $mensaje = "⚠️ *Préstamo por vencer mañana - {$tienda}*\n"
+                . "Hola *{$cliente->nombre}*, tu préstamo *#{$prestamo->numero_folio}* vence *mañana {$vencimiento}*.\n\n"
+                . "Por favor acércate a devolver los artículos. Depósito en garantía: Bs. " . number_format($prestamo->total, 2) . "."
+                . $ubicacion . "\n\n"
+                . "¡Gracias por tu atención!";
+        } else {
+            $mensaje = "🚨 *Préstamo VENCIDO hoy - {$tienda}*\n"
+                . "Hola *{$cliente->nombre}*, tu préstamo *#{$prestamo->numero_folio}* venció *hoy {$vencimiento}*.\n\n"
+                . "Por favor comunícate con nosotros a la brevedad para regularizar la situación."
+                . $ubicacion . "\n\n"
+                . "¡Gracias!";
+        }
+
+        return $this->sendMessage($phone, $mensaje);
+    }
 }
