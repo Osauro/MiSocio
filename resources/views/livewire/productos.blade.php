@@ -362,7 +362,7 @@
                                         <input type="number" step="0.01"
                                             class="form-control @error('precio_por_mayor') is-invalid @enderror"
                                             wire:model="precio_por_mayor" wire:change="recalcularPrecioMenor" id="precio_por_mayor" placeholder="0.00"
-                                            @keydown.tab.prevent="$wire.recalcularPrecioMenor(true)">
+                                            @keydown.tab.prevent="window._focusMenorProductos = true; $wire.recalcularPrecioMenor()">
                                         @error('precio_por_mayor')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -465,12 +465,18 @@
             });
         }
 
-        $wire.on('focar-precio-menor', () => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    const el = document.getElementById('precio_por_menor');
-                    if (el) { el.focus(); el.select(); }
-                });
+        // Aplicar foco en precio_por_menor DESPUÉS de que Livewire termine el DOM patch
+        Livewire.hook('commit', ({ component, commit, respond, succeed, fail }) => {
+            succeed(({ snapshot, effects }) => {
+                if (window._focusMenorProductos) {
+                    window._focusMenorProductos = false;
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            const el = document.getElementById('precio_por_menor');
+                            if (el) { el.focus(); el.select(); }
+                        });
+                    });
+                }
             });
         });
     </script>
