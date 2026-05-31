@@ -208,7 +208,7 @@ class GreenApiService
 
         $tienda  = $config->nombre_tienda ?: 'MiSocio';
         $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
-        $url     = config('app.url');
+        $url     = 'https://misocio.bo';
 
         $msg = "\u{1F44B} *Bienvenido a {$tienda}*\n"
             . "Hola {$user->name}, tu cuenta ha sido creada.\n\n"
@@ -229,7 +229,7 @@ class GreenApiService
 
         $tienda  = $config->nombre_tienda ?: 'MiSocio';
         $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
-        $url     = config('app.url');
+        $url     = 'https://misocio.bo';
 
         $msg = "\u{1F511} *Tu PIN ha sido reseteado - {$tienda}*\n"
             . "Hola {$user->name},\n\n"
