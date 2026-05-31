@@ -80,16 +80,19 @@ class HomeTenant extends Component
 
         // Beneficio del mes seleccionado
         $beneficioMes = VentaItem::whereHas('venta', function ($query) {
-            $query->whereMonth('created_at', $this->mesSeleccionado)
+            $query->where('estado', 'Completo')
+                  ->whereMonth('created_at', $this->mesSeleccionado)
                   ->whereYear('created_at', $this->anioSeleccionado);
         })->sum('beneficio');
 
         // Crédito pendiente (ventas a crédito no pagadas)
-        $creditoPendiente = Venta::where('credito', '>', 0)
+        $creditoPendiente = Venta::where('estado', 'Completo')
+            ->where('credito', '>', 0)
             ->sum('credito');
 
         // Ventas online del mes seleccionado
-        $onlineMes = Venta::whereMonth('created_at', $this->mesSeleccionado)
+        $onlineMes = Venta::where('estado', 'Completo')
+            ->whereMonth('created_at', $this->mesSeleccionado)
             ->whereYear('created_at', $this->anioSeleccionado)
             ->sum('online');
 
@@ -113,11 +116,13 @@ class HomeTenant extends Component
         for ($i = 0; $i < 7; $i++) {
             $dia = $inicioSemana->copy()->addDays($i);
 
-            $ventaDia = Venta::whereDate('created_at', $dia->toDateString())
+            $ventaDia = Venta::where('estado', 'Completo')
+                ->whereDate('created_at', $dia->toDateString())
                 ->sum(DB::raw('efectivo + online'));
 
             $gananciaDia = VentaItem::whereHas('venta', function ($query) use ($dia) {
-                $query->whereDate('created_at', $dia->toDateString());
+                $query->where('estado', 'Completo')
+                      ->whereDate('created_at', $dia->toDateString());
             })->sum('beneficio');
 
             $ventas[] = round($ventaDia, 2);
@@ -142,7 +147,8 @@ class HomeTenant extends Component
 
         for ($mes = 1; $mes <= 12; $mes++) {
             // Ventas del mes
-            $ventaMes = Venta::whereMonth('created_at', $mes)
+            $ventaMes = Venta::where('estado', 'Completo')
+                ->whereMonth('created_at', $mes)
                 ->whereYear('created_at', $this->anioMensual)
                 ->sum(DB::raw('efectivo + online'));
 
@@ -153,7 +159,8 @@ class HomeTenant extends Component
 
             // Ganancias del mes
             $gananciaMes = VentaItem::whereHas('venta', function ($query) use ($mes) {
-                $query->whereMonth('created_at', $mes)
+                $query->where('estado', 'Completo')
+                      ->whereMonth('created_at', $mes)
                       ->whereYear('created_at', $this->anioMensual);
             })->sum('beneficio');
 
@@ -205,7 +212,8 @@ class HomeTenant extends Component
         return VentaItem::select('producto_id', DB::raw('SUM(cantidad) as total_vendido'))
             ->with('producto')
             ->whereHas('venta', function ($query) {
-                $query->whereMonth('created_at', $this->mesMasVendidos)
+                $query->where('estado', 'Completo')
+                      ->whereMonth('created_at', $this->mesMasVendidos)
                       ->whereYear('created_at', $this->anioSeleccionado);
             })
             ->whereHas('producto', function ($query) {
@@ -261,6 +269,7 @@ class HomeTenant extends Component
             )
             ->join('ventas', 'ventas.id', '=', 'venta_items.venta_id')
             ->whereDate('ventas.created_at', $hoy)
+            ->where('ventas.estado', 'Completo')
             ->where('ventas.tenant_id', currentTenantId())
             ->with('producto')
             ->groupBy('venta_items.producto_id')
