@@ -210,6 +210,7 @@
 
                         {{-- Inputs cantidad --}}
                         <div class="row g-3 mb-3">
+                            @if($stockProductoCantidad > 1)
                             <div class="col-6">
                                 <label class="form-label fw-semibold text-center w-100">
                                     <i class="fa-solid fa-cube me-1 text-muted"></i>
@@ -224,6 +225,9 @@
                                 @enderror
                             </div>
                             <div class="col-6">
+                            @else
+                            <div class="col-12">
+                            @endif
                                 <label class="form-label fw-semibold text-center w-100">
                                     <i class="fa-solid fa-cubes me-1 text-muted"></i>
                                     Unidades
