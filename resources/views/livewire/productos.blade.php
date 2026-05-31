@@ -191,7 +191,7 @@
                         </h6>
                         <button type="button" class="btn-close" wire:click="cerrarModalStock"></button>
                     </div>
-                    <div class="modal-body">
+                    <div class="modal-body" x-data x-init="$nextTick(() => $el.querySelector('input[type=number]').focus())">
                         {{-- Inputs cantidad --}}
                         <div class="row g-2 mb-2">
                             @if($stockProductoCantidad > 1)
