@@ -227,6 +227,19 @@ class Usuarios extends Component
         }
     }
 
+    public function confirmResetPin($id)
+    {
+        $usuario = User::findOrFail($id);
+        $this->dispatch('swal:confirm', [
+            'id' => $id,
+            'title' => '¿Resetear PIN?',
+            'text' => "Se generará un nuevo PIN y se enviará a <strong>{$usuario->name}</strong> por WhatsApp.",
+            'event' => 'resetPin',
+            'confirmButtonText' => 'Sí, resetear',
+            'confirmButtonColor' => '#ffc107',
+        ]);
+    }
+
     public function resetPin($id)
     {
         try {

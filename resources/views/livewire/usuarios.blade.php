@@ -35,8 +35,7 @@
                                                 <!-- Botones en esquina superior derecha -->
                                                 <div class="position-absolute top-0 end-0 d-flex gap-1">
                                                     <button class="btn btn-sm btn-warning"
-                                                        wire:click="resetPin({{ $usuario->id }})"
-                                                        wire:confirm="\u00bfGenerar nuevo PIN y enviarlo por WhatsApp a {{ $usuario->name }}?"
+                                                        wire:click="confirmResetPin({{ $usuario->id }})"
                                                         title="Resetear PIN y enviar por WhatsApp">
                                                         <i class="fa-solid fa-key"></i>
                                                     </button>
