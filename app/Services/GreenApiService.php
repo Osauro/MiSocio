@@ -198,4 +198,42 @@ class GreenApiService
 
         $this->sendMessage($phone, $msg);
     }
+
+    /**
+     * Envía credenciales de acceso a un nuevo usuario recién creado.
+     */
+    public function notifyNuevoUsuario(User $user, string $pin, TenantConfig $config): bool
+    {
+        if (empty($user->celular)) return false;
+
+        $tienda = $config->nombre_tienda ?: 'MiSocio';
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+
+        $msg = "👋 *Bienvenido a {$tienda}*\n"
+            . "Hola {$user->name}, tu cuenta ha sido creada.\n\n"
+            . "📱 *Tus credenciales de acceso:*\n"
+            . "Celular: {$user->celular}\n"
+            . "PIN: *{$pin}*\n\n"
+            . "Puedes cambiar tu PIN desde tu perfil en cualquier momento.";
+
+        return $this->sendMessage($prefijo . $user->celular, $msg);
+    }
+
+    /**
+     * Envía un PIN reseteado al usuario por WhatsApp.
+     */
+    public function notifyResetPin(User $user, string $pin, TenantConfig $config): bool
+    {
+        if (empty($user->celular)) return false;
+
+        $tienda = $config->nombre_tienda ?: 'MiSocio';
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+
+        $msg = "🔑 *Tu PIN ha sido reseteado - {$tienda}*\n"
+            . "Hola {$user->name},\n\n"
+            . "Tu nuevo PIN de acceso es: *{$pin}*\n\n"
+            . "Puedes cambiarlo desde tu perfil una vez que ingreses.";
+
+        return $this->sendMessage($prefijo . $user->celular, $msg);
+    }
 }

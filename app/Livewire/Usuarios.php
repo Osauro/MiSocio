@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\User;
+use App\Services\GreenApiService;
+use App\Models\TenantConfig;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Illuminate\Support\Facades\Auth;
@@ -37,7 +39,7 @@ class Usuarios extends Component
         return [
             'name' => 'required|string|max:255',
             'celular' => 'required|string|digits:8',
-            'password' => $this->editMode ? 'nullable|string|digits:4|confirmed' : 'required|string|digits:4|confirmed',
+            'password' => $this->editMode ? 'nullable|string|digits:4|confirmed' : 'nullable|string|digits:4|confirmed',
             'role' => 'required|in:tenant,user',
             'imagen' => 'nullable|image|max:2048',
         ];
@@ -184,10 +186,13 @@ class Usuarios extends Component
                     return;
                 }
 
+                // Generar PIN automático de 4 dígitos si no se ingresó uno
+                $pin = $this->password ?: str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+
                 $user = User::create([
                     'name' => $this->name,
                     'celular' => $this->celular,
-                    'password' => Hash::make($this->password),
+                    'password' => Hash::make($pin),
                     'imagen' => $imagenPath,
                 ]);
 
@@ -197,7 +202,13 @@ class Usuarios extends Component
                     'is_active' => true,
                 ]);
 
-                $this->toast('success', 'Usuario creado exitosamente.');
+                // Enviar credenciales por WhatsApp
+                try {
+                    $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+                    app(GreenApiService::class)->notifyNuevoUsuario($user, $pin, $config);
+                } catch (\Throwable) {}
+
+                $this->toast('success', 'Usuario creado y credenciales enviadas por WhatsApp.');
             }
 
             $this->resetPage();
@@ -222,6 +233,27 @@ class Usuarios extends Component
             $this->closeModal();
         } catch (\Exception $e) {
             $this->alertError('Error', 'No se pudo asociar el usuario: ' . $e->getMessage());
+        }
+    }
+
+    public function resetPin($id)
+    {
+        try {
+            $usuario = User::findOrFail($id);
+
+            $pin = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            $usuario->update(['password' => Hash::make($pin)]);
+
+            $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+            $enviado = app(GreenApiService::class)->notifyResetPin($usuario, $pin, $config);
+
+            if ($enviado) {
+                $this->toast('success', "PIN reseteado y enviado a {$usuario->name} por WhatsApp.");
+            } else {
+                $this->toast('warning', "PIN reseteado: {$pin} — No se pudo enviar WhatsApp (revisa el celular del usuario).");
+            }
+        } catch (\Exception $e) {
+            $this->alertError('Error', 'No se pudo resetear el PIN: ' . $e->getMessage());
         }
     }
 

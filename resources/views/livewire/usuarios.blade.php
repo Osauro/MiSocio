@@ -34,6 +34,12 @@
                                             <div class="d-flex align-items-start position-relative">
                                                 <!-- Botones en esquina superior derecha -->
                                                 <div class="position-absolute top-0 end-0 d-flex gap-1">
+                                                    <button class="btn btn-sm btn-success"
+                                                        wire:click="resetPin({{ $usuario->id }})"
+                                                        wire:confirm="\u00bfResetear PIN y enviar por WhatsApp a {{ $usuario->name }}?"
+                                                        title="Resetear PIN y enviar por WhatsApp">
+                                                        <i class="fa-brands fa-whatsapp"></i>
+                                                    </button>
                                                     <button class="btn btn-sm btn-primary"
                                                         wire:click="edit({{ $usuario->id }})" title="Editar">
                                                         <i class="fa-solid fa-pen"></i>
@@ -200,23 +206,30 @@
                                         <div class="col-md-6 mb-3">
                                             <label for="password" class="form-label">
                                                 PIN (4 dígitos)
-                                                @if(!$editMode)<span class="text-danger">*</span>@endif
+                                                @if($editMode)<span class="text-muted small">(opcional)</span>@endif
                                             </label>
-                                            <input type="password" class="form-control @error('password') is-invalid @enderror"
-                                                wire:model="password" id="password" placeholder="****" maxlength="4" inputmode="numeric" autocomplete="new-password">
-                                            @if($editMode)
-                                                <small class="form-text text-muted">Dejar en blanco para mantener el PIN actual</small>
+                                            @if(!$editMode)
+                                                <div class="alert alert-info py-2 px-3 mb-0 small">
+                                                    <i class="fa-brands fa-whatsapp me-1"></i>
+                                                    Se generará un PIN automático y se enviará al celular del usuario por WhatsApp.
+                                                    Puedes también asignar uno manualmente.
+                                                </div>
                                             @endif
-                                            @error('password')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
+                                            @if($editMode)
+                                                <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                                    wire:model="password" id="password" placeholder="****" maxlength="4" inputmode="numeric" autocomplete="new-password">
+                                                <small class="form-text text-muted">Dejar en blanco para mantener el PIN actual</small>
+                                                @error('password')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            @endif
                                         </div>
 
                                         <!-- Confirmar PIN -->
+                                        @if($editMode)
                                         <div class="col-md-6 mb-3">
                                             <label for="password_confirmation" class="form-label">
                                                 Confirmar PIN
-                                                @if(!$editMode)<span class="text-danger">*</span>@endif
                                             </label>
                                             <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror"
                                                 wire:model="password_confirmation" id="password_confirmation" placeholder="****" maxlength="4" inputmode="numeric" autocomplete="new-password">
@@ -224,6 +237,7 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
