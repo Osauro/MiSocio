@@ -333,7 +333,7 @@
                                                 class="text-danger">*</span></label>
                                         <input type="number"
                                             class="form-control @error('cantidad') is-invalid @enderror"
-                                            wire:model.blur="cantidad" id="cantidad" placeholder="Ej: 620">
+                                            wire:model.live="cantidad" id="cantidad" placeholder="Ej: 620">
                                         @error('cantidad')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -361,7 +361,7 @@
                                                 class="text-danger">*</span></label>
                                         <input type="number" step="0.01"
                                             class="form-control @error('precio_por_mayor') is-invalid @enderror"
-                                            wire:model.blur="precio_por_mayor" id="precio_por_mayor" placeholder="0.00">
+                                            wire:model.live="precio_por_mayor" id="precio_por_mayor" placeholder="0.00">
                                         @error('precio_por_mayor')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
