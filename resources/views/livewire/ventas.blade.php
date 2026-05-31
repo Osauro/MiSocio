@@ -819,18 +819,18 @@
                             <i class="fa-solid fa-times"></i>
                         </button>
 
-                        {{-- WhatsApp: solo icono, abre chat con el celular del cliente --}}
+                        {{-- WhatsApp: solo icono, envía ticket recordatorio al cliente --}}
                         @if ($ventaAPagar && $ventaAPagar->cliente && $ventaAPagar->cliente->celular)
-                            @php
-                                $celular = preg_replace('/\D/', '', $ventaAPagar->cliente->celular);
-                                $waPhone = '591' . $celular;
-                            @endphp
-                            <a href="https://wa.me/{{ $waPhone }}"
-                                target="_blank"
+                            <button type="button"
                                 class="btn btn-success"
-                                title="Abrir WhatsApp de {{ $ventaAPagar->cliente->nombre }}">
-                                <i class="fa-brands fa-whatsapp"></i>
-                            </a>
+                                wire:click="enviarRecordatorioWhatsApp"
+                                wire:loading.attr="disabled"
+                                wire:target="enviarRecordatorioWhatsApp"
+                                title="Enviar recordatorio de deuda a {{ $ventaAPagar->cliente->nombre }}"
+                                {{ $procesandoPago ? 'disabled' : '' }}>
+                                <i class="fa-brands fa-whatsapp" wire:loading.remove wire:target="enviarRecordatorioWhatsApp"></i>
+                                <span class="spinner-border spinner-border-sm" wire:loading wire:target="enviarRecordatorioWhatsApp"></span>
+                            </button>
                         @else
                             <button type="button" class="btn btn-success" disabled title="Cliente sin número registrado">
                                 <i class="fa-brands fa-whatsapp"></i>

@@ -363,15 +363,12 @@ class GreenApiService
         $numero  = preg_replace('/\D/', '', $config->propietario_celular);
         $phone   = $prefijo . $numero;
 
-        // Asegurar que los relations estén cargados
         $venta->loadMissing(['ventaItems.producto', 'cliente', 'user']);
 
-        // Generar imagen ticket
         /** @var TicketImageService $ticketService */
         $ticketService = app(TicketImageService::class);
         $png           = $ticketService->generarTicketVenta($venta, $config);
 
-        // Guardar en temp y enviar
         $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "ticket_venta_{$venta->id}_" . time() . '.png';
         file_put_contents($tmpPath, $png);
 
@@ -386,6 +383,43 @@ class GreenApiService
             . "Folio: #{$venta->numero_folio}  |  Total: Bs. " . number_format($total, 2) . "\n"
             . "Cajero: {$cajero}"
             . ($cliente ? "\nCliente: {$cliente}" : '');
+
+        try {
+            $result = $this->sendFileByUpload($phone, $tmpPath, "ticket_{$venta->numero_folio}.png", $caption);
+        } finally {
+            @unlink($tmpPath);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Genera el ticket de la venta y lo envía al CLIENTE como recordatorio de deuda pendiente.
+     */
+    public function sendRecordatorioCredito(Venta $venta, TenantConfig $config): bool
+    {
+        $cliente = $venta->cliente;
+        if (!$cliente || empty($cliente->celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $phone   = $prefijo . preg_replace('/\D/', '', $cliente->celular);
+        $tienda  = $config->nombre_tienda ?: 'Tu proveedor';
+        $credito = (float) ($venta->credito ?? 0);
+
+        $venta->loadMissing(['ventaItems.producto', 'user']);
+
+        /** @var TicketImageService $ticketService */
+        $ticketService = app(TicketImageService::class);
+        $png           = $ticketService->generarTicketVenta($venta, $config);
+
+        $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "ticket_recordatorio_{$venta->id}_" . time() . '.png';
+        file_put_contents($tmpPath, $png);
+
+        $caption = "⏰ *Recordatorio de deuda - {$tienda}*\n"
+            . "Hola {$cliente->nombre}, te recordamos que tienes una deuda pendiente:\n"
+            . "Venta: #{$venta->numero_folio}\n"
+            . "Saldo pendiente: *Bs. " . number_format($credito, 2) . "*\n\n"
+            . "Por favor, acércate a cancelar tu deuda. ¡Gracias!";
 
         try {
             $result = $this->sendFileByUpload($phone, $tmpPath, "ticket_{$venta->numero_folio}.png", $caption);

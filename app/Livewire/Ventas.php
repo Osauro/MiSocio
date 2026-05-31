@@ -153,8 +153,38 @@ class Ventas extends Component
         $this->procesandoPago = false;
     }
 
-    public function pagarCredito()
+    public function enviarRecordatorioWhatsApp()
     {
+        if (!$this->ventaAPagar) return;
+
+        try {
+            $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+            $venta  = Venta::with(['ventaItems.producto', 'cliente', 'user'])->find($this->ventaAPagar->id);
+
+            if (!$venta) {
+                $this->toast('error', 'No se encontró la venta');
+                return;
+            }
+
+            if (!$venta->cliente || empty($venta->cliente->celular)) {
+                $this->toast('warning', 'El cliente no tiene número de celular registrado');
+                return;
+            }
+
+            $result = app(GreenApiService::class)->sendRecordatorioCredito($venta, $config);
+
+            if ($result) {
+                $this->toast('success', 'Recordatorio enviado a ' . $venta->cliente->nombre);
+            } else {
+                $this->toast('error', 'No se pudo enviar el mensaje. Revisa la configuración de WhatsApp.');
+            }
+        } catch (\Throwable $e) {
+            Log::error('Error enviando recordatorio WhatsApp: ' . $e->getMessage());
+            $this->toast('error', 'Error al enviar el recordatorio');
+        }
+    }
+
+
         // Validaciones
         $efectivo = round((float) $this->montoPagoEfectivo, 2);
         $online = round((float) $this->montoPagoOnline, 2);
