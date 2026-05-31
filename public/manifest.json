@@ -21,7 +21,7 @@
             "purpose": "any"
         },
         {
-            "src": "/assets/images/misocio.png",
+            "src": "/assets/images/misocio_bg.png",
             "sizes": "2048x2048",
             "type": "image/png",
             "purpose": "maskable any"

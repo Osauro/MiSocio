@@ -16,8 +16,8 @@
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/assets/images/misocio.png" />
-    <link rel="apple-touch-startup-image" href="/assets/images/misocio.png" />
+    <link rel="apple-touch-icon" href="/assets/images/misocio_bg.png" />
+    <link rel="apple-touch-startup-image" href="/assets/images/misocio_bg.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
