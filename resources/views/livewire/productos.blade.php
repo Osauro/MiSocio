@@ -9,7 +9,7 @@
                             <div class="nav-item w-100 w-md-auto" style="max-width: 100%;">
                                 <div class="input-group">
                                     <input type="text" class="form-control text-start" placeholder="Buscar productos"
-                                        wire:model.live="search" style="min-width: 200px;" id="searchInput" @if(!$mostrarModal) autofocus @endif>
+                                        wire:model.live="search" style="min-width: 200px;" id="searchInput">
                                     <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
@@ -20,7 +20,7 @@
                     <div class="card-header card-no-border d-md-none" style="position: sticky; top: 70px; z-index: 1030; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 8px 12px; margin: 0;">
                         <div class="input-group">
                             <input type="text" class="form-control text-start" placeholder="Buscar productos"
-                                wire:model.live="search" id="searchInput" @if(!$mostrarModal) autofocus @endif>
+                                wire:model.live="search" id="searchInput">
                             <button class="btn btn-primary" wire:click="create"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
@@ -457,6 +457,14 @@
 
     @script
     <script>
+        // Foco inicial en el buscador solo al montar el componente
+        if (!$wire.mostrarModal) {
+            requestAnimationFrame(() => {
+                const s = document.getElementById('searchInput');
+                if (s) s.focus();
+            });
+        }
+
         $wire.on('focar-precio-menor', () => {
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
