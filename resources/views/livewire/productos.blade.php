@@ -361,7 +361,8 @@
                                                 class="text-danger">*</span></label>
                                         <input type="number" step="0.01"
                                             class="form-control @error('precio_por_mayor') is-invalid @enderror"
-                                            wire:model="precio_por_mayor" wire:change="recalcularPrecioMenor" id="precio_por_mayor" placeholder="0.00">
+                                            wire:model="precio_por_mayor" wire:change="recalcularPrecioMenor" id="precio_por_mayor" placeholder="0.00"
+                                            @keydown.tab.prevent="$wire.recalcularPrecioMenor().then(() => $nextTick(() => { const el = document.getElementById('precio_por_menor'); el.focus(); el.select(); }))">
                                         @error('precio_por_mayor')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
