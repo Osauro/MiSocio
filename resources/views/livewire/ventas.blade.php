@@ -809,7 +809,7 @@
                             El monto total excede la deuda pendiente
                         </div>
                     </div>
-                    <div class="modal-footer gap-2">
+                    <div class="modal-footer gap-2 justify-content-end">
                         {{-- Cancelar: solo icono --}}
                         <button type="button"
                             class="btn btn-secondary"
@@ -839,7 +839,7 @@
 
                         {{-- Completar --}}
                         <button type="button"
-                            class="btn btn-primary ms-auto"
+                            class="btn btn-primary"
                             @click="finalizarPago()"
                             :disabled="{{ $procesandoPago ? 'true' : 'false' }} || totalPago <= 0 || totalPago > creditoTotal">
                             @if ($procesandoPago)
