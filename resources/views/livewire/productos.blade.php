@@ -48,6 +48,12 @@
                                                             wire:click="edit({{ $producto->id }})" title="Editar">
                                                             <i class="fa-solid fa-pen"></i>
                                                         </button>
+                                                        @if($producto->control)
+                                                        <button class="btn btn-sm btn-success"
+                                                            wire:click="abrirModalStock({{ $producto->id }})" title="Ajustar stock">
+                                                            <i class="fa-solid fa-boxes-stacked"></i>
+                                                        </button>
+                                                        @endif
                                                         <button class="btn btn-sm btn-danger"
                                                             wire:click="confirmDeleteProduct({{ $producto->id }})"
                                                             title="Eliminar">
@@ -172,6 +178,102 @@
     </div>
 
     @include('partials.paginate-bar', ['results' => $productos, 'storageKey' => 'productos'])
+
+    <!-- Modal Ajuste de Stock -->
+    @if ($mostrarModalStock)
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fa-solid fa-boxes-stacked me-2 text-success"></i>
+                            Ajustar Stock
+                        </h5>
+                        <button type="button" class="btn-close" wire:click="cerrarModalStock"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="fw-semibold text-center mb-3">{{ $stockProductoNombre }}</p>
+
+                        {{-- Acción --}}
+                        <div class="d-flex gap-2 mb-4">
+                            <button type="button"
+                                wire:click="$set('stockAccion', 'incrementar')"
+                                class="btn flex-fill {{ $stockAccion === 'incrementar' ? 'btn-success' : 'btn-outline-success' }}">
+                                <i class="fa-solid fa-plus me-1"></i> Incrementar
+                            </button>
+                            <button type="button"
+                                wire:click="$set('stockAccion', 'reducir')"
+                                class="btn flex-fill {{ $stockAccion === 'reducir' ? 'btn-danger' : 'btn-outline-danger' }}">
+                                <i class="fa-solid fa-minus me-1"></i> Reducir
+                            </button>
+                        </div>
+
+                        {{-- Inputs cantidad --}}
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold text-center w-100">
+                                    <i class="fa-solid fa-cube me-1 text-muted"></i>
+                                    Paquetes
+                                    <small class="text-muted d-block">(× {{ $stockProductoCantidad }} u.)</small>
+                                </label>
+                                <input type="number" class="form-control form-control-lg text-center"
+                                    wire:model.live="stockEnteros"
+                                    min="0" step="1" placeholder="0">
+                                @error('stockEnteros')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                @enderror
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold text-center w-100">
+                                    <i class="fa-solid fa-cubes me-1 text-muted"></i>
+                                    Unidades
+                                    <small class="text-muted d-block">&nbsp;</small>
+                                </label>
+                                <input type="number" class="form-control form-control-lg text-center"
+                                    wire:model.live="stockUnidades"
+                                    min="0" step="1" placeholder="0">
+                                @error('stockUnidades')
+                                    <span class="text-danger small">{{ $message }}</span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Total calculado --}}
+                        @php
+                            $totalCalc = ((int)($stockEnteros ?? 0) * $stockProductoCantidad) + (int)($stockUnidades ?? 0);
+                        @endphp
+                        <div class="alert alert-{{ $stockAccion === 'incrementar' ? 'success' : 'danger' }} py-2 text-center mb-3">
+                            <strong>{{ $stockAccion === 'incrementar' ? '+' : '-' }}{{ $totalCalc }}</strong> unidades
+                        </div>
+
+                        {{-- Observación --}}
+                        <div>
+                            <label class="form-label">Observación <span class="text-muted small">(opcional)</span></label>
+                            <input type="text" class="form-control" wire:model="stockObs"
+                                placeholder="Ej: Compra, ajuste, merma..." maxlength="255">
+                        </div>
+                    </div>
+                    <div class="modal-footer gap-2">
+                        <button type="button" class="btn btn-secondary" wire:click="cerrarModalStock">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                        <button type="button"
+                            class="btn {{ $stockAccion === 'incrementar' ? 'btn-success' : 'btn-danger' }} flex-fill"
+                            wire:click="aplicarAjusteStock"
+                            wire:loading.attr="disabled">
+                            <span wire:loading.remove wire:target="aplicarAjusteStock">
+                                <i class="fa-solid fa-check me-1"></i>
+                                {{ $stockAccion === 'incrementar' ? 'Incrementar' : 'Reducir' }}
+                            </span>
+                            <span wire:loading wire:target="aplicarAjusteStock">
+                                <span class="spinner-border spinner-border-sm me-1"></span> Guardando...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <!-- Modal para Crear/Editar Producto -->
     @if ($mostrarModal)

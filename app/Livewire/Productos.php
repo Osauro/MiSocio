@@ -4,11 +4,13 @@ namespace App\Livewire;
 
 use App\Models\Categoria;
 use App\Models\GaleriaImagen;
+use App\Models\Kardex;
 use App\Models\Medida;
 use App\Models\Producto;
 use App\Models\Tag;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -23,6 +25,16 @@ class Productos extends Component
     public $addingNewCategoria = false;
     public $addingNewMedida = false;
     public $mostrarModal = false;
+
+    // Modal ajuste de stock
+    public $mostrarModalStock = false;
+    public $stockProductoId = null;
+    public $stockProductoNombre = '';
+    public $stockProductoCantidad = 1; // unidades por paquete
+    public $stockAccion = 'incrementar'; // 'incrementar' o 'reducir'
+    public $stockEnteros = 0;
+    public $stockUnidades = 0;
+    public $stockObs = '';
 
     // Galería / Imagen
     public $imagen;             // path relativo guardado en DB (string)
@@ -182,7 +194,92 @@ class Productos extends Component
     }
 
     /**
-     * Mostrar el modal para crear un nuevo producto.
+     * Abrir modal de ajuste de stock.
+     */
+    public function abrirModalStock($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $this->stockProductoId     = $producto->id;
+        $this->stockProductoNombre = $producto->nombre;
+        $this->stockProductoCantidad = max(1, (int) $producto->cantidad);
+        $this->stockAccion   = 'incrementar';
+        $this->stockEnteros  = 0;
+        $this->stockUnidades = 0;
+        $this->stockObs      = '';
+        $this->mostrarModalStock = true;
+    }
+
+    /**
+     * Cerrar modal de ajuste de stock.
+     */
+    public function cerrarModalStock()
+    {
+        $this->mostrarModalStock = false;
+        $this->stockProductoId = null;
+    }
+
+    /**
+     * Aplicar el ajuste de stock.
+     */
+    public function aplicarAjusteStock()
+    {
+        $this->validate([
+            'stockEnteros'  => 'required|integer|min:0',
+            'stockUnidades' => 'required|integer|min:0',
+            'stockAccion'   => 'required|in:incrementar,reducir',
+            'stockObs'      => 'nullable|string|max:255',
+        ], [
+            'stockEnteros.min'  => 'Los enteros no pueden ser negativos',
+            'stockUnidades.min' => 'Las unidades no pueden ser negativas',
+        ]);
+
+        $cantidadTotal = ((int) $this->stockEnteros * $this->stockProductoCantidad) + (int) $this->stockUnidades;
+
+        if ($cantidadTotal === 0) {
+            $this->addError('stockUnidades', 'Debe ingresar al menos 1 unidad');
+            return;
+        }
+
+        $producto = Producto::findOrFail($this->stockProductoId);
+        $stockAnterior = $producto->stock;
+
+        if ($this->stockAccion === 'incrementar') {
+            $producto->stock += $cantidadTotal;
+            $obs = 'Ajuste manual +' . $cantidadTotal . ($this->stockObs ? ' - ' . $this->stockObs : '');
+            $entrada = $cantidadTotal;
+            $salida  = 0;
+        } else {
+            if ($cantidadTotal > $producto->stock) {
+                $this->addError('stockUnidades', 'No hay suficiente stock. Disponible: ' . $producto->stock);
+                return;
+            }
+            $producto->stock -= $cantidadTotal;
+            $obs = 'Ajuste manual -' . $cantidadTotal . ($this->stockObs ? ' - ' . $this->stockObs : '');
+            $entrada = 0;
+            $salida  = $cantidadTotal;
+        }
+
+        $producto->save();
+
+        Kardex::create([
+            'tenant_id'  => currentTenantId(),
+            'user_id'    => Auth::id(),
+            'producto_id'=> $producto->id,
+            'entrada'    => $entrada,
+            'salida'     => $salida,
+            'anterior'   => $stockAnterior,
+            'saldo'      => $producto->stock,
+            'precio'     => 0,
+            'total'      => 0,
+            'obs'        => $obs,
+        ]);
+
+        $this->cerrarModalStock();
+        $this->toast('success', 'Stock actualizado. Nuevo stock: ' . $producto->stock_formateado);
+    }
+
+    /**
+     * Abrir modal para crear un nuevo producto.
      */
     public function create()
     {
