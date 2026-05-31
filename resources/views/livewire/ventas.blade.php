@@ -17,8 +17,20 @@
                                             <i class="fa-solid fa-calendar-days"></i>
                                         </button>
                                     @endif
-                                    <input type="text" class="form-control text-start" placeholder="Buscar venta..."
-                                        wire:model.live="search" style="min-width: 200px;" id="searchInput" autofocus>
+                                    <div class="position-relative" style="min-width: 200px; flex: 1;">
+                                        <input type="text" class="form-control text-start pe-4" placeholder="Buscar venta..."
+                                            wire:model.live="search" id="searchInput" autofocus
+                                            x-on:keydown.escape="$wire.set('search', '')"
+                                            style="border-radius: 0;">
+                                        @if($search)
+                                            <button type="button"
+                                                class="btn btn-sm position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent text-muted pe-2"
+                                                wire:click="$set('search', '')"
+                                                title="Limpiar búsqueda (ESC)" style="z-index:5;">
+                                                <i class="fa-solid fa-times"></i>
+                                            </button>
+                                        @endif
+                                    </div>
                                     <button class="btn btn-primary" wire:click="crearVenta"><i class="fa-solid fa-plus"></i></button>
                                 </div>
                             </div>
@@ -37,8 +49,20 @@
                                     <i class="fa-solid fa-calendar-days"></i>
                                 </button>
                             @endif
-                            <input type="text" class="form-control text-start" placeholder="Buscar venta..."
-                                wire:model.live="search" id="searchInput" autofocus>
+                            <div class="position-relative" style="flex: 1;">
+                                <input type="text" class="form-control text-start pe-4" placeholder="Buscar venta..."
+                                    wire:model.live="search" id="searchInputMobile" autofocus
+                                    x-on:keydown.escape="$wire.set('search', '')"
+                                    style="border-radius: 0;">
+                                @if($search)
+                                    <button type="button"
+                                        class="btn btn-sm position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent text-muted pe-2"
+                                        wire:click="$set('search', '')"
+                                        title="Limpiar búsqueda (ESC)" style="z-index:5;">
+                                        <i class="fa-solid fa-times"></i>
+                                    </button>
+                                @endif
+                            </div>
                             <button class="btn btn-primary" wire:click="crearVenta"><i class="fa-solid fa-plus"></i></button>
                         </div>
                     </div>
