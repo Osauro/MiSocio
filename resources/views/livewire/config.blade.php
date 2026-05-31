@@ -728,7 +728,7 @@
                                                 class="card border h-100 shadow-sm p-3 cursor-pointer text-center
                                                     {{ $greenapi_notif_ventas ? 'border-success bg-success bg-opacity-10' : '' }}"
                                                 style="cursor:pointer;">
-                                                <div class="fs-2 mb-2 {{ $greenapi_notif_ventas ? 'text-success' : 'text-secondary' }}">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_ventas ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-receipt"></i>
                                                 </div>
                                                 <div class="fw-semibold small lh-sm mb-2">Notificar ventas al propietario</div>
@@ -748,7 +748,7 @@
                                                 class="card border h-100 shadow-sm p-3 text-center
                                                     {{ $greenapi_notif_credito ? 'border-success bg-success bg-opacity-10' : '' }}"
                                                 style="cursor:pointer;">
-                                                <div class="fs-2 mb-2 {{ $greenapi_notif_credito ? 'text-success' : 'text-secondary' }}">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_credito ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-credit-card"></i>
                                                 </div>
                                                 <div class="fw-semibold small lh-sm mb-2">Notificar venta a crédito al cliente</div>
@@ -768,7 +768,7 @@
                                                 class="card border h-100 shadow-sm p-3 text-center
                                                     {{ $greenapi_notif_pago_credito ? 'border-success bg-success bg-opacity-10' : '' }}"
                                                 style="cursor:pointer;">
-                                                <div class="fs-2 mb-2 {{ $greenapi_notif_pago_credito ? 'text-success' : 'text-secondary' }}">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_pago_credito ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-money-bill-wave"></i>
                                                 </div>
                                                 <div class="fw-semibold small lh-sm mb-2">Notificar pago de crédito al cliente</div>
@@ -796,7 +796,7 @@
                                                 class="card border h-100 shadow-sm p-3 text-center
                                                     {{ $greenapi_notif_prestamo ? 'border-success bg-success bg-opacity-10' : '' }}"
                                                 style="cursor:pointer;">
-                                                <div class="fs-2 mb-2 {{ $greenapi_notif_prestamo ? 'text-success' : 'text-secondary' }}">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_prestamo ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-box-open"></i>
                                                 </div>
                                                 <div class="fw-semibold small lh-sm mb-2">Notificar nuevo préstamo al cliente</div>
@@ -816,7 +816,7 @@
                                                 class="card border h-100 shadow-sm p-3 text-center
                                                     {{ $greenapi_notif_devolucion_prestamo ? 'border-success bg-success bg-opacity-10' : '' }}"
                                                 style="cursor:pointer;">
-                                                <div class="fs-2 mb-2 {{ $greenapi_notif_devolucion_prestamo ? 'text-success' : 'text-secondary' }}">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_devolucion_prestamo ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-rotate-left"></i>
                                                 </div>
                                                 <div class="fw-semibold small lh-sm mb-2">Notificar devolución de préstamo al cliente</div>
@@ -836,7 +836,7 @@
                                                 class="card border h-100 shadow-sm p-3 text-center
                                                     {{ $greenapi_notif_vencimiento_prestamo ? 'border-warning bg-warning bg-opacity-10' : '' }}"
                                                 style="cursor:pointer;">
-                                                <div class="fs-2 mb-2 {{ $greenapi_notif_vencimiento_prestamo ? 'text-warning' : 'text-secondary' }}">
+                                                <div class="fs-2 mb-2 {{ $greenapi_notif_vencimiento_prestamo ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-clock"></i>
                                                 </div>
                                                 <div class="fw-semibold small lh-sm mb-2">Notificar vencimiento de préstamo al cliente</div>
