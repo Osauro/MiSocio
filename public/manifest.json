@@ -2,7 +2,7 @@
     "name": "MiSocio",
     "short_name": "MiSocio",
     "description": "Panel de gestión de tu negocio. Ventas, inventario, compras y más.",
-    "start_url": "/",
+    "start_url": "/ventas",
     "display": "standalone",
     "orientation": "portrait",
     "background_color": "#ffffff",
