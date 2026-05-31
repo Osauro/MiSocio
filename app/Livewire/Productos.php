@@ -89,6 +89,26 @@ class Productos extends Component
         'imagen-seleccionada' => 'imagenSeleccionada',
     ];
 
+    public function updatedPrecioPorMayor($value)
+    {
+        $mayor = (float) $value;
+        $cantidad = max(1, (int) $this->cantidad);
+
+        if ($mayor > 0) {
+            $precioUnidad = $mayor / $cantidad * 1.05;
+            // Redondear al entero superior (si tiene cualquier decimal, subir al siguiente entero)
+            $this->precio_por_menor = ceil($precioUnidad);
+        }
+    }
+
+    public function updatedCantidad($value)
+    {
+        // Recalcular precio menor si ya hay precio por mayor
+        if ((float) $this->precio_por_mayor > 0) {
+            $this->updatedPrecioPorMayor($this->precio_por_mayor);
+        }
+    }
+
     public function mount()
     {
         $this->perPage = isset($_COOKIE['paginateProductos']) ? (int)$_COOKIE['paginateProductos'] : 15;
