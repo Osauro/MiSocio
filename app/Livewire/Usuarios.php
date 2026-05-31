@@ -178,7 +178,7 @@ class Usuarios extends Component
                 }
 
                 // Generar PIN automático de 4 dígitos si no se ingresó uno
-                $pin = $this->password ?: str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+                $pin = str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
 
                 $user = User::create([
                     'name' => $this->name,
