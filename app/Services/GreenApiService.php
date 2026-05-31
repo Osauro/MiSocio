@@ -299,4 +299,100 @@ class GreenApiService
 
         return $this->sendMessage($prefijo . $user->celular, $msg);
     }
+
+    // ── Imagen / archivo ─────────────────────────────────────────────────────
+
+    /**
+     * Envía un archivo (imagen, PDF, etc.) vía Green API usando multipart upload.
+     *
+     * @param  string  $phone     Número con prefijo (e.g. 59173010688)
+     * @param  string  $filePath  Ruta absoluta al archivo local
+     * @param  string  $fileName  Nombre del archivo con extensión (e.g. ticket.png)
+     * @param  string  $caption   Leyenda opcional (máx. 1024 chars)
+     */
+    public function sendFileByUpload(string $phone, string $filePath, string $fileName, string $caption = ''): bool
+    {
+        $phone = preg_replace('/\D/', '', $phone);
+
+        if (empty($this->instanceId) || empty($this->apiToken) || empty($phone)) {
+            return false;
+        }
+
+        $url = "{$this->baseUrl}/waInstance{$this->instanceId}/sendFileByUpload/{$this->apiToken}";
+
+        try {
+            $response = Http::timeout(30)->attach(
+                'file',
+                file_get_contents($filePath),
+                $fileName,
+                ['Content-Type' => 'image/png']
+            )->post($url, [
+                'chatId'  => "{$phone}@c.us",
+                'caption' => mb_substr($caption, 0, 1024),
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning('GreenAPI: archivo no enviado', [
+                    'phone'  => $phone,
+                    'file'   => $fileName,
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('GreenAPI: error al enviar archivo', [
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Genera un ticket de venta como imagen PNG y lo envía por WhatsApp
+     * al número del propietario configurado en TenantConfig.
+     */
+    public function sendVentaImagen(Venta $venta, TenantConfig $config): bool
+    {
+        if (empty($config->propietario_celular)) return false;
+
+        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+        $numero  = preg_replace('/\D/', '', $config->propietario_celular);
+        $phone   = $prefijo . $numero;
+
+        // Asegurar que los relations estén cargados
+        $venta->loadMissing(['ventaItems.producto', 'cliente', 'user']);
+
+        // Generar imagen ticket
+        /** @var TicketImageService $ticketService */
+        $ticketService = app(TicketImageService::class);
+        $png           = $ticketService->generarTicketVenta($venta, $config);
+
+        // Guardar en temp y enviar
+        $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . "ticket_venta_{$venta->id}_" . time() . '.png';
+        file_put_contents($tmpPath, $png);
+
+        $total   = (float) ($venta->efectivo ?? 0)
+                 + (float) ($venta->online   ?? 0)
+                 + (float) ($venta->credito  ?? 0);
+        $tienda  = $config->nombre_tienda ?: 'Tu tienda';
+        $cajero  = optional($venta->user)->name ?? '-';
+        $cliente = optional($venta->cliente)->nombre ?? '';
+
+        $caption = "🛒 *Nueva venta - {$tienda}*\n"
+            . "Folio: #{$venta->numero_folio}  |  Total: Bs. " . number_format($total, 2) . "\n"
+            . "Cajero: {$cajero}"
+            . ($cliente ? "\nCliente: {$cliente}" : '');
+
+        try {
+            $result = $this->sendFileByUpload($phone, $tmpPath, "ticket_{$venta->numero_folio}.png", $caption);
+        } finally {
+            @unlink($tmpPath);
+        }
+
+        return $result;
+    }
 }

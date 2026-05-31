@@ -1092,7 +1092,7 @@ class Venta extends Component
             }
             if (!empty($config->greenapi_notif_ventas)) {
                 try {
-                    app(\App\Services\GreenApiService::class)->notifyVenta($this->venta, $config);
+                    app(\App\Services\GreenApiService::class)->sendVentaImagen($this->venta, $config);
                 } catch (\Throwable) {}
             }
             if (!empty($config->greenapi_notif_credito) && ($this->venta->credito ?? 0) > 0) {
