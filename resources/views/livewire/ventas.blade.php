@@ -809,16 +809,37 @@
                             El monto total excede la deuda pendiente
                         </div>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer gap-2">
+                        {{-- Cancelar: solo icono --}}
                         <button type="button"
                             class="btn btn-secondary"
                             wire:click="cerrarModalPago"
+                            title="Cancelar"
                             {{ $procesandoPago ? 'disabled' : '' }}>
-                            <i class="fa-solid fa-times me-1"></i>
-                            Cancelar
+                            <i class="fa-solid fa-times"></i>
                         </button>
+
+                        {{-- WhatsApp: solo icono, abre chat con el celular del cliente --}}
+                        @if ($ventaAPagar && $ventaAPagar->cliente && $ventaAPagar->cliente->celular)
+                            @php
+                                $celular = preg_replace('/\D/', '', $ventaAPagar->cliente->celular);
+                                $waPhone = '591' . $celular;
+                            @endphp
+                            <a href="https://wa.me/{{ $waPhone }}"
+                                target="_blank"
+                                class="btn btn-success"
+                                title="Abrir WhatsApp de {{ $ventaAPagar->cliente->nombre }}">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </a>
+                        @else
+                            <button type="button" class="btn btn-success" disabled title="Cliente sin número registrado">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </button>
+                        @endif
+
+                        {{-- Completar --}}
                         <button type="button"
-                            class="btn btn-success"
+                            class="btn btn-primary ms-auto"
                             @click="finalizarPago()"
                             :disabled="{{ $procesandoPago ? 'true' : 'false' }} || totalPago <= 0 || totalPago > creditoTotal">
                             @if ($procesandoPago)
@@ -826,7 +847,7 @@
                                 Procesando...
                             @else
                                 <i class="fa-solid fa-check me-1"></i>
-                                Finalizar Pago <span class="badge bg-white text-success ms-1">Enter</span>
+                                Completar
                             @endif
                         </button>
                     </div>
