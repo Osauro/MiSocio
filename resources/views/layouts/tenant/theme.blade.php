@@ -16,8 +16,8 @@
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon" />
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/assets/images/misocio_bg.png" />
-    <link rel="apple-touch-startup-image" href="/assets/images/misocio_bg.png" />
+    <link rel="apple-touch-icon" href="/assets/images/icon-192.png" />
+    <link rel="apple-touch-startup-image" href="/assets/images/misocio.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -98,6 +98,27 @@
 </head>
 
 <body>
+    <!-- Splash Screen PWA -->
+    <div id="pwa-splash" style="position:fixed;inset:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .4s ease">
+        <img src="/assets/images/misocio.png" alt="MiSocio" style="max-width:100%;max-height:100%;object-fit:contain" />
+    </div>
+    <script>
+        (function(){
+            function hideSplash(){
+                var s=document.getElementById('pwa-splash');
+                if(!s)return;
+                s.style.opacity='0';
+                setTimeout(function(){s.style.display='none';},420);
+            }
+            // Solo mostrar si es PWA standalone (instalada)
+            if(!window.matchMedia('(display-mode: standalone)').matches && !navigator.standalone){
+                document.getElementById('pwa-splash').style.display='none';
+            } else {
+                window.addEventListener('load', hideSplash);
+                setTimeout(hideSplash, 3000);
+            }
+        })();
+    </script>
     <!-- page-wrapper Start-->
     <!-- tap on top starts-->
     <div class="tap-top"><i class="iconly-Arrow-Up icli"></i></div>
@@ -412,7 +433,7 @@
         // Registrar Service Worker
         if ('serviceWorker' in navigator) {
             let swReg;
-            navigator.serviceWorker.register('/sw.js').then(reg => {
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {
                 swReg = reg;
                 // Detectar nueva versión disponible
                 reg.addEventListener('updatefound', () => {
@@ -427,6 +448,12 @@
                 if (reg.waiting && navigator.serviceWorker.controller) {
                     document.getElementById('sw-update-banner').style.display = 'flex';
                 }
+                // Verificar actualizaciones cada hora
+                setInterval(() => reg.update(), 60 * 60 * 1000);
+                // Verificar al recuperar el foco de la pestaña
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') reg.update();
+                });
             }).catch(() => {});
 
             document.getElementById('sw-update-btn')?.addEventListener('click', () => {

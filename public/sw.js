@@ -1,4 +1,4 @@
-const CACHE_NAME = 'misocio-v6';
+const CACHE_NAME = 'misocio-v7';
 
 // Recursos estáticos a cachear en instalación
 const PRECACHE_URLS = [
@@ -12,16 +12,8 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             return cache.addAll(PRECACHE_URLS).catch(() => {});
-        })
-        // No llamar skipWaiting automáticamente — esperar confirmación del usuario
+        }).then(() => self.skipWaiting()) // Activar inmediatamente sin esperar
     );
-});
-
-// Escuchar mensaje del cliente para activar nueva versión
-self.addEventListener('message', event => {
-    if (event.data?.type === 'SKIP_WAITING') {
-        self.skipWaiting();
-    }
 });
 
 self.addEventListener('activate', event => {

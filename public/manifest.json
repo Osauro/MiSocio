@@ -18,13 +18,16 @@
             "src": "/assets/images/icon-512.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any"
-        },
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
         {
-            "src": "/assets/images/misocio_bg.png",
-            "sizes": "2048x2048",
+            "src": "/assets/images/misocio.png",
+            "sizes": "540x960",
             "type": "image/png",
-            "purpose": "maskable any"
+            "form_factor": "narrow",
+            "label": "MiSocio"
         }
     ]
 }
