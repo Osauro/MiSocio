@@ -24,7 +24,7 @@
     "screenshots": [
         {
             "src": "/assets/images/misocio.png",
-            "sizes": "540x960",
+            "sizes": "540x540",
             "type": "image/png",
             "form_factor": "narrow",
             "label": "MiSocio"

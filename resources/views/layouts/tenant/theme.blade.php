@@ -110,10 +110,12 @@
                 s.style.opacity='0';
                 setTimeout(function(){s.style.display='none';},420);
             }
-            // Solo mostrar si es PWA standalone (instalada)
-            if(!window.matchMedia('(display-mode: standalone)').matches && !navigator.standalone){
+            var isPwa = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+            var alreadyShown = sessionStorage.getItem('splash_shown');
+            if(!isPwa || alreadyShown){
                 document.getElementById('pwa-splash').style.display='none';
             } else {
+                sessionStorage.setItem('splash_shown','1');
                 window.addEventListener('load', hideSplash);
                 setTimeout(hideSplash, 3000);
             }
