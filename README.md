@@ -1,27 +1,42 @@
-﻿<h1 align="center">MiSocio</h1>
-<p align="center"><em>Sistema de Gestión Empresarial Multi-Tenant</em></p>
+﻿<div align="center">
 
-<p align="center">
-  <img src="https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat&logo=php&logoColor=white" alt="PHP 8.2+">
-  <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat&logo=laravel&logoColor=white" alt="Laravel 12">
-  <img src="https://img.shields.io/badge/Livewire-4-FB70A9?style=flat&logo=livewire&logoColor=white" alt="Livewire 4">
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat&logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
-  <img src="https://img.shields.io/badge/PWA-Habilitada-5A0FC8?style=flat&logo=pwa&logoColor=white" alt="PWA">
-</p>
+# 🏢 MiSocio — Sistema de Gestión Empresarial
+
+**Plataforma SaaS multi-tenant para la administración integral de negocios**
+
+[![PHP](https://img.shields.io/badge/PHP-8.2+-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=flat-square&logo=laravel&logoColor=white)](https://laravel.com)
+[![Livewire](https://img.shields.io/badge/Livewire-4.x-FB70A9?style=flat-square&logo=livewire&logoColor=white)](https://livewire.laravel.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0+-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
+[![Stripe](https://img.shields.io/badge/Stripe-Integrado-635BFF?style=flat-square&logo=stripe&logoColor=white)](https://stripe.com)
+[![PWA](https://img.shields.io/badge/PWA-Habilitada-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
+[![License](https://img.shields.io/badge/Licencia-Privada-red?style=flat-square)](LICENSE)
+
+</div>
 
 ---
 
-## Descripción General
+## 📖 Descripción General
 
 **MiSocio** es una plataforma SaaS multi-tenant de gestión empresarial diseñada para pequeñas y medianas empresas. Permite administrar ventas, compras, préstamos, inventario, hospedajes y mucho más desde una única interfaz web reactiva, instalable como aplicación en cualquier dispositivo (PWA).
 
 Cada negocio registrado opera en un entorno completamente aislado (tenant), con sus propios productos, clientes, usuarios y configuraciones. Un único super-administrador (landlord) gestiona todos los negocios registrados en la plataforma.
 
+### ¿Para quién está diseñado?
+
+| Tipo de negocio | Caso de uso |
+|---|---|
+| Tiendas y minimarkets | Punto de venta con impresión térmica y control de inventario |
+| Casas de empeño | Gestión de préstamos de artículos con alertas de vencimiento |
+| Hostales y posadas | Control de habitaciones, check-in/out y cobros |
+| Negocios con múltiples sucursales | Administración centralizada multi-tenant |
+
 ---
 
-## Características Principales
+## ✨ Características Principales
 
-### Punto de Venta
+### 🛒 Punto de Venta
 - Creación de ventas con búsqueda de productos en tiempo real
 - Soporte de pagos mixtos: **efectivo**, **pago online** y **crédito**
 - Cálculo automático de cambio
@@ -30,74 +45,83 @@ Cada negocio registrado opera en un entorno completamente aislado (tenant), con 
 - Exportación de tickets en **PDF**
 - Gestión de ventas a crédito y registro de abonos
 
-### Compras y Proveedores
+### 📦 Compras y Proveedores
 - Registro de órdenes de compra por proveedor
 - Actualización automática del kardex y stock al confirmar compra
 - Importación de compras mediante **código QR**
 - Impresión automática de comprobante de compra
 
-### Préstamos
-- Gestión completa del ciclo de préstamo de artículos a clientes
+### 🔖 Préstamos de Artículos
+- Gestión completa del ciclo de préstamo a clientes
 - Fechas de vencimiento configurables
 - Notificación automática por **WhatsApp** al cliente y al propietario cuando un préstamo está próximo a vencer
 - Tickets de préstamo y devolución en PDF
 
-### Inventario Físico
+### 📋 Inventario Físico
 - Creación de inventarios con conteo de unidades por producto
 - Comparación entre stock real y stock del sistema
 - Ajuste automático del kardex al cerrar el inventario
 - Exportación del inventario en PDF
 
-### Kardex y Movimientos
+### 📊 Kardex y Movimientos
 - Historial detallado de entradas y salidas por producto
 - Registro de movimientos manuales con motivo
 - Trazabilidad completa de cada unidad
 
-### Hospedajes
+### 🏨 Hospedajes
 - Gestión de tipos de habitación con tarifas por modalidad (horas, noche, día)
 - Registro de huéspedes con número de personas y acompañantes
 - Control de check-in / check-out con fechas estimadas y reales
 - Soporte de pagos mixtos (efectivo, online, crédito)
 
-### Catálogo de Productos
+### 🗂️ Catálogo de Productos
 - Gestión de productos con categorías, etiquetas y unidades de medida
 - Control de stock y precio de compra/venta
 - Imágenes de producto mediante galería integrada
 - Control de fechas de vencimiento
 - Soft delete (eliminación lógica)
 
-### Gestión de Clientes
+### 👥 Gestión de Clientes
 - Base de datos de clientes con nombre, teléfono, correo y CI
 - Historial de ventas, préstamos y hospedajes por cliente
 
-### Usuarios y Roles
-- Tres niveles de acceso:
-  - **Landlord** — super-administrador de la plataforma
-  - **Admin** — administrador del negocio (acceso total dentro de su tenant)
-  - **Operador** — acceso limitado a ventas, inventarios y módulos habilitados
-- Control de usuarios activos/inactivos por negocio
+### 🔐 Usuarios y Roles
+El sistema cuenta con tres niveles de acceso bien definidos:
 
-### Notificaciones por WhatsApp (Green API)
+**Landlord (Super-Administrador)**
+- Gestión de todos los negocios registrados en la plataforma
+- Administración de suscripciones y pagos
+- Panel dedicado en `/admin`
+
+**Admin (Administrador del Negocio)**
+- Acceso total dentro de su tenant
+- Gestión de usuarios, productos, clientes y configuración
+
+**Operador**
+- Acceso limitado a ventas, inventarios y módulos habilitados
+- Sin acceso a configuración ni reportes avanzados
+
+### 📱 Notificaciones por WhatsApp (Green API)
 - Notificación al propietario por cada venta, crédito o cobro de abono
 - Alerta de préstamos próximos a vencer (tarea programada diaria)
 - Notificación de devolución de préstamos
 - Configurable por tenant desde el panel de configuración
 
-### Impresión Térmica (Print Agent)
+### 🖨️ Impresión Térmica (Print Agent)
 - Conexión con impresoras ESC/POS a través de un agente local seguro
 - Configuración independiente de impresora por módulo (ventas, compras, préstamos, inventario)
 - Soporte de distintos tamaños de papel (58 mm, 80 mm, A4, etc.)
 - Impresión automática al confirmar documentos
 - Corte automático y apertura de cajón configurables
 
-### Suscripciones y Facturación
+### 💳 Suscripciones y Facturación
 - Planes de suscripción configurables con precio, duración y características
 - Registro de membresías y fechas de vencimiento
 - Bloqueo automático del tenant al vencer la suscripción
 - Pasarela de pago integrada con **Stripe**
 - Panel landlord para gestión de pagos y verificación manual
 
-### Configuración del Negocio
+### ⚙️ Configuración del Negocio
 - Nombre de la tienda, dirección, NIT, teléfono y logo
 - Personalización de ticket con pie de página
 - Múltiples temas de color por negocio
@@ -106,67 +130,153 @@ Cada negocio registrado opera en un entorno completamente aislado (tenant), con 
 
 ---
 
-## Tecnología
+## 🖥️ Módulos del Sistema
 
-| Capa | Tecnología |
-|------|-----------|
-| Backend | PHP 8.2 + Laravel 12 |
-| Frontend reactivo | Livewire 4 |
-| Estilos | Tailwind CSS 3 + Vite |
-| Base de datos | MySQL / MariaDB (Eloquent ORM) |
-| Generación de PDF | DomPDF |
-| Impresión térmica | mike42/escpos-php + Print Agent |
-| WhatsApp | Green API |
-| Pagos | Stripe |
-| Imágenes | Intervention Image |
-| PWA | Manifest dinámico + Service Worker |
-| Autenticación | Laravel Breeze |
-| Tests | PHPUnit 11 |
+> El sistema cuenta con una interfaz moderna y responsiva basada en Tailwind CSS, accesible desde computadoras, tablets y teléfonos móviles, e instalable como PWA.
+
+| Módulo | Descripción |
+|---|---|
+| **Dashboard** | Panel principal con métricas y resumen del negocio |
+| **Punto de Venta** | Ventas con pagos mixtos e impresión automática |
+| **Compras** | Órdenes de compra con actualización de kardex |
+| **Préstamos** | Préstamo de artículos con alertas por WhatsApp |
+| **Inventario** | Conteo físico con ajuste automático de stock |
+| **Kardex** | Trazabilidad completa de movimientos de productos |
+| **Hospedajes** | Check-in/out de habitaciones con control de tarifas |
+| **Clientes** | CRUD completo con historial por módulo |
+| **Productos** | Catálogo con galería, categorías y control de stock |
+| **Usuarios** | Gestión de roles y accesos por negocio |
+| **Suscripciones** | Planes y pagos con Stripe |
+| **Configuración** | Personalización total del negocio y módulos |
+| **Panel Landlord** | Administración global de todos los tenants |
 
 ---
 
-## Arquitectura Multi-Tenant
+## 🔄 Flujo de Trabajo Típico
+
+```
+1. REGISTRO DEL NEGOCIO
+   └── El landlord crea un nuevo tenant con su plan de suscripción
+
+2. CONFIGURACIÓN INICIAL
+   ├── El admin configura nombre, logo y módulos habilitados
+   ├── Registra productos, categorías y proveedores
+   └── Crea usuarios operadores y asigna permisos
+
+3. OPERACIÓN DIARIA
+   ├── VENTAS: El operador busca productos → agrega al carrito → cobra → imprime ticket
+   ├── COMPRAS: Registra compra → el stock y kardex se actualizan automáticamente
+   └── PRÉSTAMOS: Crea préstamo → notificación por WhatsApp al vencer
+
+4. CONTROL DE INVENTARIO
+   ├── Crea inventario físico con conteo real
+   ├── El sistema compara contra el stock registrado
+   └── Al cerrar, ajusta automáticamente el kardex
+
+5. GESTIÓN DE SUSCRIPCIÓN
+   └── El tenant paga mediante Stripe → el landlord verifica → acceso renovado
+```
+
+---
+
+## 🏗️ Arquitectura Técnica
+
+El proyecto sigue la arquitectura **MVC** de Laravel con componentes **Livewire** para interactividad en tiempo real sin escribir JavaScript, sobre un modelo **single-database multi-tenant**:
+
+```
+app/
+├── Http/
+│   ├── Controllers/        # Controladores (tickets, perfil, auth)
+│   ├── Middleware/         # tenant, tenant.active, tenant.manage, landlord
+│   └── Requests/           # Validaciones de formulario
+├── Livewire/
+│   ├── Ventas.php / Venta.php / VentaCart.php
+│   ├── Compras.php / Compra.php / CompraCart.php
+│   ├── Prestamos.php / Prestamo.php / PrestamoCart.php
+│   ├── Inventarios.php / Inventario.php / Kardex.php
+│   ├── Hospedajes.php / Habitaciones.php
+│   ├── Productos.php / Clientes.php / Usuarios.php
+│   └── Landlord/           # Panel de administración global
+├── Models/                 # Modelos Eloquent con Global Scopes por tenant_id
+├── Services/               # GreenApiService, EscposPrinterService, TicketImageService
+└── Helpers/                # helpers.php, TenantHelper.php
+```
+
+### Tecnologías Utilizadas
+
+| Tecnología | Versión | Uso |
+|---|---|---|
+| **Laravel** | 12.x | Framework PHP principal |
+| **Livewire** | 4.x | Componentes dinámicos sin JS |
+| **Tailwind CSS** | 3.x | Diseño responsivo |
+| **Vite** | Latest | Compilación de assets |
+| **DomPDF** | Latest | Generación de PDF |
+| **mike42/escpos-php** | Latest | Impresión térmica ESC/POS |
+| **Green API** | — | Notificaciones por WhatsApp |
+| **Stripe** | Latest | Pagos de suscripción |
+| **Intervention Image** | Latest | Procesamiento de imágenes |
+| **Laravel Breeze** | Latest | Autenticación |
+| **MySQL / MariaDB** | 8.0+ | Base de datos |
+| **PHPUnit** | 11 | Tests automatizados |
+
+---
+
+## 🏢 Arquitectura Multi-Tenant
 
 La plataforma utiliza una arquitectura **single-database multi-tenant** basada en `tenant_id`:
 
 - Cada modelo de negocio aplica un **Global Scope** automático que filtra registros por el tenant activo en sesión.
 - Los middlewares `tenant`, `tenant.active` y `tenant.manage` controlan el acceso por rol y estado de suscripción.
-- El **landlord** administra todos los negocios desde un panel dedicado (`/admin`).
+- El **landlord** administra todos los negocios desde un panel dedicado en `/admin`.
 - El cambio de tenant activo se realiza sin cerrar sesión desde el selector de tiendas.
 
 ---
 
-## Instalación
+## 📋 Requisitos del Sistema
 
-### Requisitos previos
-- PHP >= 8.2 con extensiones: `mbstring`, `pdo_mysql`, `gd`, `zip`, `curl`
-- Composer 2
-- Node.js 18+ y npm
-- MySQL / MariaDB
+| Componente | Versión mínima |
+|---|---|
+| PHP | 8.2 o superior |
+| Composer | 2.x |
+| MySQL / MariaDB | 8.0 o superior |
+| Node.js | 18.0 o superior |
+| NPM | 9.x o superior |
+| Extensiones PHP | `mbstring`, `pdo_mysql`, `gd`, `zip`, `curl` |
 
-### Pasos
+---
 
+## 🛠️ Instalación
+
+### 1. Clonar el repositorio
 ```bash
-# 1. Clonar el repositorio
 git clone <url-del-repositorio> misocio
 cd misocio
+```
 
-# 2. Instalar dependencias e inicializar el proyecto
-composer run setup
+### 2. Instalar dependencias e inicializar el proyecto
+```bash
+composer install
+```
 
-# 3. Configurar variables de entorno
+### 3. Instalar dependencias de Node.js y compilar assets
+```bash
+npm install
+npm run build
+```
+
+### 4. Configurar variables de entorno
+```bash
 cp .env.example .env
-# Editar .env con los datos de base de datos, correo, Stripe, Green API, etc.
+php artisan key:generate
+```
 
-# 4. Ejecutar migraciones y seeders
+### 5. Crear la base de datos y ejecutar migraciones
+```bash
 php artisan migrate --seed
-
-# 5. Enlazar almacenamiento
 php artisan storage:link
 ```
 
-### Servidor de desarrollo
-
+### 6. Iniciar el servidor de desarrollo
 ```bash
 composer run dev
 ```
@@ -175,7 +285,7 @@ Esto levanta en paralelo: servidor PHP, worker de colas, visor de logs y Vite.
 
 ---
 
-## Variables de Entorno Clave
+## 🔑 Variables de Entorno Clave
 
 ```env
 APP_NAME=MiSocio
@@ -200,31 +310,7 @@ PRINT_AGENT_SECRET_KEY=
 
 ---
 
-## Estructura del Proyecto
-
-```
-app/
-├── Http/
-│   ├── Controllers/     # Controladores (tickets, perfil, auth)
-│   ├── Middleware/      # tenant, tenant.active, tenant.manage, landlord
-│   └── Requests/        # Validaciones de formulario
-├── Livewire/            # Componentes reactivos (Ventas, Compras, Préstamos, etc.)
-│   └── Landlord/        # Panel de administración global
-├── Models/              # Modelos Eloquent con Global Scopes por tenant
-├── Services/            # GreenApiService, EscposPrinterService, TicketImageService
-├── Helpers/             # helpers.php, TenantHelper.php
-database/
-├── migrations/          # +70 migraciones versionadas
-resources/
-├── views/               # Blade + componentes Livewire
-routes/
-├── web.php              # Rutas agrupadas por middleware
-└── auth.php             # Rutas de autenticación (Breeze)
-```
-
----
-
-## Tareas Programadas
+## ⏰ Tareas Programadas
 
 ```php
 // routes/console.php
@@ -232,7 +318,7 @@ Schedule::command('greenapi:notificar-por-vencer')->daily();
 Schedule::command('prestamos:notificar-vencimiento')->dailyAt('08:00');
 ```
 
-Configurar en crontab del servidor:
+Agregar al crontab del servidor:
 
 ```cron
 * * * * * php /ruta/al/proyecto/artisan schedule:run >> /dev/null 2>&1
@@ -240,6 +326,27 @@ Configurar en crontab del servidor:
 
 ---
 
-## Licencia
+## 🔒 Seguridad
+
+- Autenticación mediante middleware personalizado por rol (`tenant`, `landlord`)
+- Protección CSRF en todos los formularios Livewire
+- Global Scopes por `tenant_id` para aislamiento total de datos entre negocios
+- Validación de datos en backend (server-side) con Form Requests
+- Rutas protegidas que redirigen al login si no hay sesión activa
+- Bloqueo automático de tenants con suscripción vencida
+
+---
+
+## 📜 Licencia
 
 Proyecto privado. Todos los derechos reservados © 2026 MiSocio.
+
+---
+
+<div align="center">
+
+**Desarrollado con ❤️ usando Laravel + Livewire**
+
+*Para soporte técnico o consultas comerciales, contacte al equipo de desarrollo.*
+
+</div>
