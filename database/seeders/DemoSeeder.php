@@ -124,8 +124,11 @@ class DemoSeeder extends Seeder
             ],
         ];
 
+        $tenantsCreados = [];
+
         foreach ($tiendasConfig as $index => $data) {
             $tenant = Tenant::create($data['tenant']);
+            $tenantsCreados[] = $tenant;
 
             // Config básica del negocio
             TenantConfig::create(array_merge(
@@ -228,14 +231,34 @@ class DemoSeeder extends Seeder
             $this->command->info("✓ Tienda {$tenant->name} creada ({$cantidad} clientes, " . count($productos) . ' productos)');
         }
 
+        // ──────────────────────────────────────────────────────────
+        // VINCULAR LANDLORD A 2 TIENDAS
+        // (para que aparezcan "Cambiar tienda" y "Cambiar modo")
+        // ──────────────────────────────────────────────────────────
+        $tiendasLandlord = [$tenantsCreados[0], $tenantsCreados[4]];
+        foreach ($tiendasLandlord as $t) {
+            DB::table('tenant_user')->insert([
+                'tenant_id'  => $t->id,
+                'user_id'    => $landlord->id,
+                'role'       => 'tenant',
+                'is_active'  => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+        $this->command->info("✓ Landlord vinculado a: {$tenantsCreados[0]->name} y {$tenantsCreados[4]->name}");
+
         $this->command->info('');
         $this->command->info('────────────────────────────────────────────────');
         $this->command->info('Credenciales de acceso:');
-        $this->command->info('  Landlord  → 70000000 / 1234');
+        $this->command->info('  Landlord  → 70000000 / 1234  (2 tiendas + modo admin)');
         $this->command->info('  Admin 1   → 71000001 / 1234  (2 tiendas)');
         $this->command->info('  Admin 2   → 72000002 / 1234  (2 tiendas)');
         $this->command->info('  Admin 3   → 73000003 / 1234  (1 tienda)');
         $this->command->info('  Operadores→ 8x0000001 a 8x0000003 / 1234');
+        $this->command->info('────────────────────────────────────────────────');
+        $this->command->info('  Landlord ve: cambiar tienda (2 tiendas) + cambiar modo');
+        $this->command->info('  Admin 1/2  ver: cambiar tienda (2 tiendas cada uno)');
         $this->command->info('────────────────────────────────────────────────');
     }
 
