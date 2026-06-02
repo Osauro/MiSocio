@@ -15,20 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Sistema limpio - Solo landlord y planes de suscripción
         $this->call([
-            UserSeeder::class,              // Crea usuario landlord
-            PlanesSuscripcionSeeder::class, // Crea planes de suscripción
+            PlanesSuscripcionSeeder::class, // Planes de suscripción
+            DemoSeeder::class,              // Landlord, admins, tiendas, operadores, productos y clientes
         ]);
-
-        // Seeders de datos de demostración (comentados)
-        // Descomenta si necesitas datos de prueba
-        // $this->call([
-        //     TenantSeeder::class,
-        //     CategoriaSeeder::class,
-        //     MedidaSeeder::class,
-        //     ProductoSeeder::class,
-        //     ClienteSeeder::class,
-        // ]);
     }
 }

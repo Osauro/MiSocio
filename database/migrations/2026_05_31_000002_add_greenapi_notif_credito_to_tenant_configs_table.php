@@ -9,8 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('tenant_configs', function (Blueprint $table) {
-            $table->boolean('greenapi_notif_credito')->default(false)->after('greenapi_notif_ventas');
-            $table->boolean('greenapi_notif_pago_credito')->default(false)->after('greenapi_notif_credito');
+            $table->boolean('greenapi_notif_credito')->default(false);
+            $table->boolean('greenapi_notif_pago_credito')->default(false);
         });
     }
 
