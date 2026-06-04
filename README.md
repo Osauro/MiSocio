@@ -337,7 +337,74 @@ Agregar al crontab del servidor:
 
 ---
 
-## 📜 Licencia
+## � Historial de Cambios (Changelog)
+
+### v2.7 — 2026-06-03
+**Stock Mínimo y Alertas Visuales en Productos**
+- **Nueva columna `stock_minimo`** en la tabla `productos` (migración `2026_06_03_000001`). Permite definir el umbral bajo el cual un producto se considera en "stock bajo".
+- **Accessor `stock_bajo`** en el modelo `Producto`: retorna `true` cuando el stock es mayor a 0 pero menor o igual al mínimo configurado.
+- **Formulario de producto rediseñado**: los campos `Medida`, `Cantidad (unidades)` y `Stock Mínimo` ahora se muestran en la misma fila (`col-md-4` cada uno).
+- **Ordenamiento inteligente en el listado**: los productos se muestran primero con `stock = 0`, luego los de stock bajo, y finalmente el resto alfabéticamente.
+- **Alertas visuales en tarjetas**:
+  - Fondo rojo (`#f8d7da`) + borde `danger` + badge **"Sin stock"** para productos con stock en 0.
+  - Fondo amarillo (`#fff3cd`) + borde `warning` + badge **"Stock bajo"** para productos por debajo del mínimo.
+
+---
+
+### v2.6 — 2026-06-01
+**Notificaciones WhatsApp para Ventas y Onboarding de Usuarios**
+- Notificaciones WhatsApp al propietario al registrar una venta (configurable por tenant).
+- Campo `onboarding_completado` en usuarios para controlar el flujo de primer acceso.
+
+---
+
+### v2.5 — 2026-05-31
+**Notificaciones WhatsApp Ampliadas y Configuración de Prefijo**
+- Prefijo de país separado para el celular del propietario en la configuración del tenant.
+- Notificaciones WhatsApp para ventas a crédito y pagos de crédito.
+- Notificaciones WhatsApp para préstamos: creación, devolución y vencimiento.
+- Sistema de PIN automático en creación de usuario con botón para resetear y enviar por WhatsApp.
+
+---
+
+### v2.4 — 2026-05-30
+**Impresoras por Módulo**
+- Configuración de impresora térmica independiente por módulo (ventas, compras, préstamos, inventario).
+
+---
+
+### v2.3 — 2026-05-24
+**Recalculo de Precio de Compra por Unidad**
+- Migración para recalcular `precio_de_compra` a precio por unidad en todos los productos existentes.
+- Nueva opción `ventas_iniciar_unidad` en configuración del tenant: permite iniciar la venta en modo unidades.
+
+---
+
+### v2.2 — 2026-04-26
+**Módulos de Compras y Ventas Configurables**
+- Activación/desactivación del módulo de compras por tenant.
+- Campos configurables de ventas: solo unidad, mostrar logo, pie de ticket.
+- Clave de Print Agent configurable por tenant.
+
+---
+
+### v2.1 — 2026-03-27
+**Módulo de Hospedajes**
+- Gestión de habitaciones por tipo con modalidades (horas, noche, día).
+- Control de check-in/check-out con acompañantes.
+- Tarifa por modalidad y tipo de habitación.
+- Activación del módulo de hospedajes por tenant.
+
+---
+
+### v2.0 — 2026-03-16
+**Galería de Imágenes**
+- Galería centralizada de imágenes por tenant para asignar fotos a productos.
+- Componente `GaleriaModal` integrado en el formulario de productos.
+
+---
+
+## �📜 Licencia
 
 Proyecto privado. Todos los derechos reservados © 2026 MiSocio.
 

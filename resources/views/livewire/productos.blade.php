@@ -29,8 +29,15 @@
                         <div class="row g-2">
                             @forelse($productos as $producto)
                                 <div class="col-lg-4 col-md-6 col-sm-12">
-                                    <div class="card mb-0 shadow-sm producto-card {{ $producto->trashed() ? 'border-danger' : '' }}"
-                                         style="{{ $producto->trashed() ? 'background-color: #f8d7da;' : '' }}">
+                                    <div class="card mb-0 shadow-sm producto-card
+                                        {{ $producto->trashed() ? 'border-danger' : '' }}
+                                        {{ (!$producto->trashed() && $producto->control && $producto->stock == 0) ? 'border-danger' : '' }}
+                                        {{ (!$producto->trashed() && $producto->stock_bajo) ? 'border-warning' : '' }}"
+                                         style="
+                                            {{ $producto->trashed() ? 'background-color: #f8d7da;' : '' }}
+                                            {{ (!$producto->trashed() && $producto->control && $producto->stock == 0) ? 'background-color: #f8d7da;' : '' }}
+                                            {{ (!$producto->trashed() && $producto->stock_bajo) ? 'background-color: #fff3cd;' : '' }}
+                                        ">
                                         <div class="card-body p-2">
                                             <div class="d-flex align-items-start position-relative">
                                                 <!-- Botones en esquina superior derecha -->
@@ -105,8 +112,11 @@
                                                     <div class="small text-muted mb-2">
                                                         @if(comprasHabilitados())
                                                         <i class="fa-solid fa-box text-primary me-1"></i>
-                                                        Stock: {{ $producto->stock_formateado }}
-                                                        @if($producto->vencidos > 0)
+                                                        Stock: {{ $producto->stock_formateado }}                                                        @if($producto->control && $producto->stock == 0)
+                                                            <span class="badge bg-danger ms-1"><i class="fa-solid fa-xmark me-1"></i>Sin stock</span>
+                                                        @elseif($producto->stock_bajo)
+                                                            <span class="badge bg-warning text-dark ms-1"><i class="fa-solid fa-triangle-exclamation me-1"></i>Stock bajo</span>
+                                                        @endif                                                        @if($producto->vencidos > 0)
                                                             <span class="text-danger ms-1" title="Stock vencido/pinchado">
                                                                 <i class="fa-solid fa-triangle-exclamation"></i> {{ $producto->vencidos }}
                                                             </span>
@@ -375,9 +385,9 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Medida -->
+                                    <!-- Medida + Cantidad + Stock Mínimo en la misma fila -->
                                     @if(!ventasSoloUnidad())
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="medida" class="form-label">Medida <span
                                                 class="text-danger">*</span></label>
                                         <div class="input-group">
@@ -409,14 +419,23 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Cantidad -->
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="cantidad" class="form-label">Cantidad (unidades) <span
                                                 class="text-danger">*</span></label>
                                         <input type="number"
                                             class="form-control @error('cantidad') is-invalid @enderror"
-                                            wire:model="cantidad" wire:change="recalcularPrecioMenor" id="cantidad" placeholder="Ej: 620">
+                                            wire:model="cantidad" wire:change="recalcularPrecioMenor" id="cantidad" placeholder="Ej: 12">
                                         @error('cantidad')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="stock_minimo" class="form-label">Stock Mínimo</label>
+                                        <input type="number"
+                                            class="form-control @error('stock_minimo') is-invalid @enderror"
+                                            wire:model="stock_minimo" id="stock_minimo" placeholder="0" min="0">
+                                        @error('stock_minimo')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>

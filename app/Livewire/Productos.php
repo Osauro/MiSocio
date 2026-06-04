@@ -53,6 +53,7 @@ class Productos extends Component
     public $precio_por_mayor;
     public $precio_por_menor;
     public $stock;
+    public $stock_minimo = 0;
     public $control = true;
     public $tags_input = '';
 
@@ -64,6 +65,7 @@ class Productos extends Component
             'codigo' => 'nullable|string|max:255',
             'precio_de_compra' => comprasHabilitados() ? 'required|numeric|min:0' : 'nullable|numeric|min:0',
             'precio_por_menor' => 'required|numeric|min:0',
+            'stock_minimo' => 'nullable|integer|min:0',
             'control' => 'boolean',
             'tags_input' => 'nullable|string',
         ];
@@ -151,6 +153,13 @@ class Productos extends Component
                         });
                 });
             })
+            ->orderByRaw('
+                CASE
+                    WHEN control = 1 AND stock = 0 THEN 0
+                    WHEN control = 1 AND stock_minimo > 0 AND stock <= stock_minimo AND stock > 0 THEN 1
+                    ELSE 2
+                END ASC
+            ')
             ->orderBy('nombre')
             ->paginate($this->perPage);
     }
@@ -308,6 +317,7 @@ class Productos extends Component
         $this->precio_por_mayor = $producto->precio_por_mayor;
         $this->precio_por_menor = $producto->precio_por_menor;
         $this->stock = $producto->stock;
+        $this->stock_minimo = $producto->stock_minimo ?? 0;
         $this->control = $producto->control;
         $this->tags_input = $producto->tags_string;
         $this->producto_actual = $producto; // Guardar el objeto completo
@@ -421,6 +431,7 @@ class Productos extends Component
                     'precio_de_compra'  => $precioDeCompra,
                     'precio_por_mayor'  => $this->precio_por_mayor ?? 0,
                     'precio_por_menor'  => $this->precio_por_menor ?? 0,
+                    'stock_minimo'      => $this->stock_minimo ?? 0,
                     'control'           => $this->control,
                 ];
 
@@ -450,6 +461,7 @@ class Productos extends Component
                     'precio_por_mayor'  => $this->precio_por_mayor ?? 0,
                     'precio_por_menor'  => $this->precio_por_menor ?? 0,
                     'stock'             => 0,
+                    'stock_minimo'      => $this->stock_minimo ?? 0,
                     'control'           => $this->control,
                 ]);
 
@@ -595,6 +607,7 @@ class Productos extends Component
         $this->precio_por_mayor = null;
         $this->precio_por_menor = null;
         $this->stock = null;
+        $this->stock_minimo = 0;
         $this->control = true;
         $this->tags_input = '';
         $this->addingNewCategoria = false;

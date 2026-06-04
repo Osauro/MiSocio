@@ -24,6 +24,7 @@ class Producto extends Model
         'precio_por_mayor',
         'precio_por_menor',
         'stock',
+        'stock_minimo',
         'control',
         'vencidos',
         'fecha_control',
@@ -34,6 +35,7 @@ class Producto extends Model
         'precio_por_mayor' => 'decimal:2',
         'precio_por_menor' => 'decimal:2',
         'stock' => 'integer',
+        'stock_minimo' => 'integer',
         'cantidad' => 'integer',
         'control' => 'boolean',
         'vencidos' => 'integer',
@@ -167,6 +169,16 @@ class Producto extends Model
         } else {
             return "{$unidades}u";
         }
+    }
+
+    /**
+     * Retorna true si el stock es bajo (mayor a 0 pero menor o igual al mínimo configurado).
+     */
+    public function getStockBajoAttribute(): bool
+    {
+        return $this->stock_minimo > 0
+            && $this->stock > 0
+            && $this->stock <= $this->stock_minimo;
     }
 
     /**
