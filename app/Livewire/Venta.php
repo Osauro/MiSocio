@@ -111,6 +111,12 @@ class Venta extends Component
         $this->ventaId = $this->venta->id;
         $this->fechaVenta = now()->format('Y-m-d');
         $this->cargarItems();
+
+        // Auto-agregar producto si viene desde la búsqueda de ventas
+        if (session()->has('agregar_producto_id')) {
+            $productoId = session()->pull('agregar_producto_id');
+            $this->agregarProducto($productoId);
+        }
     }
 
     public function cargarItems()

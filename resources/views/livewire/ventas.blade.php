@@ -80,7 +80,8 @@
                                         $stockFormateado = $producto->stock_formateado;
                                         $sinStock = comprasHabilitados() && $producto->stock <= 0;
                                     @endphp
-                                    <div class="card border shadow-sm flex-shrink-0" style="width: 150px;">
+                                    <div class="card border shadow-sm flex-shrink-0" style="width: 150px; cursor: pointer;"
+                                         wire:click="crearVentaConProducto({{ $producto->id }})">
                                         <div class="position-relative">
                                             <img src="{{ $producto->photo_url }}"
                                                 alt="{{ $producto->nombre }}"

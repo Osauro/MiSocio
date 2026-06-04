@@ -310,6 +310,31 @@ class Ventas extends Component
         $this->resetPage();
     }
 
+    public function crearVentaConProducto($productoId)
+    {
+        // Reutilizar o crear venta pendiente
+        $venta = Venta::where('user_id', auth()->id())
+            ->where('tenant_id', currentTenantId())
+            ->where('estado', 'Pendiente')
+            ->first();
+
+        if (!$venta) {
+            $venta = Venta::create([
+                'tenant_id' => currentTenantId(),
+                'user_id'   => auth()->id(),
+                'estado'    => 'Pendiente',
+                'efectivo'  => 0,
+                'online'    => 0,
+                'credito'   => 0,
+                'cambio'    => 0,
+            ]);
+        }
+
+        session(['agregar_producto_id' => $productoId]);
+
+        return redirect()->route('venta', ['ventaId' => $venta->id]);
+    }
+
     public function crearVenta()
     {
         Log::info('=== CREAR VENTA INICIADO ===', [
