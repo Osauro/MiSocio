@@ -374,20 +374,9 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Código -->
-                                    <div class="col-md-6 mb-3">
-                                        <label for="codigo" class="form-label">Código</label>
-                                        <input type="text"
-                                            class="form-control @error('codigo') is-invalid @enderror"
-                                            wire:model="codigo" id="codigo" placeholder="Ej: CRV001">
-                                        @error('codigo')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Medida + Cantidad + Stock Mínimo en la misma fila -->
+                                    <!-- Medida -->
                                     @if(!ventasSoloUnidad())
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label for="medida" class="form-label">Medida <span
                                                 class="text-danger">*</span></label>
                                         <div class="input-group">
@@ -418,8 +407,22 @@
                                             <div class="invalid-feedback d-block">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    @endif
 
-                                    <div class="col-md-4 mb-3">
+                                    <!-- Código -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="codigo" class="form-label">Código</label>
+                                        <input type="text"
+                                            class="form-control @error('codigo') is-invalid @enderror"
+                                            wire:model="codigo" id="codigo" placeholder="Ej: CRV001">
+                                        @error('codigo')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Cantidad + Stock Mínimo en la misma fila -->
+                                    @if(!ventasSoloUnidad())
+                                    <div class="col-md-6 mb-3">
                                         <label for="cantidad" class="form-label">Cantidad (unidades) <span
                                                 class="text-danger">*</span></label>
                                         <input type="number"
@@ -430,7 +433,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label for="stock_minimo" class="form-label">Stock Mínimo</label>
                                         <input type="number"
                                             class="form-control @error('stock_minimo') is-invalid @enderror"
