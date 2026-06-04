@@ -409,8 +409,8 @@
                                     </div>
                                     @endif
 
-                                    <!-- Código -->
-                                    <div class="col-md-6 mb-3">
+                                    <!-- Código + Cantidad + Stock Mínimo en la misma fila -->
+                                    <div class="col-md-4 mb-3">
                                         <label for="codigo" class="form-label">Código</label>
                                         <input type="text"
                                             class="form-control @error('codigo') is-invalid @enderror"
@@ -420,9 +420,8 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Cantidad + Stock Mínimo en la misma fila -->
                                     @if(!ventasSoloUnidad())
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="cantidad" class="form-label">Cantidad (unidades) <span
                                                 class="text-danger">*</span></label>
                                         <input type="number"
@@ -433,7 +432,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="stock_minimo" class="form-label">Stock Mínimo</label>
                                         <input type="number"
                                             class="form-control @error('stock_minimo') is-invalid @enderror"
