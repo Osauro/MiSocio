@@ -48,10 +48,16 @@ class Inventarios extends Component
             'estado'    => 'Pendiente',
         ]);
 
-        // Auto-cargar los 16 productos con fecha_control más antigua (nulls primero = nunca inventariados)
-        $productos = Producto::orderByRaw('fecha_control IS NOT NULL, fecha_control ASC')
-            ->limit(24)
-            ->get();
+        // Cargar productos para el inventario según config:
+        // 0 = todos, N = N productos con fecha_control más antigua (null primero)
+        $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
+        $limit  = (int) ($config->inventario_items ?? 0);
+
+        $query = Producto::orderByRaw('fecha_control IS NOT NULL, fecha_control ASC');
+        if ($limit > 0) {
+            $query->limit($limit);
+        }
+        $productos = $query->get();
 
         foreach ($productos as $producto) {
             InventarioItem::create([

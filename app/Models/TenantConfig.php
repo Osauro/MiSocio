@@ -79,6 +79,8 @@ class TenantConfig extends Model
         // Importación
         'ultima_importacion',
         'formato_importacion',
+        // Inventario
+        'inventario_items',
     ];
 
     protected $casts = [
@@ -109,6 +111,7 @@ class TenantConfig extends Model
         'ventas_solo_unidad' => 'boolean',
         'ventas_iniciar_unidad' => 'boolean',
         'ultima_importacion' => 'datetime',
+        'inventario_items' => 'integer',
     ];
 
     /**

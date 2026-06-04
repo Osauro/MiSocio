@@ -1064,6 +1064,36 @@
                                             </div>
                                         </div>
 
+                                        <!-- Módulo Inventario -->
+                                        <div class="col-md-6">
+                                            <div class="card border shadow-sm h-100">
+                                                <div class="card-header bg-info text-white">
+                                                    <h5 class="mb-0">
+                                                        <i class="fa-solid fa-boxes-stacked me-2"></i>
+                                                        Módulo de Inventario
+                                                    </h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <p class="fw-semibold mb-1">Items por inventario automático</p>
+                                                    <small class="text-muted d-block mb-3">
+                                                        Cantidad de productos a incluir al crear un inventario (los de
+                                                        <em>fecha_control</em> más antigua primero).
+                                                        Ingresa <strong>0</strong> para incluir todos los productos.
+                                                    </small>
+                                                    <div class="input-group">
+                                                        <input type="number" class="form-control"
+                                                            wire:model.blur="inventario_items"
+                                                            wire:change="guardarModulos"
+                                                            min="0" step="1" placeholder="0 = todos">
+                                                        <span class="input-group-text">productos</span>
+                                                    </div>
+                                                    @error('inventario_items')
+                                                        <div class="text-danger small mt-1">{{ $message }}</div>
+                                                    @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
                                     </div>
 
                                     <!-- Zona de peligro: Resetear tenant -->

@@ -239,8 +239,8 @@ class Inventario extends Component
                     $stockAnterior  = $producto->stock;
 
                     // Ajustar stock al valor contado físicamente
-                    $producto->stock        = $item['stock_contado'];
-                    $producto->fecha_control = $now->toDateString();
+                    $producto->stock         = $item['stock_contado'];
+                    $producto->fecha_control = $now; // timestamp completo
                     $producto->save();
 
                     // Registrar en Kardex solo si hay diferencia

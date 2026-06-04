@@ -39,7 +39,7 @@ class Producto extends Model
         'cantidad' => 'integer',
         'control' => 'boolean',
         'vencidos' => 'integer',
-        'fecha_control' => 'date',
+        'fecha_control' => 'datetime',
     ];
 
     /**
