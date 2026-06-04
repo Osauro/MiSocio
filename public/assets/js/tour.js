@@ -685,6 +685,16 @@
         });
 
         if (window.__misocioOnboardingPendiente) {
+            // Si localStorage ya lo marcó como completado, sincronizar con el
+            // servidor silenciosamente y continuar con los tours de módulo.
+            if (isCompleted('onboarding')) {
+                fetch('/onboarding/completado', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken(), 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                }).catch(function () {});
+                setup();
+                return;
+            }
             setTimeout(function () {
                 abrirSidebar();
                 iniciarTour(buildSteps(), function () {
