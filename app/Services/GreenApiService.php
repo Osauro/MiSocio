@@ -28,6 +28,18 @@ class GreenApiService
     // ── Core ────────────────────────────────────────────────────────────────
 
     /**
+     * Devuelve un cliente HTTP preconfigurado.
+     * En entornos locales deshabilita la verificación SSL (certificados CA no configurados en Laragon).
+     */
+    private function http(): \Illuminate\Http\Client\PendingRequest
+    {
+        $client = \Illuminate\Support\Facades\Http::withOptions([]);
+        if (app()->environment('local')) {
+            $client = $client->withoutVerifying();
+        }
+        return $client;
+    }
+    /**
      * Send a WhatsApp message via Green API.
      *
      * @param  string  $phone   Phone number completo con código de país (e.g. 59173010688)
@@ -57,7 +69,7 @@ class GreenApiService
         $url = "{$this->baseUrl}/waInstance{$this->instanceId}/sendMessage/{$this->apiToken}";
 
         try {
-            $response = Http::timeout(10)->post($url, [
+            $response = $this->http()->timeout(10)->post($url, [
                 'chatId'  => $chatId,
                 'message' => $message,
             ]);
@@ -96,7 +108,7 @@ class GreenApiService
         $url = "{$this->baseUrl}/waInstance{$this->instanceId}/getChats/{$this->apiToken}";
 
         try {
-            $response = Http::timeout(15)->get($url);
+            $response = $this->http()->timeout(15)->get($url);
 
             if (!$response->successful()) {
                 Log::warning('GreenAPI: getChats falló', [
@@ -384,7 +396,7 @@ class GreenApiService
         $url = "{$this->baseUrl}/waInstance{$this->instanceId}/sendFileByUpload/{$this->apiToken}";
 
         try {
-            $response = Http::timeout(30)->attach(
+            $response = $this->http()->timeout(30)->attach(
                 'file',
                 file_get_contents($filePath),
                 $fileName,

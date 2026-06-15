@@ -548,10 +548,23 @@ class Config extends Component
 
     public function toggleNotifVentas(): void
     {
-        $this->guardarWhatsApp();
-
         if ($this->greenapi_notif_ventas) {
+            // Se activó → guardar y abrir modal de grupo
+            $this->guardarWhatsApp();
             $this->abrirModalGrupoVentas();
+        } else {
+            // Se desactivó → limpiar grupo y guardar
+            $this->greenapi_group_ventas        = null;
+            $this->greenapi_group_ventas_nombre = null;
+
+            $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
+            $config->update([
+                'greenapi_notif_ventas'        => false,
+                'greenapi_group_ventas'        => null,
+                'greenapi_group_ventas_nombre' => null,
+            ]);
+
+            $this->toast('success', 'Notificaciones de ventas desactivadas');
         }
     }
 
@@ -614,8 +627,21 @@ class Config extends Component
                     . "Recibirás un mensaje por cada venta registrada. ✅";
 
             try {
-                app(\App\Services\GreenApiService::class)->sendMessage($chatId, $msg);
-            } catch (\Throwable) {}
+                $svc  = app(\App\Services\GreenApiService::class);
+                $sent = $svc->sendMessage($chatId, $msg);
+                if (!$sent) {
+                    \Illuminate\Support\Facades\Log::warning('GreenAPI: mensaje de bienvenida no enviado', [
+                        'chatId'     => $chatId,
+                        'instanceId' => config('greenapi.instance_id') ? '***' : '(vacío)',
+                        'apiToken'   => config('greenapi.api_token')   ? '***' : '(vacío)',
+                    ]);
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('GreenAPI: error al enviar bienvenida', [
+                    'chatId' => $chatId,
+                    'error'  => $e->getMessage(),
+                ]);
+            }
         }
 
         $this->mostrarModalGrupoVentas = false;
