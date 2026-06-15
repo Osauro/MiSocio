@@ -414,15 +414,28 @@ class GreenApiService
 
         $saldo = $this->getSaldoCajaLine($config->tenant_id);
 
+        $venta->loadMissing(['ventaItems.producto']);
+        $lineas = '';
+        foreach ($venta->ventaItems as $item) {
+            $nombre  = optional($item->producto)->nombre ?? 'Producto';
+            $cant    = $item->cantidad_formateada ?? $item->cantidad;
+            $sub     = number_format((float) $item->subtotal, 2);
+            $lineas .= "  • {$cant} {$nombre} — Bs. {$sub}\n";
+        }
+
         $msg = "🛒 *Nueva venta - {$tienda}*\n"
             . "Folio: #{$venta->numero_folio}\n"
-            . "Total: Bs. " . number_format($total, 2) . "\n"
             . "Cajero: {$cajero}";
 
         if ($cliente) {
             $msg .= "\nCliente: {$cliente}";
         }
 
+        if ($lineas) {
+            $msg .= "\n\n" . rtrim($lineas);
+        }
+
+        $msg .= "\n*Total: Bs. " . number_format($total, 2) . "*";
         $msg .= $saldo;
 
         $this->sendMessage($phone, $msg);
@@ -716,12 +729,22 @@ class GreenApiService
         $dest = $this->groupPhone($config);
         if ($dest && $dest !== $phone) {
             $cajero  = optional($prestamo->user)->name ?? '-';
+            $lineasGrupo = '';
+            foreach ($prestamo->prestamoItems as $item) {
+                $nombre = optional($item->producto)->nombre ?? 'Artículo';
+                $cant   = $item->cantidad_formateada ?? $item->cantidad;
+                $sub    = number_format((float) $item->subtotal, 2);
+                $lineasGrupo .= "  • {$cant} {$nombre} — Bs. {$sub}\n";
+            }
             $msgGrupo = "📦 *Nuevo préstamo - {$tienda}*\n"
                 . "Folio: #{$prestamo->numero_folio}\n"
                 . "Cliente: {$cliente->nombre}\n"
-                . "Garantía: Bs. " . number_format($prestamo->total, 2) . "\n"
                 . "Vence: {$vencimiento}\n"
-                . "Registró: {$cajero}"
+                . "Registró: {$cajero}";
+            if ($lineasGrupo) {
+                $msgGrupo .= "\n\n" . rtrim($lineasGrupo);
+            }
+            $msgGrupo .= "\n*Garantía: Bs. " . number_format($prestamo->total, 2) . "*"
                 . $this->getSaldoCajaLine($config->tenant_id);
             $this->sendMessage($dest, $msgGrupo);
         }
@@ -754,12 +777,23 @@ class GreenApiService
         // Notificar también al grupo/propietario
         $dest = $this->groupPhone($config);
         if ($dest && $dest !== $phone) {
-            $cajero   = optional($prestamo->user)->name ?? '-';
+            $cajero  = optional($prestamo->user)->name ?? '-';
+            $prestamo->loadMissing(['prestamoItems.producto']);
+            $lineasGrupo = '';
+            foreach ($prestamo->prestamoItems as $item) {
+                $nombre = optional($item->producto)->nombre ?? 'Artículo';
+                $cant   = $item->cantidad_formateada ?? $item->cantidad;
+                $sub    = number_format((float) $item->subtotal, 2);
+                $lineasGrupo .= "  • {$cant} {$nombre} — Bs. {$sub}\n";
+            }
             $msgGrupo = "✅ *Devolución de préstamo - {$tienda}*\n"
                 . "Folio: #{$prestamo->numero_folio}\n"
                 . "Cliente: {$cliente->nombre}\n"
-                . "Depósito devuelto: Bs. " . number_format($prestamo->total, 2) . "\n"
-                . "Registró: {$cajero}"
+                . "Registró: {$cajero}";
+            if ($lineasGrupo) {
+                $msgGrupo .= "\n\n" . rtrim($lineasGrupo);
+            }
+            $msgGrupo .= "\n*Depósito devuelto: Bs. " . number_format($prestamo->total, 2) . "*"
                 . $this->getSaldoCajaLine($config->tenant_id);
             $this->sendMessage($dest, $msgGrupo);
         }
@@ -825,7 +859,7 @@ class GreenApiService
                 ->orderByDesc('id')
                 ->value('saldo');
             if ($ultimo === null) return '';
-            return "\n💰 Saldo en caja: *Bs. " . number_format((float) $ultimo, 2) . "*";
+            return "\n―――――――――――――――\n💰 *Saldo en caja: Bs. " . number_format((float) $ultimo, 2) . "*";
         } catch (\Throwable) {
             return '';
         }
@@ -860,15 +894,26 @@ class GreenApiService
         $cajero    = optional($compra->user)->name ?? '-';
         $proveedor = optional($compra->proveedor)->nombre ?? optional($compra->cliente)->nombre ?? '-';
         $total     = (float) ($compra->total ?? 0);
-        $items     = $compra->compraItems ?? collect();
-        $nItems    = $items->count();
+
+        $compra->loadMissing(['compraItems.producto']);
+        $lineas = '';
+        foreach ($compra->compraItems as $item) {
+            $nombre  = optional($item->producto)->nombre ?? 'Producto';
+            $cant    = $item->cantidad_formateada ?? $item->cantidad;
+            $sub     = number_format((float) $item->subtotal, 2);
+            $lineas .= "  • {$cant} {$nombre} — Bs. {$sub}\n";
+        }
 
         $msg = "📦 *Nueva compra - {$tienda}*\n"
              . "Folio: #{$compra->numero_folio}\n"
-             . "Total: Bs. " . number_format($total, 2) . "\n"
              . "Proveedor: {$proveedor}\n"
-             . "Artículos: {$nItems}\n"
-             . "Registró: {$cajero}"
+             . "Registró: {$cajero}";
+
+        if ($lineas) {
+            $msg .= "\n\n" . rtrim($lineas);
+        }
+
+        $msg .= "\n*Total: Bs. " . number_format($total, 2) . "*"
              . $this->getSaldoCajaLine($config->tenant_id);
 
         return $this->sendMessage($dest, $msg);
@@ -876,8 +921,10 @@ class GreenApiService
 
     /**
      * Notifica al grupo/propietario cuando se finaliza un inventario físico.
+     *
+     * @param array $items  Array de items con keys: nombre, stock_sistema, stock_contado
      */
-    public function notifyInventario(\App\Models\Inventario $inventario, TenantConfig $config, int $ajustes): bool
+    public function notifyInventario(\App\Models\Inventario $inventario, TenantConfig $config, array $items = []): bool
     {
         $dest = $this->groupPhone($config);
         if (!$dest) return false;
@@ -885,12 +932,36 @@ class GreenApiService
         $tienda = $config->nombre_tienda ?: 'Tu tienda';
         $user   = optional($inventario->user)->name ?? '-';
 
+        $sobrantes = array_filter($items, fn($i) => ($i['stock_contado'] - $i['stock_sistema']) > 0);
+        $faltantes = array_filter($items, fn($i) => ($i['stock_contado'] - $i['stock_sistema']) < 0);
+        $sinCambio = count($items) - count($sobrantes) - count($faltantes);
+
         $msg = "📋 *Inventario finalizado - {$tienda}*\n"
              . "Folio: #{$inventario->numero_folio}\n"
-             . "Productos ajustados: {$ajustes}\n"
              . "Registró: {$user}\n"
-             . "Fecha: " . now()->format('d/m/Y H:i')
-             . $this->getSaldoCajaLine($config->tenant_id);
+             . "Fecha: " . now()->format('d/m/Y H:i');
+
+        if (!empty($sobrantes)) {
+            $msg .= "\n\n*Sobrantes:*";
+            foreach ($sobrantes as $i) {
+                $diff = $i['stock_contado'] - $i['stock_sistema'];
+                $msg .= "\n  ✅ {$i['nombre']} +{$diff}";
+            }
+        }
+
+        if (!empty($faltantes)) {
+            $msg .= "\n\n*Faltantes:*";
+            foreach ($faltantes as $i) {
+                $diff = $i['stock_contado'] - $i['stock_sistema'];
+                $msg .= "\n  ❌ {$i['nombre']} {$diff}";
+            }
+        }
+
+        if ($sinCambio > 0) {
+            $msg .= "\n\n_Sin cambio: {$sinCambio} producto(s)_";
+        }
+
+        $msg .= $this->getSaldoCajaLine($config->tenant_id);
 
         return $this->sendMessage($dest, $msg);
     }

@@ -520,11 +520,20 @@ class Ventas extends Component
                     if ($dest) {
                         $greenApi = app(\App\Services\GreenApiService::class);
                         $saldo    = $greenApi->getSaldoCajaLine($config->tenant_id);
+                        $lineas   = '';
+                        foreach ($venta->ventaItems as $item) {
+                            $nombre  = optional($item->producto)->nombre ?? 'Producto';
+                            $cant    = $item->cantidad_formateada ?? $item->cantidad;
+                            $sub     = number_format((float) $item->subtotal, 2);
+                            $lineas .= "  • {$cant} {$nombre} — Bs. {$sub}\n";
+                        }
                         $msg = "🚫 *Venta cancelada - {$tienda}*\n"
                              . "Folio: #{$venta->numero_folio}\n"
-                             . "Total: Bs. " . number_format($totalVenta, 2) . "\n"
-                             . "Cajero: {$cajero}"
-                             . $saldo;
+                             . "Cajero: {$cajero}";
+                        if ($lineas) {
+                            $msg .= "\n\n" . rtrim($lineas);
+                        }
+                        $msg .= "\n*Total: Bs. " . number_format($totalVenta, 2) . "*" . $saldo;
                         $greenApi->sendMessage($dest, $msg);
                     }
                 }

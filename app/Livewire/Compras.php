@@ -491,12 +491,22 @@ class Compras extends Component
                     if ($dest) {
                         $greenApi = app(\App\Services\GreenApiService::class);
                         $saldo    = $greenApi->getSaldoCajaLine($config->tenant_id);
+                        $compra->loadMissing(['compraItems.producto']);
+                        $lineas   = '';
+                        foreach ($compra->compraItems as $item) {
+                            $nombre  = optional($item->producto)->nombre ?? 'Producto';
+                            $cant    = $item->cantidad_formateada ?? $item->cantidad;
+                            $sub     = number_format((float) $item->subtotal, 2);
+                            $lineas .= "  • {$cant} {$nombre} — Bs. {$sub}\n";
+                        }
                         $msg = "🚫 *Compra cancelada - {$tienda}*\n"
                              . "Folio: #{$compra->numero_folio}\n"
-                             . "Total: Bs. " . number_format($totalCompra, 2) . "\n"
                              . "Proveedor: {$proveedor}\n"
-                             . "Cajero: {$cajero}"
-                             . $saldo;
+                             . "Cajero: {$cajero}";
+                        if ($lineas) {
+                            $msg .= "\n\n" . rtrim($lineas);
+                        }
+                        $msg .= "\n*Total: Bs. " . number_format($totalCompra, 2) . "*" . $saldo;
                         $greenApi->sendMessage($dest, $msg);
                     }
                 }

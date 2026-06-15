@@ -281,10 +281,12 @@ class Inventario extends Component
                         ->with('user')
                         ->find($this->inventarioId);
                     if ($inventarioNotif) {
-                        $ajustes = collect($this->items)
-                            ->filter(fn($i) => $i['stock_contado'] !== $i['stock_sistema'])
-                            ->count();
-                        app(\App\Services\GreenApiService::class)->notifyInventario($inventarioNotif, $config, $ajustes);
+                        $itemsNotif = array_map(fn($i) => [
+                            'nombre'        => $i['nombre'],
+                            'stock_sistema' => $i['stock_sistema'],
+                            'stock_contado' => $i['stock_contado'],
+                        ], $this->items);
+                        app(\App\Services\GreenApiService::class)->notifyInventario($inventarioNotif, $config, $itemsNotif);
                     }
                 }
             } catch (\Throwable) {}
