@@ -606,11 +606,23 @@ class Config extends Component
             'greenapi_group_ventas_nombre' => $chatId ? $nombre : null,
         ]);
 
+        // Enviar mensaje de bienvenida al grupo seleccionado
+        if ($chatId) {
+            $tienda = $config->nombre_tienda ?: 'MiSocio';
+            $msg    = "👋 *¡Hola, {$nombre}!*\n"
+                    . "A partir de ahora, las notificaciones de ventas de *{$tienda}* serán enviadas a este grupo.\n"
+                    . "Recibirás un mensaje por cada venta registrada. ✅";
+
+            try {
+                app(\App\Services\GreenApiService::class)->sendMessage($chatId, $msg);
+            } catch (\Throwable) {}
+        }
+
         $this->mostrarModalGrupoVentas = false;
         $this->gruposWhatsApp = [];
 
         $this->toast('success', $chatId
-            ? "«Rol guardado» Grupo «{$nombre}» seleccionado"
+            ? "Grupo «{$nombre}» seleccionado"
             : 'Notificaciones al propietario (sin grupo)');
     }
 
