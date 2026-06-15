@@ -94,6 +94,30 @@ class GreenApiService
     }
 
     /**
+     * Verifica si un grupo existe consultando su información directamente.
+     * Mucho más rápido que getChats() ya que solo consulta un grupo.
+     * Retorna true si el grupo existe y el bot es miembro.
+     */
+    public function groupExists(string $groupChatId): bool
+    {
+        if (empty($this->instanceId) || empty($this->apiToken) || empty($groupChatId)) {
+            return false;
+        }
+
+        $url = "{$this->baseUrl}/waInstance{$this->instanceId}/getGroupData/{$this->apiToken}";
+
+        try {
+            $response = $this->http()->timeout(10)->post($url, [
+                'groupId' => $groupChatId,
+            ]);
+
+            return $response->successful();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Obtiene los grupos de WhatsApp a los que pertenece la instancia.
      * Llama a getChats y filtra los que terminan en @g.us.
      *

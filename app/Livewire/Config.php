@@ -546,7 +546,7 @@ class Config extends Component
 
     public function toggleNotifVentas(): void
     {
-        $config   = TenantConfig::getOrCreateForTenant($this->getTenantId());
+        $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
 
         if (!$this->greenapi_notif_ventas) {
             // OFF: solo desactivar, conservar datos del grupo
@@ -555,7 +555,7 @@ class Config extends Component
             return;
         }
 
-        // ON: verificar si el grupo existe, si no crearlo
+        // ON: verificar si el grupo existe; si no, crearlo
         $svc      = app(\App\Services\GreenApiService::class);
         $tenantId = $this->getTenantId();
         $prefijo  = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
@@ -567,25 +567,22 @@ class Config extends Component
             ->get();
 
         $groupChatId = $this->greenapi_group_ventas;
-        $needCreate  = true;
 
-        if ($groupChatId) {
-            $grupos   = $svc->getChats();
-            $existe   = collect($grupos)->contains('id', $groupChatId);
+        // Verificar existencia con una sola llamada rápida
+        $existe = $groupChatId && $svc->groupExists($groupChatId);
 
-            if ($existe) {
-                $needCreate = false;
-                // Agregar miembros por si hay nuevos
-                foreach ($usuarios as $u) {
+        if ($existe) {
+            // Grupo activo: agregar miembros que falten
+            foreach ($usuarios as $u) {
+                try {
                     $svc->addGroupParticipant(
                         $groupChatId,
                         $prefijo . preg_replace('/\D/', '', $u->celular)
                     );
-                }
+                } catch (\Throwable) {}
             }
-        }
-
-        if ($needCreate) {
+        } else {
+            // Grupo eliminado o nunca creado: crear uno nuevo
             $tienda    = $config->nombre_tienda ?: (currentTenant()?->name ?: 'Tienda');
             $groupName = $tienda . ' (T' . $tenantId . ')';
             $chatIds   = $usuarios
@@ -606,14 +603,14 @@ class Config extends Component
 
                 // Mensaje de bienvenida
                 $tiendaMsg = $config->nombre_tienda ?: 'MiSocio';
-                $msg = "\u{1F44B} *¡Hola, {$groupName}!*\n"
+                $msg = "👋 *¡Hola, {$groupName}!*\n"
                      . "A partir de ahora, las notificaciones de ventas de *{$tiendaMsg}* serán enviadas a este grupo.\n"
-                     . "Recibirás un mensaje por cada venta registrada. \u2705";
+                     . "Recibirás un mensaje por cada venta registrada. ✅";
                 try { $svc->sendMessage($groupChatId, $msg); } catch (\Throwable) {}
             } else {
                 $config->update(['greenapi_notif_ventas' => false]);
                 $this->greenapi_notif_ventas = false;
-                $this->toast('warning', 'No se pudo crear el grupo de WhatsApp. Verifica las credenciales.');
+                $this->toast('warning', 'No se pudo crear el grupo de WhatsApp. Verifica las credenciales de Green API.');
                 return;
             }
         }
