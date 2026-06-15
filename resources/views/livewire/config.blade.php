@@ -1334,6 +1334,17 @@
                         <h5 class="modal-title">
                             <i class="fab fa-whatsapp me-2"></i>Grupo de notificación de ventas
                         </h5>
+                        <div class="d-flex align-items-center gap-2 ms-auto me-2">
+                            <button type="button"
+                                wire:click="cargarGruposWhatsApp"
+                                class="btn btn-sm btn-outline-light py-0 px-2"
+                                title="Recargar grupos desde WhatsApp">
+                                <i class="fa-solid fa-rotate"
+                                   wire:loading.class="fa-spin"
+                                   wire:target="cargarGruposWhatsApp"></i>
+                                <span class="ms-1" style="font-size:0.78rem;">Recargar</span>
+                            </button>
+                        </div>
                         <button type="button" class="btn-close btn-close-white"
                             wire:click="cerrarModalGrupoVentas"></button>
                     </div>
@@ -1360,14 +1371,14 @@
                         </div>
 
                         {{-- Lista de grupos --}}
-                        <div wire:loading wire:target="abrirModalGrupoVentas">
+                        <div wire:loading wire:target="abrirModalGrupoVentas,cargarGruposWhatsApp">
                             <div class="d-flex align-items-center gap-2 text-muted py-3">
                                 <span class="spinner-border spinner-border-sm"></span>
                                 Cargando grupos...
                             </div>
                         </div>
 
-                        <div wire:loading.remove wire:target="abrirModalGrupoVentas">
+                        <div wire:loading.remove wire:target="abrirModalGrupoVentas,cargarGruposWhatsApp">
                             @if (empty($gruposWhatsApp))
                                 <div class="alert alert-warning py-2 small mb-0">
                                     <i class="fa-solid fa-triangle-exclamation me-1"></i>
