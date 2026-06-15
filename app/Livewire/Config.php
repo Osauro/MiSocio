@@ -73,15 +73,7 @@ class Config extends Component
     public $greenapi_notif_ventas;
     public $greenapi_group_ventas;
     public $greenapi_group_ventas_nombre;
-    public $gruposWhatsApp = [];
-    public $mostrarModalGrupoVentas = false;
     public $greenapi_notif_credito;
-
-    #[\Livewire\Attributes\Computed]
-    public function greenApiConfigurado(): bool
-    {
-        return !empty(config('greenapi.instance_id')) && !empty(config('greenapi.api_token'));
-    }
     public $greenapi_notif_pago_credito;
     public $greenapi_notif_prestamo;
     public $greenapi_notif_devolucion_prestamo;
@@ -546,26 +538,88 @@ class Config extends Component
         );
     }
 
+    #[\Livewire\Attributes\Computed]
+    public function greenApiConfigurado(): bool
+    {
+        return !empty(config('greenapi.instance_id')) && !empty(config('greenapi.api_token'));
+    }
+
     public function toggleNotifVentas(): void
     {
-        if ($this->greenapi_notif_ventas) {
-            // Se activó → guardar y abrir modal de grupo
-            $this->guardarWhatsApp();
-            $this->abrirModalGrupoVentas();
-        } else {
-            // Se desactivó → limpiar grupo y guardar
-            $this->greenapi_group_ventas        = null;
-            $this->greenapi_group_ventas_nombre = null;
+        $config   = TenantConfig::getOrCreateForTenant($this->getTenantId());
 
-            $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
-            $config->update([
-                'greenapi_notif_ventas'        => false,
-                'greenapi_group_ventas'        => null,
-                'greenapi_group_ventas_nombre' => null,
-            ]);
-
+        if (!$this->greenapi_notif_ventas) {
+            // OFF: solo desactivar, conservar datos del grupo
+            $config->update(['greenapi_notif_ventas' => false]);
             $this->toast('success', 'Notificaciones de ventas desactivadas');
+            return;
         }
+
+        // ON: verificar si el grupo existe, si no crearlo
+        $svc      = app(\App\Services\GreenApiService::class);
+        $tenantId = $this->getTenantId();
+        $prefijo  = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+
+        $usuarios = \App\Models\Tenant::findOrFail($tenantId)
+            ->users()
+            ->whereNotNull('celular')
+            ->where('celular', '!=', '')
+            ->get();
+
+        $groupChatId = $this->greenapi_group_ventas;
+        $needCreate  = true;
+
+        if ($groupChatId) {
+            $grupos   = $svc->getChats();
+            $existe   = collect($grupos)->contains('id', $groupChatId);
+
+            if ($existe) {
+                $needCreate = false;
+                // Agregar miembros por si hay nuevos
+                foreach ($usuarios as $u) {
+                    $svc->addGroupParticipant(
+                        $groupChatId,
+                        $prefijo . preg_replace('/\D/', '', $u->celular)
+                    );
+                }
+            }
+        }
+
+        if ($needCreate) {
+            $tienda    = $config->nombre_tienda ?: (currentTenant()?->name ?: 'Tienda');
+            $groupName = $tienda . ' (T' . $tenantId . ')';
+            $chatIds   = $usuarios
+                ->map(fn($u) => $prefijo . preg_replace('/\D/', '', $u->celular) . '@c.us')
+                ->unique()->values()->toArray();
+
+            $result = $svc->createGroup($groupName, $chatIds);
+
+            if ($result && !empty($result['chatId'])) {
+                $groupChatId = $result['chatId'];
+                $this->greenapi_group_ventas        = $groupChatId;
+                $this->greenapi_group_ventas_nombre = $groupName;
+
+                $config->update([
+                    'greenapi_group_ventas'        => $groupChatId,
+                    'greenapi_group_ventas_nombre' => $groupName,
+                ]);
+
+                // Mensaje de bienvenida
+                $tiendaMsg = $config->nombre_tienda ?: 'MiSocio';
+                $msg = "\u{1F44B} *¡Hola, {$groupName}!*\n"
+                     . "A partir de ahora, las notificaciones de ventas de *{$tiendaMsg}* serán enviadas a este grupo.\n"
+                     . "Recibirás un mensaje por cada venta registrada. \u2705";
+                try { $svc->sendMessage($groupChatId, $msg); } catch (\Throwable) {}
+            } else {
+                $config->update(['greenapi_notif_ventas' => false]);
+                $this->greenapi_notif_ventas = false;
+                $this->toast('warning', 'No se pudo crear el grupo de WhatsApp. Verifica las credenciales.');
+                return;
+            }
+        }
+
+        $config->update(['greenapi_notif_ventas' => true]);
+        $this->toast('success', 'Notificaciones de ventas activadas');
     }
 
     public function guardarWhatsApp()
@@ -581,80 +635,6 @@ class Config extends Component
         ]);
 
         $this->toast('success', 'Configuración guardada');
-    }
-
-    public function cargarGruposWhatsApp(): void
-    {
-        $this->gruposWhatsApp = app(\App\Services\GreenApiService::class)->getChats();
-
-        if (empty($this->gruposWhatsApp)) {
-            $this->toast('warning', 'No se encontraron grupos. Verifica las credenciales de Green API.');
-        }
-    }
-
-    public function abrirModalGrupoVentas(): void
-    {
-        $this->gruposWhatsApp = [];
-        $this->mostrarModalGrupoVentas = true;
-        $this->cargarGruposWhatsApp();
-    }
-
-    public function cerrarModalGrupoVentas(): void
-    {
-        $this->mostrarModalGrupoVentas = false;
-        $this->gruposWhatsApp = [];
-    }
-
-    public function seleccionarGrupoVentas(string $chatId): void
-    {
-        $grupo  = collect($this->gruposWhatsApp)->firstWhere('id', $chatId);
-        $nombre = $grupo['name'] ?? null;
-
-        $this->greenapi_group_ventas        = $chatId ?: null;
-        $this->greenapi_group_ventas_nombre = $chatId ? $nombre : null;
-
-        $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
-        $config->update([
-            'greenapi_group_ventas'        => $chatId ?: null,
-            'greenapi_group_ventas_nombre' => $chatId ? $nombre : null,
-        ]);
-
-        // Enviar mensaje de bienvenida al grupo seleccionado
-        if ($chatId) {
-            $tienda = $config->nombre_tienda ?: 'MiSocio';
-            $msg    = "👋 *¡Hola, {$nombre}!*\n"
-                    . "A partir de ahora, las notificaciones de ventas de *{$tienda}* serán enviadas a este grupo.\n"
-                    . "Recibirás un mensaje por cada venta registrada. ✅";
-
-            try {
-                $svc  = app(\App\Services\GreenApiService::class);
-                $sent = $svc->sendMessage($chatId, $msg);
-                if (!$sent) {
-                    \Illuminate\Support\Facades\Log::warning('GreenAPI: mensaje de bienvenida no enviado', [
-                        'chatId'     => $chatId,
-                        'instanceId' => config('greenapi.instance_id') ? '***' : '(vacío)',
-                        'apiToken'   => config('greenapi.api_token')   ? '***' : '(vacío)',
-                    ]);
-                }
-            } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('GreenAPI: error al enviar bienvenida', [
-                    'chatId' => $chatId,
-                    'error'  => $e->getMessage(),
-                ]);
-            }
-        }
-
-        $this->mostrarModalGrupoVentas = false;
-        $this->gruposWhatsApp = [];
-
-        $this->toast('success', $chatId
-            ? "Grupo «{$nombre}» seleccionado"
-            : 'Notificaciones al propietario (sin grupo)');
-    }
-
-    public function limpiarGrupoVentas(): void
-    {
-        $this->seleccionarGrupoVentas('');
     }
 
     public function guardarFacebook()
