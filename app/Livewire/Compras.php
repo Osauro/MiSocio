@@ -6,6 +6,7 @@ use App\Models\Compra;
 use App\Models\Producto;
 use App\Models\Movimiento;
 use App\Models\Kardex;
+use App\Models\TenantConfig;
 use App\Traits\RequiresTenant;
 use App\Traits\SweetAlertTrait;
 use Livewire\Attributes\On;
@@ -477,6 +478,29 @@ class Compras extends Component
             $compra->save();
 
             DB::commit();
+
+            // Notificación WhatsApp al grupo/propietario
+            try {
+                $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_notif_ventas)) {
+                    $compra->loadMissing(['proveedor', 'user']);
+                    $cajero    = optional($compra->user)->name ?? '-';
+                    $proveedor = optional($compra->proveedor)->nombre ?? '-';
+                    $tienda    = $config->nombre_tienda ?: 'Tu tienda';
+                    $dest      = app(\App\Services\GreenApiService::class)->groupPhone($config);
+                    if ($dest) {
+                        $greenApi = app(\App\Services\GreenApiService::class);
+                        $saldo    = $greenApi->getSaldoCajaLine($config->tenant_id);
+                        $msg = "🚫 *Compra cancelada - {$tienda}*\n"
+                             . "Folio: #{$compra->numero_folio}\n"
+                             . "Total: Bs. " . number_format($totalCompra, 2) . "\n"
+                             . "Proveedor: {$proveedor}\n"
+                             . "Cajero: {$cajero}"
+                             . $saldo;
+                        $greenApi->sendMessage($dest, $msg);
+                    }
+                }
+            } catch (\Throwable) {}
 
             // 5. Mostrar resumen
             $this->resumenEliminacion = [

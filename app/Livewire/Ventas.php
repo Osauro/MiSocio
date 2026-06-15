@@ -509,6 +509,27 @@ class Ventas extends Component
 
             DB::commit();
 
+            // Notificación WhatsApp al grupo/propietario
+            try {
+                $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_notif_ventas)) {
+                    $venta->loadMissing('user');
+                    $cajero = optional($venta->user)->name ?? '-';
+                    $tienda = $config->nombre_tienda ?: 'Tu tienda';
+                    $dest   = app(\App\Services\GreenApiService::class)->groupPhone($config);
+                    if ($dest) {
+                        $greenApi = app(\App\Services\GreenApiService::class);
+                        $saldo    = $greenApi->getSaldoCajaLine($config->tenant_id);
+                        $msg = "🚫 *Venta cancelada - {$tienda}*\n"
+                             . "Folio: #{$venta->numero_folio}\n"
+                             . "Total: Bs. " . number_format($totalVenta, 2) . "\n"
+                             . "Cajero: {$cajero}"
+                             . $saldo;
+                        $greenApi->sendMessage($dest, $msg);
+                    }
+                }
+            } catch (\Throwable) {}
+
             // Mostrar resumen
             $this->resumenEliminacion = [
                 'venta_id' => $ventaId,

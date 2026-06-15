@@ -842,6 +842,17 @@ class Compra extends Component
 
             $this->toast('success', 'Compra completada exitosamente');
 
+            // Notificación WhatsApp al grupo/propietario
+            try {
+                $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_notif_ventas)) {
+                    $compraNotif = CompraModel::with(['compraItems', 'proveedor', 'user'])->find($this->compra->id);
+                    if ($compraNotif) {
+                        app(\App\Services\GreenApiService::class)->notifyCompra($compraNotif, $config);
+                    }
+                }
+            } catch (\Throwable) {}
+
             // Redirigir a la lista de compras
             return redirect()->route('compras');
         } catch (\Exception $e) {

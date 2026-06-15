@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Membresia;
+use App\Models\Movimiento;
 use App\Models\Tenant;
 use App\Models\TenantConfig;
 use App\Models\User;
@@ -411,6 +412,8 @@ class GreenApiService
         $cajero  = optional($venta->user)->name ?? '-';
         $cliente = optional($venta->cliente)->nombre;
 
+        $saldo = $this->getSaldoCajaLine($config->tenant_id);
+
         $msg = "🛒 *Nueva venta - {$tienda}*\n"
             . "Folio: #{$venta->numero_folio}\n"
             . "Total: Bs. " . number_format($total, 2) . "\n"
@@ -419,6 +422,8 @@ class GreenApiService
         if ($cliente) {
             $msg .= "\nCliente: {$cliente}";
         }
+
+        $msg .= $saldo;
 
         $this->sendMessage($phone, $msg);
     }
@@ -704,7 +709,24 @@ class GreenApiService
             . $ubicacion . "\n\n"
             . "Por favor devuelve los artículos antes de la fecha de vencimiento. ¡Gracias!";
 
-        return $this->sendMessage($phone, $mensaje);
+        // Notificar al cliente
+        $this->sendMessage($phone, $mensaje);
+
+        // Notificar también al grupo/propietario
+        $dest = $this->groupPhone($config);
+        if ($dest && $dest !== $phone) {
+            $cajero  = optional($prestamo->user)->name ?? '-';
+            $msgGrupo = "📦 *Nuevo préstamo - {$tienda}*\n"
+                . "Folio: #{$prestamo->numero_folio}\n"
+                . "Cliente: {$cliente->nombre}\n"
+                . "Garantía: Bs. " . number_format($prestamo->total, 2) . "\n"
+                . "Vence: {$vencimiento}\n"
+                . "Registró: {$cajero}"
+                . $this->getSaldoCajaLine($config->tenant_id);
+            $this->sendMessage($dest, $msgGrupo);
+        }
+
+        return true;
     }
 
     /**
@@ -726,7 +748,23 @@ class GreenApiService
             . "*Depósito devuelto:* Bs. " . number_format($prestamo->total, 2) . "\n\n"
             . "¡Gracias por tu puntualidad! Vuelve cuando necesites. 😊";
 
-        return $this->sendMessage($phone, $mensaje);
+        // Notificar al cliente
+        $this->sendMessage($phone, $mensaje);
+
+        // Notificar también al grupo/propietario
+        $dest = $this->groupPhone($config);
+        if ($dest && $dest !== $phone) {
+            $cajero   = optional($prestamo->user)->name ?? '-';
+            $msgGrupo = "✅ *Devolución de préstamo - {$tienda}*\n"
+                . "Folio: #{$prestamo->numero_folio}\n"
+                . "Cliente: {$cliente->nombre}\n"
+                . "Depósito devuelto: Bs. " . number_format($prestamo->total, 2) . "\n"
+                . "Registró: {$cajero}"
+                . $this->getSaldoCajaLine($config->tenant_id);
+            $this->sendMessage($dest, $msgGrupo);
+        }
+
+        return true;
     }
 
     /**
@@ -771,5 +809,89 @@ class GreenApiService
         }
 
         return $this->sendMessage($phone, $mensaje);
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * Devuelve una línea con el saldo actual en caja del tenant.
+     * Ej: "\n💰 Saldo en caja: Bs. 1,250.00"
+     */
+    public function getSaldoCajaLine(int $tenantId): string
+    {
+        try {
+            $ultimo = Movimiento::withoutGlobalScopes()
+                ->where('tenant_id', $tenantId)
+                ->orderByDesc('id')
+                ->value('saldo');
+            if ($ultimo === null) return '';
+            return "\n💰 Saldo en caja: *Bs. " . number_format((float) $ultimo, 2) . "*";
+        } catch (\Throwable) {
+            return '';
+        }
+    }
+
+    /**
+     * Devuelve el chatId/phone al que enviar notificaciones del tenant.
+     * Prioridad: grupo configurado > celular del propietario.
+     */
+    public function groupPhone(TenantConfig $config): ?string
+    {
+        if (!empty($config->greenapi_group_ventas) && !empty($config->greenapi_notif_ventas)) {
+            return $config->greenapi_group_ventas;
+        }
+        if (!empty($config->propietario_celular)) {
+            $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+            $numero  = preg_replace('/\D/', '', $config->propietario_celular);
+            return $prefijo . $numero;
+        }
+        return null;
+    }
+
+    /**
+     * Notifica al grupo/propietario cuando se registra una compra.
+     */
+    public function notifyCompra(\App\Models\Compra $compra, TenantConfig $config): bool
+    {
+        $dest = $this->groupPhone($config);
+        if (!$dest) return false;
+
+        $tienda    = $config->nombre_tienda ?: 'Tu tienda';
+        $cajero    = optional($compra->user)->name ?? '-';
+        $proveedor = optional($compra->proveedor)->nombre ?? optional($compra->cliente)->nombre ?? '-';
+        $total     = (float) ($compra->total ?? 0);
+        $items     = $compra->compraItems ?? collect();
+        $nItems    = $items->count();
+
+        $msg = "📦 *Nueva compra - {$tienda}*\n"
+             . "Folio: #{$compra->numero_folio}\n"
+             . "Total: Bs. " . number_format($total, 2) . "\n"
+             . "Proveedor: {$proveedor}\n"
+             . "Artículos: {$nItems}\n"
+             . "Registró: {$cajero}"
+             . $this->getSaldoCajaLine($config->tenant_id);
+
+        return $this->sendMessage($dest, $msg);
+    }
+
+    /**
+     * Notifica al grupo/propietario cuando se finaliza un inventario físico.
+     */
+    public function notifyInventario(\App\Models\Inventario $inventario, TenantConfig $config, int $ajustes): bool
+    {
+        $dest = $this->groupPhone($config);
+        if (!$dest) return false;
+
+        $tienda = $config->nombre_tienda ?: 'Tu tienda';
+        $user   = optional($inventario->user)->name ?? '-';
+
+        $msg = "📋 *Inventario finalizado - {$tienda}*\n"
+             . "Folio: #{$inventario->numero_folio}\n"
+             . "Productos ajustados: {$ajustes}\n"
+             . "Registró: {$user}\n"
+             . "Fecha: " . now()->format('d/m/Y H:i')
+             . $this->getSaldoCajaLine($config->tenant_id);
+
+        return $this->sendMessage($dest, $msg);
     }
 }

@@ -272,6 +272,23 @@ class Inventario extends Component
             });
 
             $this->toast('success', 'Inventario finalizado correctamente');
+
+            // Notificación WhatsApp al grupo/propietario
+            try {
+                $config = \App\Models\TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_notif_ventas)) {
+                    $inventarioNotif = InventarioModel::withoutGlobalScopes()
+                        ->with('user')
+                        ->find($this->inventarioId);
+                    if ($inventarioNotif) {
+                        $ajustes = collect($this->items)
+                            ->filter(fn($i) => $i['stock_contado'] !== $i['stock_sistema'])
+                            ->count();
+                        app(\App\Services\GreenApiService::class)->notifyInventario($inventarioNotif, $config, $ajustes);
+                    }
+                }
+            } catch (\Throwable) {}
+
             return redirect()->route('inventarios');
         } catch (\Exception $e) {
             Log::error('Error al finalizar inventario', ['error' => $e->getMessage()]);
