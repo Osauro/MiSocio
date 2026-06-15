@@ -193,10 +193,19 @@ class Usuarios extends Component
                     'is_active' => true,
                 ]);
 
-                // Enviar credenciales por WhatsApp
+                // Enviar credenciales por WhatsApp y agregar al grupo si está configurado
                 try {
                     $config = TenantConfig::getOrCreateForTenant(currentTenantId());
-                    app(GreenApiService::class)->notifyNuevoUsuario($user, $pin, $config);
+                    $greenApi = app(GreenApiService::class);
+                    $greenApi->notifyNuevoUsuario($user, $pin, $config);
+
+                    if (!empty($config->greenapi_group_ventas) && !empty($user->celular)) {
+                        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+                        $greenApi->addGroupParticipant(
+                            $config->greenapi_group_ventas,
+                            $prefijo . preg_replace('/\D/', '', $user->celular)
+                        );
+                    }
                 } catch (\Throwable) {}
 
                 $this->toast('success', 'Usuario creado y credenciales enviadas por WhatsApp.');
@@ -218,6 +227,18 @@ class Usuarios extends Component
                 'role' => $this->role ?: 'user',
                 'is_active' => true,
             ]);
+
+            // Agregar al grupo de WhatsApp si está configurado
+            try {
+                $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_group_ventas) && !empty($usuario->celular)) {
+                    $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+                    app(GreenApiService::class)->addGroupParticipant(
+                        $config->greenapi_group_ventas,
+                        $prefijo . preg_replace('/\D/', '', $usuario->celular)
+                    );
+                }
+            } catch (\Throwable) {}
 
             $this->toast('success', "Usuario {$usuario->name} asociado exitosamente.");
             $this->resetPage();
@@ -270,6 +291,19 @@ class Usuarios extends Component
     {
         try {
             $usuario = User::findOrFail($id);
+
+            // Quitar del grupo de WhatsApp si está configurado
+            try {
+                $config = TenantConfig::getOrCreateForTenant(currentTenantId());
+                if (!empty($config->greenapi_group_ventas) && !empty($usuario->celular)) {
+                    $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+                    app(GreenApiService::class)->removeGroupParticipant(
+                        $config->greenapi_group_ventas,
+                        $prefijo . preg_replace('/\D/', '', $usuario->celular)
+                    );
+                }
+            } catch (\Throwable) {}
+
             $usuario->delete();
 
             $this->toast('success', 'Usuario eliminado exitosamente.');

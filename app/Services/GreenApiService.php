@@ -137,6 +137,132 @@ class GreenApiService
         }
     }
 
+    /**
+     * Elimina un participante de un grupo de WhatsApp.
+     *
+     * @param  string  $groupChatId  chatId del grupo (ej. 120363@g.us)
+     * @param  string  $phone        Número con prefijo (ej. 59173010688)
+     */
+    public function removeGroupParticipant(string $groupChatId, string $phone): bool
+    {
+        if (empty($this->instanceId) || empty($this->apiToken)) {
+            return false;
+        }
+
+        $participantChatId = $this->resolveChatId($phone);
+        $url = "{$this->baseUrl}/waInstance{$this->instanceId}/removeGroupParticipant/{$this->apiToken}";
+
+        try {
+            $response = $this->http()->timeout(15)->post($url, [
+                'groupId'           => $groupChatId,
+                'participantChatId' => $participantChatId,
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning('GreenAPI: removeGroupParticipant falló', [
+                    'group'       => $groupChatId,
+                    'participant' => $participantChatId,
+                    'status'      => $response->status(),
+                    'body'        => $response->body(),
+                ]);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('GreenAPI: error al eliminar participante', [
+                'group' => $groupChatId,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Agrega un participante a un grupo de WhatsApp.
+     *
+     * @param  string  $groupChatId  chatId del grupo (ej. 120363@g.us)
+     * @param  string  $phone        Número con prefijo (ej. 59173010688)
+     */
+    public function addGroupParticipant(string $groupChatId, string $phone): bool
+    {
+        if (empty($this->instanceId) || empty($this->apiToken)) {
+            return false;
+        }
+
+        $participantChatId = $this->resolveChatId($phone);
+        $url = "{$this->baseUrl}/waInstance{$this->instanceId}/addGroupParticipant/{$this->apiToken}";
+
+        try {
+            $response = $this->http()->timeout(15)->post($url, [
+                'groupId'          => $groupChatId,
+                'participantChatId'=> $participantChatId,
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning('GreenAPI: addGroupParticipant falló', [
+                    'group'       => $groupChatId,
+                    'participant' => $participantChatId,
+                    'status'      => $response->status(),
+                    'body'        => $response->body(),
+                ]);
+                return false;
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            Log::error('GreenAPI: error al agregar participante', [
+                'group' => $groupChatId,
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Crea un grupo de WhatsApp con los chatIds indicados.
+     *
+     * @param  string   $groupName  Nombre del grupo
+     * @param  string[] $chatIds    Array de chatIds (ej. ["59173010688@c.us"])
+     * @return array{chatId:string,inviteLink:string}|null
+     */
+    public function createGroup(string $groupName, array $chatIds): ?array
+    {
+        if (empty($this->instanceId) || empty($this->apiToken)) {
+            return null;
+        }
+
+        $url = "{$this->baseUrl}/waInstance{$this->instanceId}/createGroup/{$this->apiToken}";
+
+        try {
+            $response = $this->http()->timeout(20)->post($url, [
+                'groupName' => $groupName,
+                'chatIds'   => array_values($chatIds),
+            ]);
+
+            if (!$response->successful()) {
+                Log::warning('GreenAPI: createGroup falló', [
+                    'groupName' => $groupName,
+                    'status'    => $response->status(),
+                    'body'      => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+            return [
+                'chatId'     => (string) ($data['chatId'] ?? ''),
+                'inviteLink' => (string) ($data['inviteLink'] ?? ''),
+            ];
+        } catch (\Throwable $e) {
+            Log::error('GreenAPI: error al crear grupo', [
+                'groupName' => $groupName,
+                'error'     => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
     // ── Landlord notifications ───────────────────────────────────────────────
 
     /**
