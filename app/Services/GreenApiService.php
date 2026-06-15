@@ -33,11 +33,24 @@ class GreenApiService
      * @param  string  $phone   Phone number completo con código de país (e.g. 59173010688)
      * @param  string  $message
      */
+    /**
+     * Resuelve un chatId válido para Green API.
+     * Acepta un número de teléfono ("59173010688") o un chatId completo ("120363@g.us").
+     */
+    private function resolveChatId(string $phoneOrChatId): string
+    {
+        if (str_contains($phoneOrChatId, '@')) {
+            return $phoneOrChatId;
+        }
+        return preg_replace('/\D/', '', $phoneOrChatId) . '@c.us';
+    }
+
     public function sendMessage(string $phone, string $message): bool
     {
-        $phone = preg_replace('/\D/', '', $phone);
+        $chatId = $this->resolveChatId($phone);
+        $bare   = str_replace(['@c.us', '@g.us'], '', $chatId);
 
-        if (empty($this->instanceId) || empty($this->apiToken) || empty($phone)) {
+        if (empty($this->instanceId) || empty($this->apiToken) || empty($bare)) {
             return false;
         }
 
@@ -45,13 +58,13 @@ class GreenApiService
 
         try {
             $response = Http::timeout(10)->post($url, [
-                'chatId'  => "{$phone}@c.us",
+                'chatId'  => $chatId,
                 'message' => $message,
             ]);
 
             if (!$response->successful()) {
                 Log::warning('GreenAPI: mensaje no enviado', [
-                    'phone'  => $phone,
+                    'chatId' => $chatId,
                     'status' => $response->status(),
                     'body'   => $response->body(),
                 ]);
@@ -61,10 +74,54 @@ class GreenApiService
             return true;
         } catch (\Throwable $e) {
             Log::error('GreenAPI: error al enviar mensaje', [
-                'phone'   => $phone,
-                'error'   => $e->getMessage(),
+                'chatId' => $chatId,
+                'error'  => $e->getMessage(),
             ]);
             return false;
+        }
+    }
+
+    /**
+     * Obtiene los grupos de WhatsApp a los que pertenece la instancia.
+     * Llama a getChats y filtra los que terminan en @g.us.
+     *
+     * @return array<int, array{id: string, name: string}>
+     */
+    public function getChats(): array
+    {
+        if (empty($this->instanceId) || empty($this->apiToken)) {
+            return [];
+        }
+
+        $url = "{$this->baseUrl}/waInstance{$this->instanceId}/getChats/{$this->apiToken}";
+
+        try {
+            $response = Http::timeout(15)->get($url);
+
+            if (!$response->successful()) {
+                Log::warning('GreenAPI: getChats falló', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return [];
+            }
+
+            $chats = $response->json();
+            if (!is_array($chats)) {
+                return [];
+            }
+
+            return collect($chats)
+                ->filter(fn($c) => str_ends_with((string) ($c['id'] ?? ''), '@g.us'))
+                ->map(fn($c) => [
+                    'id'   => (string) $c['id'],
+                    'name' => (string) ($c['name'] ?? $c['id']),
+                ])
+                ->values()
+                ->toArray();
+        } catch (\Throwable $e) {
+            Log::error('GreenAPI: error al obtener chats', ['error' => $e->getMessage()]);
+            return [];
         }
     }
 
@@ -174,11 +231,16 @@ class GreenApiService
      */
     public function notifyVenta(Venta $venta, TenantConfig $config): void
     {
-        if (empty($config->propietario_celular)) return;
-
-        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
-        $numero  = preg_replace('/\D/', '', $config->propietario_celular);
-        $phone   = $prefijo . $numero;
+        // Usar grupo configurado o caer al celular del propietario
+        if (!empty($config->greenapi_group_ventas)) {
+            $phone = $config->greenapi_group_ventas; // chatId del grupo (ej. 120363@g.us)
+        } elseif (!empty($config->propietario_celular)) {
+            $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+            $numero  = preg_replace('/\D/', '', $config->propietario_celular);
+            $phone   = $prefijo . $numero;
+        } else {
+            return;
+        }
 
         $total   = (float) ($venta->efectivo ?? 0)
                  + (float) ($venta->online   ?? 0)
@@ -312,9 +374,10 @@ class GreenApiService
      */
     public function sendFileByUpload(string $phone, string $filePath, string $fileName, string $caption = ''): bool
     {
-        $phone = preg_replace('/\D/', '', $phone);
+        $chatId = $this->resolveChatId($phone);
+        $bare   = str_replace(['@c.us', '@g.us'], '', $chatId);
 
-        if (empty($this->instanceId) || empty($this->apiToken) || empty($phone)) {
+        if (empty($this->instanceId) || empty($this->apiToken) || empty($bare)) {
             return false;
         }
 
@@ -327,13 +390,13 @@ class GreenApiService
                 $fileName,
                 ['Content-Type' => 'image/png']
             )->post($url, [
-                'chatId'  => "{$phone}@c.us",
+                'chatId'  => $chatId,
                 'caption' => mb_substr($caption, 0, 1024),
             ]);
 
             if (!$response->successful()) {
                 Log::warning('GreenAPI: archivo no enviado', [
-                    'phone'  => $phone,
+                    'chatId' => $chatId,
                     'file'   => $fileName,
                     'status' => $response->status(),
                     'body'   => $response->body(),
@@ -344,8 +407,8 @@ class GreenApiService
             return true;
         } catch (\Throwable $e) {
             Log::error('GreenAPI: error al enviar archivo', [
-                'phone' => $phone,
-                'error' => $e->getMessage(),
+                'chatId' => $chatId,
+                'error'  => $e->getMessage(),
             ]);
             return false;
         }
@@ -357,11 +420,16 @@ class GreenApiService
      */
     public function sendVentaImagen(Venta $venta, TenantConfig $config): bool
     {
-        if (empty($config->propietario_celular)) return false;
-
-        $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
-        $numero  = preg_replace('/\D/', '', $config->propietario_celular);
-        $phone   = $prefijo . $numero;
+        // Usar grupo configurado o caer al celular del propietario
+        if (!empty($config->greenapi_group_ventas)) {
+            $phone = $config->greenapi_group_ventas;
+        } elseif (!empty($config->propietario_celular)) {
+            $prefijo = preg_replace('/\D/', '', $config->propietario_celular_prefijo ?? '591');
+            $numero  = preg_replace('/\D/', '', $config->propietario_celular);
+            $phone   = $prefijo . $numero;
+        } else {
+            return false;
+        }
 
         $venta->loadMissing(['ventaItems.producto', 'cliente', 'user']);
 

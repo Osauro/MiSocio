@@ -53,6 +53,8 @@ class TenantConfig extends Model
         'whatsapp_enabled',
         // Green API (WhatsApp)
         'greenapi_notif_ventas',
+        'greenapi_group_ventas',
+        'greenapi_group_ventas_nombre',
         'greenapi_notif_credito',
         'greenapi_notif_pago_credito',
         'greenapi_notif_prestamo',
@@ -97,6 +99,8 @@ class TenantConfig extends Model
         'mostrar_logo' => 'boolean',
         'whatsapp_enabled' => 'boolean',
         'greenapi_notif_ventas' => 'boolean',
+        'greenapi_group_ventas' => 'string',
+        'greenapi_group_ventas_nombre' => 'string',
         'greenapi_notif_credito' => 'boolean',
         'greenapi_notif_pago_credito' => 'boolean',
         'greenapi_notif_prestamo' => 'boolean',

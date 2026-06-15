@@ -71,7 +71,17 @@ class Config extends Component
 
     // Green API
     public $greenapi_notif_ventas;
+    public $greenapi_group_ventas;
+    public $greenapi_group_ventas_nombre;
+    public $gruposWhatsApp = [];
+    public $mostrarModalGrupoVentas = false;
     public $greenapi_notif_credito;
+
+    #[\Livewire\Attributes\Computed]
+    public function greenApiConfigurado(): bool
+    {
+        return !empty(config('greenapi.instance_id')) && !empty(config('greenapi.api_token'));
+    }
     public $greenapi_notif_pago_credito;
     public $greenapi_notif_prestamo;
     public $greenapi_notif_devolucion_prestamo;
@@ -216,6 +226,8 @@ class Config extends Component
         $this->latitud  = $config->latitud;
         $this->longitud = $config->longitud;
         $this->greenapi_notif_ventas = $config->greenapi_notif_ventas ?? false;
+        $this->greenapi_group_ventas = $config->greenapi_group_ventas;
+        $this->greenapi_group_ventas_nombre = $config->greenapi_group_ventas_nombre;
         $this->greenapi_notif_credito = $config->greenapi_notif_credito ?? false;
         $this->greenapi_notif_pago_credito = $config->greenapi_notif_pago_credito ?? false;
         $this->greenapi_notif_prestamo = $config->greenapi_notif_prestamo ?? false;
@@ -534,6 +546,15 @@ class Config extends Component
         );
     }
 
+    public function toggleNotifVentas(): void
+    {
+        $this->guardarWhatsApp();
+
+        if ($this->greenapi_notif_ventas) {
+            $this->abrirModalGrupoVentas();
+        }
+    }
+
     public function guardarWhatsApp()
     {
         $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
@@ -547,6 +568,55 @@ class Config extends Component
         ]);
 
         $this->toast('success', 'Configuración guardada');
+    }
+
+    public function cargarGruposWhatsApp(): void
+    {
+        $this->gruposWhatsApp = app(\App\Services\GreenApiService::class)->getChats();
+
+        if (empty($this->gruposWhatsApp)) {
+            $this->toast('warning', 'No se encontraron grupos. Verifica las credenciales de Green API.');
+        }
+    }
+
+    public function abrirModalGrupoVentas(): void
+    {
+        $this->gruposWhatsApp = [];
+        $this->mostrarModalGrupoVentas = true;
+        $this->cargarGruposWhatsApp();
+    }
+
+    public function cerrarModalGrupoVentas(): void
+    {
+        $this->mostrarModalGrupoVentas = false;
+        $this->gruposWhatsApp = [];
+    }
+
+    public function seleccionarGrupoVentas(string $chatId): void
+    {
+        $grupo  = collect($this->gruposWhatsApp)->firstWhere('id', $chatId);
+        $nombre = $grupo['name'] ?? null;
+
+        $this->greenapi_group_ventas        = $chatId ?: null;
+        $this->greenapi_group_ventas_nombre = $chatId ? $nombre : null;
+
+        $config = TenantConfig::getOrCreateForTenant($this->getTenantId());
+        $config->update([
+            'greenapi_group_ventas'        => $chatId ?: null,
+            'greenapi_group_ventas_nombre' => $chatId ? $nombre : null,
+        ]);
+
+        $this->mostrarModalGrupoVentas = false;
+        $this->gruposWhatsApp = [];
+
+        $this->toast('success', $chatId
+            ? "«Rol guardado» Grupo «{$nombre}» seleccionado"
+            : 'Notificaciones al propietario (sin grupo)');
+    }
+
+    public function limpiarGrupoVentas(): void
+    {
+        $this->seleccionarGrupoVentas('');
     }
 
     public function guardarFacebook()

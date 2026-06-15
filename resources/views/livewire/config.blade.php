@@ -716,6 +716,18 @@
                             @if ($activeTab === 'whatsapp')
                                 <div class="tab-pane fade show active">
 
+                                    {{-- Aviso si no hay credenciales de Green API --}}
+                                    @if (!$this->greenApiConfigurado)
+                                        <div class="alert alert-warning d-flex align-items-center gap-2 mb-3 py-2">
+                                            <i class="fab fa-whatsapp fs-5"></i>
+                                            <div class="small">
+                                                Las credenciales de <strong>Green API</strong> no están configuradas en el servidor.
+                                                Las notificaciones de WhatsApp no estarán disponibles hasta configurar
+                                                <code>GREENAPI_INSTANCE_ID</code> y <code>GREENAPI_API_TOKEN</code> en el archivo <code>.env</code>.
+                                            </div>
+                                        </div>
+                                    @endif
+
                                     {{-- Etiqueta de sección Ventas --}}
                                     <p class="text-uppercase fw-bold text-muted small mb-2 mt-1">
                                         <i class="fa-solid fa-cart-shopping me-1"></i>Ventas
@@ -731,12 +743,13 @@
                                                 <div class="fs-2 mb-2 {{ $greenapi_notif_ventas ? 'text-white' : 'text-secondary' }}">
                                                     <i class="fa-solid fa-receipt"></i>
                                                 </div>
-                                                <div class="fw-semibold small lh-sm mb-2">Notificar ventas al propietario</div>
+                                                <div class="fw-semibold small lh-sm mb-2">Notificar ventas</div>
                                                 <div class="form-check form-switch d-flex justify-content-center mb-0">
                                                     <input class="form-check-input" type="checkbox"
                                                         wire:model="greenapi_notif_ventas"
-                                                        wire:change="guardarWhatsApp"
+                                                        wire:change="toggleNotifVentas"
                                                         id="greenApiNotifVentas"
+                                                        {{ !$this->greenApiConfigurado ? 'disabled' : '' }}
                                                         style="width:2.5rem;height:1.3rem;">
                                                 </div>
                                             </label>
@@ -757,6 +770,7 @@
                                                         wire:model="greenapi_notif_credito"
                                                         wire:change="guardarWhatsApp"
                                                         id="greenApiNotifCredito"
+                                                        {{ !$this->greenApiConfigurado ? 'disabled' : '' }}
                                                         style="width:2.5rem;height:1.3rem;">
                                                 </div>
                                             </label>
@@ -777,6 +791,7 @@
                                                         wire:model="greenapi_notif_pago_credito"
                                                         wire:change="guardarWhatsApp"
                                                         id="greenApiNotifPagoCredito"
+                                                        {{ !$this->greenApiConfigurado ? 'disabled' : '' }}
                                                         style="width:2.5rem;height:1.3rem;">
                                                 </div>
                                             </label>
@@ -805,6 +820,7 @@
                                                         wire:model="greenapi_notif_prestamo"
                                                         wire:change="guardarWhatsApp"
                                                         id="greenApiNotifPrestamo"
+                                                        {{ !$this->greenApiConfigurado ? 'disabled' : '' }}
                                                         style="width:2.5rem;height:1.3rem;">
                                                 </div>
                                             </label>
@@ -825,6 +841,7 @@
                                                         wire:model="greenapi_notif_devolucion_prestamo"
                                                         wire:change="guardarWhatsApp"
                                                         id="greenApiNotifDevolucionPrestamo"
+                                                        {{ !$this->greenApiConfigurado ? 'disabled' : '' }}
                                                         style="width:2.5rem;height:1.3rem;">
                                                 </div>
                                             </label>
@@ -846,6 +863,7 @@
                                                         wire:model="greenapi_notif_vencimiento_prestamo"
                                                         wire:change="guardarWhatsApp"
                                                         id="greenApiNotifVencimientoPrestamo"
+                                                        {{ !$this->greenApiConfigurado ? 'disabled' : '' }}
                                                         style="width:2.5rem;height:1.3rem;">
                                                 </div>
                                             </label>
@@ -1303,4 +1321,98 @@
             });
         </script>
     @endscript
+
+    {{-- Modal: Elegir grupo de WhatsApp para notificaciones de ventas --}}
+    @if ($mostrarModalGrupoVentas)
+        <div class="modal fade show d-block" tabindex="-1" role="dialog"
+             style="background:rgba(0,0,0,.5);"
+             wire:keydown.escape="cerrarModalGrupoVentas">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title">
+                            <i class="fab fa-whatsapp me-2"></i>Grupo de notificación de ventas
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white"
+                            wire:click="cerrarModalGrupoVentas"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        {{-- Estado actual --}}
+                        <div class="mb-3">
+                            <span class="text-muted small">Destino actual:</span>
+                            @if ($greenapi_group_ventas)
+                                <span class="badge bg-success ms-1">
+                                    <i class="fa-solid fa-users me-1"></i>{{ $greenapi_group_ventas_nombre ?? $greenapi_group_ventas }}
+                                </span>
+                                <button wire:click="limpiarGrupoVentas"
+                                    class="btn btn-sm btn-link text-danger p-0 ms-1"
+                                    title="Quitar grupo y usar número del propietario">
+                                    <i class="fa-solid fa-xmark"></i> Quitar
+                                </button>
+                            @else
+                                <span class="badge bg-secondary ms-1">
+                                    <i class="fa-solid fa-user me-1"></i>Propietario (número configurado)
+                                </span>
+                            @endif
+                        </div>
+
+                        {{-- Lista de grupos --}}
+                        <div wire:loading wire:target="abrirModalGrupoVentas">
+                            <div class="d-flex align-items-center gap-2 text-muted py-3">
+                                <span class="spinner-border spinner-border-sm"></span>
+                                Cargando grupos...
+                            </div>
+                        </div>
+
+                        <div wire:loading.remove wire:target="abrirModalGrupoVentas">
+                            @if (empty($gruposWhatsApp))
+                                <div class="alert alert-warning py-2 small mb-0">
+                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                    No se encontraron grupos. Verifica que las credenciales de Green API estén configuradas y que el número sea miembro de al menos un grupo.
+                                </div>
+                            @else
+                                <p class="small text-muted mb-2">
+                                    Selecciona el grupo al que se enviarán las notificaciones de ventas.
+                                    El bot debe ser miembro del grupo.
+                                </p>
+                                <div class="list-group">
+                                    <button type="button"
+                                        wire:click="seleccionarGrupoVentas('')"
+                                        class="list-group-item list-group-item-action d-flex align-items-center gap-2 {{ !$greenapi_group_ventas ? 'active' : '' }}">
+                                        <i class="fa-solid fa-user"></i>
+                                        <span>Propietario (número configurado)</span>
+                                        @if (!$greenapi_group_ventas)
+                                            <i class="fa-solid fa-check ms-auto"></i>
+                                        @endif
+                                    </button>
+                                    @foreach ($gruposWhatsApp as $grupo)
+                                        <button type="button"
+                                            wire:click="seleccionarGrupoVentas('{{ $grupo['id'] }}')"
+                                            class="list-group-item list-group-item-action d-flex align-items-center gap-2 {{ $greenapi_group_ventas === $grupo['id'] ? 'active' : '' }}">
+                                            <i class="fa-solid fa-users"></i>
+                                            <span>{{ $grupo['name'] }}</span>
+                                            @if ($greenapi_group_ventas === $grupo['id'])
+                                                <i class="fa-solid fa-check ms-auto"></i>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm"
+                            wire:click="cerrarModalGrupoVentas">Cerrar</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
